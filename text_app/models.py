@@ -162,7 +162,7 @@ class TblTag(models.Model):
 
     tag_text = models.TextField()
     tag_text_russian = models.TextField()
-    tag_color = models.TextField(default="gray")
+    tag_color = models.CharField(max_length=7, default="gray")
     
     markup_type = models.ForeignKey(TblMarkupType, on_delete=models.CASCADE)
     tag_parent = models.ForeignKey('self', on_delete=models.CASCADE)
@@ -177,7 +177,7 @@ class TblGrade(models.Model):
         
     id_markup_type = models.AutoField(primary_key=True)
 
-    grade_name = models.TextField()
+    grade_name = models.CharField(max_length=255)
     grade_language = models.ForeignKey(TblLanguage, on_delete=models.SET_NULL, blank=True, null=True)
 
     
@@ -190,7 +190,7 @@ class TblReason(models.Model):
         
     id_markup_type = models.AutoField(primary_key=True)
 
-    reason_name = models.TextField()
+    reason_name = models.CharField(max_length=255)
     reason_language = models.ForeignKey(TblLanguage, blank=True, null=True, on_delete=models.SET_NULL)
 
     
