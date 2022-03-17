@@ -21,7 +21,7 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=128, blank=True, null=True)
     last_name = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
-    patronymic = models.CharField(max_length=100)
+    patronymic = models.CharField(max_length=100, blank=True, null=True)
     
     # For admin
     # is_staff = models.BooleanField(default=False)
@@ -55,13 +55,13 @@ class TblStudent(models.Model):
         
     id_student = models.AutoField(primary_key=True)
     
+    user_id = models.ForeignKey(TblUser, on_delete=models.CASCADE)
+    
     birthdate = models.DateField(blank=True, null=True)
     gender = models.BooleanField(blank=True, null=True, choices=GENDER)
     group_number = models.IntegerField()
     course_number = models.IntegerField()
     deduction = models.DateField(blank=True, null=True)
-    
-    user_id = models.ForeignKey(TblUser, on_delete=models.CASCADE)
     
     # TODO: исправить
     def __str__(self):

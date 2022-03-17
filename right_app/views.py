@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import TblRight, TblUserRights
+from .models import TblRights, TblUserRights
 
 def check_permissions_text(id_user):
     
