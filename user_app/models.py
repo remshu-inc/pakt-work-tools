@@ -38,7 +38,7 @@ class TblTeacher(models.Model):
         
     id_teacher = models.AutoField(primary_key=True)
     
-    user_id = models.OneToOneField(TblUser, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(TblUser, on_delete=models.CASCADE)
     
     # TODO: исправить
     def __str__(self):
@@ -61,7 +61,7 @@ class TblStudent(models.Model):
     course_number = models.IntegerField()
     deduction = models.DateField(blank=True, null=True)
     
-    user_id = models.OneToOneField(TblUser, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(TblUser, on_delete=models.CASCADE)
     
     # TODO: исправить
     def __str__(self):
