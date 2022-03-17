@@ -7,6 +7,8 @@ from django.http import HttpResponse
 from copy import deepcopy
 from django.db.models import F
 
+# Test
+
 # class TextList(generic.ListView):
 #     queryset = TblText.objects
 #     template_name = 'corpus.html'
