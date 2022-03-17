@@ -9,7 +9,7 @@ class TblRights(models.Model):
     
     id_right = models.AutoField(primary_key=True)
     
-    right_name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.right_name

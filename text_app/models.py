@@ -176,7 +176,7 @@ class TblGrade(models.Model):
     class Meta:
         db_table = "TblGrade"
         
-    id_markup_type = models.AutoField(primary_key=True)
+    id_grade = models.AutoField(primary_key=True)
 
     grade_name = models.CharField(max_length=255)
     grade_language = models.ForeignKey(TblLanguage, on_delete=models.SET_NULL, blank=True, null=True)
@@ -189,7 +189,7 @@ class TblReason(models.Model):
     class Meta:
         db_table = "TblReason"
         
-    id_markup_type = models.AutoField(primary_key=True)
+    id_reason = models.AutoField(primary_key=True)
 
     reason_name = models.CharField(max_length=255)
     reason_language = models.ForeignKey(TblLanguage, blank=True, null=True, on_delete=models.SET_NULL)

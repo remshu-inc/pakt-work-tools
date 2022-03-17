@@ -38,7 +38,7 @@ class TblTeacher(models.Model):
         
     id_teacher = models.AutoField(primary_key=True)
     
-    user_id = models.ForeignKey(TblUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(TblUser, on_delete=models.CASCADE)
     
     # TODO: исправить
     def __str__(self):
@@ -55,7 +55,7 @@ class TblStudent(models.Model):
         
     id_student = models.AutoField(primary_key=True)
     
-    user_id = models.ForeignKey(TblUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(TblUser, on_delete=models.CASCADE)
     
     birthdate = models.DateField(blank=True, null=True)
     gender = models.BooleanField(blank=True, null=True, choices=GENDER)
