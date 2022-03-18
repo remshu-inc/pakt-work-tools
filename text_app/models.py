@@ -19,7 +19,7 @@ class TblTextType(models.Model):
     
     id_text_type = models.AutoField(primary_key=True)
     
-    text_type_name = models.CharField(max_length=100, unique=True)
+    text_type_name = models.CharField(max_length=100)
     
     language = models.ForeignKey(TblLanguage, on_delete=models.PROTECT)
 
@@ -81,15 +81,22 @@ class TblText(models.Model):
         db_table = "TblText"
         
         # делает уникальным направление обмена
-        unique_together = ("pos_check_user", "error_tag_check_user")
+        # unique_together = ("pos_check_user", "error_tag_check_user")
         
     id_text = models.AutoField(primary_key=True)
     
     user = models.ForeignKey(TblUser, blank=True, null=True, on_delete=models.SET_NULL)
     
+    language = models.ForeignKey(TblLanguage, blank=True, null=True, on_delete=models.SET_NULL)
+    text_type = models.ForeignKey(TblTextType, blank=True, null=True, on_delete=models.SET_NULL)
+    emotional = models.ForeignKey(TblEmotional, blank=True, null=True, on_delete=models.SET_NULL)
+    write_tool = models.ForeignKey(TblWriteTool, blank=True, null=True, on_delete=models.SET_NULL)
+    write_place = models.ForeignKey(TblWritePlace, blank=True, null=True, on_delete=models.SET_NULL)
+    
     header = models.CharField(max_length=255)
     text = models.TextField()
     create_date = models.DateField()
+    modified_date = models.DateField()
     
     education_level = models.IntegerField(blank=True, null=True)
     self_rating = models.IntegerField(blank=True, null=True, choices=RATES)
@@ -105,12 +112,6 @@ class TblText(models.Model):
     error_tag_check_user = models.ForeignKey(TblUser, blank=True, null=True, on_delete=models.SET_NULL, related_name="error_tag_check_user")
     pos_check_date = models.DateField(blank=True, null=True)
     error_tag_check_date = models.DateField(blank=True, null=True)
-    
-    language = models.ForeignKey(TblLanguage, blank=True, null=True, on_delete=models.SET_NULL)
-    text_type = models.ForeignKey(TblTextType, blank=True, null=True, on_delete=models.SET_NULL)
-    emotional = models.ForeignKey(TblEmotional, blank=True, null=True, on_delete=models.SET_NULL)
-    write_tool = models.ForeignKey(TblWriteTool, blank=True, null=True, on_delete=models.SET_NULL)
-    write_place = models.ForeignKey(TblWritePlace, blank=True, null=True, on_delete=models.SET_NULL)
     
     def __str__(self):
         return self.header
@@ -159,14 +160,14 @@ class TblTag(models.Model):
         db_table = "TblTag"
         
     id_tag = models.AutoField(primary_key=True)
-
-    tag_text = models.TextField()
-    tag_text_russian = models.TextField()
-    tag_color = models.TextField(default="gray")
     
     markup_type = models.ForeignKey(TblMarkupType, on_delete=models.CASCADE)
     tag_parent = models.ForeignKey('self', on_delete=models.CASCADE)
     tag_language = models.ForeignKey(TblLanguage, on_delete=models.CASCADE)
+
+    tag_text = models.TextField()
+    tag_text_russian = models.TextField()
+    tag_color = models.CharField(max_length=7, default="#cfcfcf")
     
     def __str__(self):
         return self.tag_text
@@ -175,9 +176,9 @@ class TblGrade(models.Model):
     class Meta:
         db_table = "TblGrade"
         
-    id_markup_type = models.AutoField(primary_key=True)
+    id_grade = models.AutoField(primary_key=True)
 
-    grade_name = models.TextField()
+    grade_name = models.CharField(max_length=255)
     grade_language = models.ForeignKey(TblLanguage, on_delete=models.SET_NULL, blank=True, null=True)
 
     
@@ -188,9 +189,9 @@ class TblReason(models.Model):
     class Meta:
         db_table = "TblReason"
         
-    id_markup_type = models.AutoField(primary_key=True)
+    id_reason = models.AutoField(primary_key=True)
 
-    reason_name = models.TextField()
+    reason_name = models.CharField(max_length=255)
     reason_language = models.ForeignKey(TblLanguage, blank=True, null=True, on_delete=models.SET_NULL)
 
     
@@ -202,12 +203,9 @@ class TblMarkup(models.Model):
         db_table = "TblMarkup"
         
         # делает уникальным направление обмена
-        unique_together = ("start_token", "end_token")
+        # unique_together = ("start_token", "end_token")
         
     id_markup = models.AutoField(primary_key=True)
-
-    correct = models.TextField(blank=True, null=True)
-    change_date = models.DateField()
     
     token = models.ForeignKey(TblToken, on_delete=models.CASCADE)
     sentence = models.ForeignKey(TblSentence, on_delete=models.CASCADE)
@@ -215,11 +213,14 @@ class TblMarkup(models.Model):
     
     user = models.ForeignKey(TblUser, blank=True, null=True, on_delete=models.SET_NULL)
     
-    start_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="start_token")
-    end_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="end_token")
+    start_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="start_token", db_column='start_token')
+    end_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="end_token", db_column='end_token')
     
     grade = models.ForeignKey(TblGrade, blank=True, null=True, on_delete=models.SET_NULL)
     reason = models.ForeignKey(TblReason, blank=True, null=True, on_delete=models.SET_NULL)
+
+    correct = models.TextField(blank=True, null=True)
+    change_date = models.DateField()
     
     def __str__(self):
         return self.id_markup
@@ -229,11 +230,11 @@ class TblTokenMarkup(models.Model):
         db_table = "TblTokenMarkup"
         
     id_token_markup = models.AutoField(primary_key=True)
-
-    position = models.IntegerField(blank=True, null=True)
     
     token = models.ForeignKey(TblToken, on_delete=models.CASCADE)
     markup = models.ForeignKey(TblMarkup, on_delete=models.CASCADE)
+
+    position = models.IntegerField(blank=True, null=True)
     
     def __str__(self):
         return self.id_token_markup

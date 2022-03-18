@@ -12,7 +12,7 @@ def signup(request):
         if form_user.is_valid() and form_student.is_valid():
             user = form_user.save()
             student = form_student.save(commit=False)
-            student.user_id = user
+            student.user_id = user.id_user
             student.save()
             
             
