@@ -23,6 +23,38 @@
 .text-row:hover > .sentence-number{
     color:black;
 }
+.tools-column{
+    padding-right:10pt;
+}
+.tools-column > div{
+    display: inline;
+    font-weight: 600;
+    padding: 3pt;
+    text-align: center;
+    visibility: hidden;
+}
+.create-annotation-button{
+    color:#04ec04;
+}
+.create-annotation-button:hover{
+    background-color: #6cfd6c;
+    color: white; 
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.5s;
+}
+
+.delete-annotation-button{
+    color:#ec0404;
+    border-radius: 50%;
+}
+.delete-annotation-button:hover{
+    background-color: #fd6c6c;
+    color: white; 
+    border-radius: 2%;
+    cursor: pointer;
+    transition: 0.5s;
+}
 
 .sentence-number{
     color: rgba(109, 109, 109, 0.479);
@@ -49,7 +81,9 @@
     border-color: white;
     text-align: center;
 }
-
+.annotation-subtag:hover{
+    transition: 0.5s;
+}
 .token-elements{
     width: 100%;
 }
@@ -59,11 +93,12 @@
 
 .token{
     text-align: center;
+    padding: 4pt;
 }
 
 .token:hover{
     background-color: rgb(122, 122, 241);
-    transition: 1s;
+    transition: 0.1s;
 }
 
 .empty-place-ann, .empty-place-token{
@@ -123,6 +158,11 @@ td{
 
 <table class = "text-area"></table>
 <script>
+    var selected_tokens = []
+    var key_down = false
+    document.addEventListener("mousedown",function(){key_down=true})
+    document.addEventListener("mouseup",function(){key_down=false})
+    
     function select_ann(event)
                 {
                 var current_id = event.currentTarget.getAttribute('annotation-id')
@@ -130,13 +170,13 @@ td{
                 for(var i =0; i<same_elements.length; i++){
                     if(same_elements[i].getAttribute('annotation-id') == current_id){
                         var token_id = same_elements[i].getAttribute('child-token-id') 
-                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
                         same_elements[i].style.backgroundColor = 'rgba(166, 255, 218)';
-                        // same_elements[i].style.color = "white";
                         same_elements[i].style.fontWeight = "500";
+                        if(!selected_tokens.includes(parseInt(token_id))){
+                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
                         child_element.style.backgroundColor = 'rgba(166, 248, 255, 0.8)';
-                        // child_element.style.color = "white";
                         child_element.style.fontWeight = "300";
+                        }
                         }
                     }
                 }
@@ -149,18 +189,72 @@ td{
                     if(same_elements[i].getAttribute('annotation-id') == current_id){
                         same_elements[i].style.backgroundColor = same_elements[i].getAttribute('ann-color');
                         var token_id = same_elements[i].getAttribute('child-token-id') 
-                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
-                        // same_elements[i].style.color = "";
                         same_elements[i].style.fontWeight = "";
+                        if(!selected_tokens.includes(parseInt(token_id))){
+                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
                         child_element.style.backgroundColor = '';
-                        // child_element.style.color = "";
                         child_element.style.fontWeight = "";
-
+                        }
                 }
                 }
             }
     }
-    
+    function select_token(event){
+        var current_id = parseInt(event.currentTarget.getAttribute('token-id'))
+        if(selected_tokens.includes(current_id)){
+            selected_tokens.splice(selected_tokens.indexOf(current_id),1)
+            console.log(selected_tokens)
+            event.currentTarget.style.backgroundColor = ""
+            event.currentTarget.style.color = ""
+            event.currentTarget.style.fontWeight = ""
+            if(selected_tokens.length == 0){
+                var sent_index = event.currentTarget.getAttribute('token-sent-order')
+                var tools_columns = document.querySelectorAll(`[link-sent = "${sent_index}"]> div`)
+                for(var j = 0; j<tools_columns.length; j++){
+                    tools_columns[j].style.visibility = "hidden"
+                }
+            }
+            
+        }
+        else{
+        selected_tokens.push(current_id)
+        console.log(current_id)
+        event.currentTarget.style.backgroundColor = "#ff0000"
+        event.currentTarget.style.color = "white"
+        event.currentTarget.style.fontWeight = 500
+        if(selected_tokens.length == 1){
+                var sent_index = event.currentTarget.getAttribute('token-sent-order')
+                var tools_columns = document.querySelectorAll(`[link-sent = "${sent_index}"]> div`)
+                for(var j = 0; j<tools_columns.length; j++){
+                    tools_columns[j].style.visibility = "visible"
+                }
+            }
+        }
+    }
+    function select_token_moving(event){
+        if(key_down){
+            var current_id = parseInt(event.currentTarget.getAttribute('token-id'))
+        if(!selected_tokens.includes(current_id)){
+            select_token(event)
+        }
+    }
+    }
+    function create_annotation_selection(event){
+        alert('Created!')
+    }
+    function delete_tokens_selection(event){
+        for(var i = 0; i<selected_tokens.length;i++){
+            var element = document.querySelector(`[token-id = "${selected_tokens[i]}"]`)
+            element.style.backgroundColor = ""
+            element.style.color = ""
+            element.style.fontWeight = "" 
+        }
+        selected_tokens = []
+        var all_tools = event.currentTarget.parentNode.children
+        for(var j = 0; j<all_tools.length; j++){
+            all_tools[j].style.visibility = "hidden"
+        }
+    }
     var pos_for_empty = 0
     function get_text(){
         axios({
@@ -175,18 +269,42 @@ td{
                     while (main_table.firstChild) {
                         main_table.removeChild(main_table.firstChild);
                     }
+                    var tokens_ids = []
                     var empty_trigger_id = 0
 
                     var sentences_info = response.data.sentences
-
                     for(var sent_index = 0; sent_index<sentences_info.length; sent_index++){
 
                         var text_row = document.createElement('tr')
                         text_row.setAttribute('class','text-row')
 
+                        var tools_column = document.createElement('td')
+                        tools_column.setAttribute('class','tools-column')
+                        tools_column.setAttribute('link-sent',sent_index)
+                        
+                        var create_annotation = document.createElement('div')
+                        create_annotation.setAttribute('class','create-annotation-button')
+                        create_annotation.setAttribute('title','Создать аннотацию')
+                        create_annotation.setAttribute('v-on:click','CreateAnnotation')
+                        create_annotation.setAttribute('create-button-id',`${sent_index}`)
+                        create_annotation.innerHTML = "+"
+                        
+                        var delete_selection = document.createElement('div')
+                        delete_selection.setAttribute('class','delete-annotation-button')
+                        delete_selection.setAttribute('title','Снять выделение')
+                        delete_selection.setAttribute('v-on:click','DeleteSelection')
+                        delete_selection.setAttribute('delete-button-id',`${sent_index}`)
+                        delete_selection.innerHTML = 'x'
+
+
+                        tools_column.appendChild(delete_selection)
+                        tools_column.appendChild(create_annotation)
+
                         var sent_num_el = document.createElement('td')
                         sent_num_el.setAttribute('class','sentence-number')
                         sent_num_el.innerHTML = sent_index+1
+
+                        text_row.appendChild(tools_column)
                         text_row.appendChild(sent_num_el)
 
                         var sentence = document.createElement('td')
@@ -238,7 +356,7 @@ td{
                                 for(var token_index = 0; token_index<sentences_info[sent_index].tokens.length; token_index++){
                                     var token_column = document.createElement('td')
                                     token_column.setAttribute('class','token-column')
-
+                                    
                                     var token_elements = document.createElement('tabel')
                                     token_elements.setAttribute('class','token-elements')
 
@@ -269,7 +387,12 @@ td{
                                         token.innerHTML = token_info.text
                                     }
                                     token.setAttribute('class','token')
+                                    token.setAttribute('v-on:click','SelectToken')
+                                    token.setAttribute('v-on:mouseover','AsTextSelectToken')
+                                    token.setAttribute('v-on:mouseleave','AsTextSelectToken')
                                     token.setAttribute('token-id',token_info.token_id)
+                                    token.setAttribute('token-sent-order', token_info.sent_order_number)
+                                    tokens_ids.push(token_info.token_id)
 
                                     token_elements_row.appendChild(token)
                                     
@@ -331,8 +454,33 @@ td{
                                         }
                                     }))
                             }
-                            pos_for_empty = empty_trigger_id
-                            console.log(window.pos_for_empty)
+                            let selectable_tokens = []
+                            for(var i =0; i<tokens_ids.length; i++){
+                                selectable_tokens.push(new Vue({
+                                    el:`[token-id = "${tokens_ids[i]}"]`,
+                                    methods:{
+                                        SelectToken: select_token,
+                                        AsTextSelectToken: select_token_moving,
+                                    }
+                                }))
+                            }
+
+                            let annotation_creators = []
+                            let selection_deleters = []
+                            for(var i =0; i<sentences_info.length;i++){
+                            annotation_creators.push(new Vue({
+                                el: `[create-button-id = "${i}"]`,
+                                methods:{
+                                    CreateAnnotation: create_annotation_selection
+                                        }
+                                    }))
+                            selection_deleters.push(new Vue({
+                                el:`[delete-button-id = "${i}"]`,
+                                methods:{
+                                    DeleteSelection: delete_tokens_selection
+                                    }
+                                }))
+                            }
                         })
                 .catch(function (error) {
                 // your action on error success

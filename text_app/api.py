@@ -53,6 +53,7 @@ def get_text(query):
                 sent_tokens.append({
                     'token_id':token['id_token'],
                     'order_number':token['order_number'],
+                    'sent_order_number':token['sentence_id__order_number'],
                     'markups_ids': markups_ids,
                     'text': token_text
                 })
