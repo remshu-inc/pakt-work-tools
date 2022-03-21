@@ -56,7 +56,6 @@ def get_text(query):
                     'markups_ids': markups_ids,
                     'text': token_text
                 })
-
         ann_templates = past_in_template(tokens_markups, len(sent_tokens))
         res_sents.append(
             {
@@ -83,9 +82,11 @@ def add_empty_token(query):
         order_number = token_info['order_number'] + append_position
         sentence_id = token_info['sentence_id']
 
-        TblToken.objects.filter(sentence_id = sentence_id, order_number__gte = order_number).update(
-        order_number = change_value('order_number'))
-
-        new_row = TblToken(sentence_id = sentence_id, text = "-EMPTY-", order_number = order_number-1)
+        update_tokens = TblToken.objects.filter(sentence_id = sentence_id, order_number__gte = order_number)#.update(border_number = change_value('order_number'))
+        for element in update_tokens:
+            if element.order_number >= order_number:
+                element.order_number+=1
+            element.save()
+        new_row = TblToken(sentence_id = sentence_id, text = "-EMPTY-", order_number = order_number)
         new_row.save()
     return(HttpResponse('successfully'))
