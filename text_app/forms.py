@@ -3,6 +3,7 @@ from django import forms
 from .models import TblLanguage, TblText, TblTextType
 from user_app.models import TblUser, TblStudent
 import datetime
+from right_app.views import check_permissions_new_text
 
 class TextTypeChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -40,9 +41,8 @@ class TextCreationForm(forms.ModelForm):
         
         if user != None and language != None and text_type != None:
             
-            # Если пользователь студент
-            student = TblStudent.objects.filter(user_id = user.id_user)
-            if len(student) != 0:
+            # Если у пользователя нет прав загружать текст от чужого лица
+            if not check_permissions_new_text(user.id_user):
                 user_object = TblUser.objects.filter(id_user = user.id_user)
                 self.fields['user'] = forms.ModelChoiceField(queryset=user_object, widget=forms.Select(attrs={'class': 'form-control'}))
                 self.fields['user'].initial = user_object[0]

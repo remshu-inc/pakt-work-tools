@@ -60,7 +60,7 @@ def show_files(request, language = None, text_type = None):
         order_by = ''
         if request.GET:
             order_by = request.GET.get('order_by', 'defaultOrderField')
-        if check_permissions_show_text(request):
+        if check_permissions_show_text(request.user.id_user):
             if order_by == '':
                 list_text = TblText.objects.filter(language_id=language_id, text_type_id=text_type_id)
             else:
