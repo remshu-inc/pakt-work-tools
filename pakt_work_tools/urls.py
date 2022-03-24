@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('text_app.urls')),
     path('', include('user_app.urls')),
+    path('', include('search_app.urls')),
 ] + static(settings.STATIC_URL)

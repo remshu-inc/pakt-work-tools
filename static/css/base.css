@@ -1,0 +1,46 @@
+* {
+    font-family: 'Montserrat', sans-serif !important;
+}
+
+a {
+    /* color: #0dcaf0; */
+}
+
+.corpus-tr {
+    line-height: 36px;
+}
+
+.container-sm {
+    max-width: 960px;
+}
+
+.errorlist {
+    list-style: none;
+}
+
+*::selection {
+    background-color: rgba(13, 202, 240, 0.8);
+    color: white;
+}
+
+.head-text {
+    text-align: center;
+    margin-top: 70px;
+}
+
+.main-text {
+    font-size: 24px;
+    text-align: justify;
+    margin-top: 50px;
+}
+
+.bottom-text {
+    font-size: 18px;
+    text-align: justify;
+    margin-top: 10px;
+}
+
+.email {
+    color: rgba(13, 202, 240, 0.8);
+    /* color: white; */
+}

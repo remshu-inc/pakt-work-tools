@@ -7,16 +7,22 @@
       </li>
 
       {% if user.is_authenticated %}
-      <li class="nav-item dropdown">
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="{% url 'corpus' %}">Корпус</a>
+      </li>
+      {% endif %}
+
+      {% if user.is_authenticated %}
+      <!-- <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">Files</a>
         <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="{% url 'new_text' %}">New File</a></li>
+          <li><a class="dropdown-item" href="">New File</a></li>
           <li><a class="dropdown-item" href="#">Edit File</a></li>
           <li><a class="dropdown-item" href="#">Delete File</a></li>
-          <!-- <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="#">Another</a></li> -->
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Another</a></li>
         </ul>
-      </li>
+      </li> -->
       {% endif %}
 
     </ul>
@@ -24,7 +30,7 @@
     {% if user.is_authenticated %}
     <ul class="nav">
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+        <a class="nav-link" href="{% url 'logout' %}">Log Out({{ user }})</a>
       </li>
     </ul>
     {% else %}
