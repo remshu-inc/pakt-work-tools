@@ -9,6 +9,8 @@ from django.db.models import F
 from right_app.views import check_permissions_show_text
 from user_app.models import TblTeacher, TblUser
 
+# Test
+
 # class TextList(generic.ListView):
 #     queryset = TblText.objects
 #     template_name = 'corpus.html'

@@ -35,7 +35,7 @@ def signup(request):
             
             user = form_user.save()
             student = form_student.save(commit=False)
-            
+
             student.user_id = user.id_user
             student.save()
             
