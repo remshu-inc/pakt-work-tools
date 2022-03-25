@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>{{header}}</title>
+</head>
+<style>
+.text-area{
+    display: block;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    border-collapse: collapse; 
+    width: 70%;
+    margin-left: 5%;
+    margin-top: 10%;
+    max-height: 50px;
+}
+
+.text-row{
+    border-bottom: 1px solid rgba(109, 109, 109, 0.479);
+    user-select: none;
+}
+
+.text-row:hover > .sentence-number{
+    color:black;
+}
+
+.sentence-number{
+    color: rgba(109, 109, 109, 0.479);
+    text-align: center;
+    padding-right:10pt;
+    border-right: 1px solid rgba(109, 109, 109, 0.479);
+}
+
+.text-area{
+    vertical-align: middle;
+}
+.sentence-area{
+    vertical-align:middle;
+    border-spacing: 0 2pt;
+}
+
+.annotation{
+    text-align: center;
+}
+
+.annotation-subtag{
+    border-top: 2px;
+    border-bottom: 2px;
+    border-color: white;
+    text-align: center;
+}
+
+.token-elements{
+    width: 100%;
+}
+.token-elements-row{
+    width: 100%;
+}
+
+.token{
+    text-align: center;
+}
+
+.token:hover{
+    background-color: rgb(122, 122, 241);
+    transition: 1s;
+}
+
+.empty-place-ann, .empty-place-token{
+    width: 5px;
+}
+
+.sentence-area > td {
+    min-width: 10pt;
+    empty-cells: show;
+}
+
+[annotation-position="end"]{
+    border-top-right-radius: 3pt;
+    border-bottom-right-radius: 3pt;
+    border-right: 3pt solid rgba(255, 255, 255, 1);
+}
+[annotation-position="single"]{
+    border-right: 3pt solid rgba(255, 255, 255, 1);
+    border-left: 3pt solid rgba(255, 255, 255, 1);
+}
+td{
+    text-align: center;
+}
+.empty-place-token{
+    min-width: 20px;
+    height:20px;
+    color: rgb(176, 255, 176);
+    font-weight: 300;
+    opacity: 0.8;
+}
+.empty-place-token:hover {
+    text-align: center;
+    transition: 1s;
+    opacity: 1;
+    font-weight: 900;
+    color: rgb(255, 0, 0);
+
+}
+{%if not pos%}
+[annotation-type = "pos"]{
+    display: none;
+}
+{%endif%}
+{%if not error%}
+[annotation-type = "error"]{
+    display: none;
+}
+{%endif%}
+
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<body>
+
+<table class = "text-area"></table>
+<script>
+    function select_ann(event)
+                {
+                var current_id = event.currentTarget.getAttribute('annotation-id')
+                var same_elements = document.getElementsByClassName('annotation-subtag')
+                for(var i =0; i<same_elements.length; i++){
+                    if(same_elements[i].getAttribute('annotation-id') == current_id){
+                        var token_id = same_elements[i].getAttribute('child-token-id') 
+                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
+                        same_elements[i].style.backgroundColor = 'rgba(166, 255, 218)';
+                        // same_elements[i].style.color = "white";
+                        same_elements[i].style.fontWeight = "500";
+                        child_element.style.backgroundColor = 'rgba(166, 248, 255, 0.8)';
+                        // child_element.style.color = "white";
+                        child_element.style.fontWeight = "300";
+                        }
+                    }
+                }
+    function unselect_ann(event)
+    {
+        {
+                    var current_id = event.currentTarget.getAttribute('annotation-id')
+                    var same_elements = document.getElementsByClassName('annotation-subtag')
+                    for(var i =0; i<same_elements.length; i++){
+                    if(same_elements[i].getAttribute('annotation-id') == current_id){
+                        same_elements[i].style.backgroundColor = same_elements[i].getAttribute('ann-color');
+                        var token_id = same_elements[i].getAttribute('child-token-id') 
+                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
+                        // same_elements[i].style.color = "";
+                        same_elements[i].style.fontWeight = "";
+                        child_element.style.backgroundColor = '';
+                        // child_element.style.color = "";
+                        child_element.style.fontWeight = "";
+
+                }
+                }
+            }
+    }
+
+    var pos_for_empty = 0
+    function get_text(){
+        axios({
+                url: 'http://127.0.0.1:8000/show_text/api/get_text',
+                method: 'POST',
+                data: {'text_id': {{text_id}}},
+                headers: {"X-CSRFToken": "{{csrf_token}}"},
+                })
+                .then(function (response) {
+                    //чистим поле
+                    var main_table = document.getElementsByClassName("text-area")[0]
+                    while (main_table.firstChild) {
+                        main_table.removeChild(main_table.firstChild);
+                    }
+                    var empty_trigger_id = 0
+
+                    var sentences_info = response.data.sentences
+
+                    for(var sent_index = 0; sent_index<sentences_info.length; sent_index++){
+
+                        var text_row = document.createElement('tr')
+                        text_row.setAttribute('class','text-row')
+
+                        var sent_num_el = document.createElement('td')
+                        sent_num_el.setAttribute('class','sentence-number')
+                        sent_num_el.innerHTML = sent_index+1
+                        text_row.appendChild(sent_num_el)
+
+                        var sentence = document.createElement('td')
+                        sentence.setAttribute('class','sentence')
+
+                        var sentence_area = document.createElement('table')
+                        sentence_area.setAttribute('sentence-order',sent_index)
+                        sentence_area.setAttribute('class','sentence-area')
+
+                        for(var ann_line_index = 0; ann_line_index<sentences_info[sent_index].annotations.length;ann_line_index++){
+                            var line_number = sentences_info[sent_index].annotations.length - ann_line_index - 1
+                            var tokens_markups = sentences_info[sent_index].annotations[line_number]
+                            var ann_line = document.createElement('tr')
+                            ann_line.setAttribute("class","annotation-line")
+
+                            for(var tm_index = 0; tm_index <tokens_markups.length; tm_index++){
+                                var mrk_info = tokens_markups[tm_index]
+                                var token_markup = document.createElement('td')
+                                token_markup.setAttribute('class', 'annotation-empty')
+                                if(mrk_info.isann){
+                                    token_markup = document.createElement('td')
+                                    if(mrk_info.display){
+                                        if( {{lang}} == 0){
+                                            token_markup.innerHTML = mrk_info.tag_text
+                                        }
+                                        else {
+                                            token_markup.innerHTML = mrk_info.tag_text_rus
+                                        }
+                                    }
+                                    token_markup.setAttribute('class','annotation-subtag')
+                                    token_markup.setAttribute('annotation-id',mrk_info.ann_id)
+                                    token_markup.setAttribute('annotation-type',mrk_info.tag_type)
+                                    token_markup.setAttribute('annotation-position',mrk_info.ann_position)
+                                    token_markup.setAttribute('ann-color',mrk_info.ann_color)
+                                    token_markup.setAttribute('token-markup-id', mrk_info.token_markup_id)
+                                    token_markup.setAttribute('child-token-id',mrk_info.token_id)
+                                    token_markup.setAttribute("v-on:mouseover","onHoverAnnotation") 
+                                    token_markup.setAttribute("v-on:mouseleave","outHoverAnnotation")
+                                    token_markup.setAttribute("style",`background-color: ${mrk_info.ann_color};`)
+                                }
+                                ann_line.appendChild(token_markup)
+                                }
+                                sentence_area.appendChild(ann_line)
+                            }
+
+                                var tokens_line = document.createElement('tr')
+                                tokens_line.setAttribute('class','tokens-line')
+
+                                for(var token_index = 0; token_index<sentences_info[sent_index].tokens.length; token_index++){
+                                    var token_column = document.createElement('td')
+                                    token_column.setAttribute('class','token-column')
+
+                                    var token_elements = document.createElement('tabel')
+                                    token_elements.setAttribute('class','token-elements')
+
+                                    var token_elements_row = document.createElement('tr')
+                                    token_elements_row.setAttribute('class', 'token-elements-row')
+
+                                    var token_info = sentences_info[sent_index].tokens[token_index]
+
+                                    if(token_index == 0){
+                                        var left_append = document.createElement('td')
+                                        left_append.innerHTML = '+'
+                                        left_append.setAttribute('class','empty-place-token')
+                                        left_append.setAttribute('parent-token',token_info.token_id)
+                                        left_append.setAttribute('position','left')
+                                        left_append.setAttribute('title','Добавить пустой токен')
+                                        left_append.setAttribute('trigger-id',empty_trigger_id)
+                                        left_append.setAttribute('v-on:click','addToken')
+                                        token_elements_row.appendChild(left_append)
+                                        empty_trigger_id+=1
+                                    }
+                                    var token = document.createElement('td')
+
+                                    if(token_info.text.length==0){
+                                        token.innerHTML = '|empty|'
+                                        token.setAttribute('style','color: black;')
+                                    }
+                                    else{
+                                        token.innerHTML = token_info.text
+                                    }
+                                    token.setAttribute('class','token')
+                                    token.setAttribute('token-id',token_info.token_id)
+
+                                    token_elements_row.appendChild(token)
+
+                                    if(token_info.text.length > 0){
+                                    var right_append = document.createElement('td')
+                                    right_append.innerHTML = '+'
+                                    right_append.setAttribute('class','empty-place-token')
+                                    right_append.setAttribute('parent-token',token_info.token_id)
+                                    right_append.setAttribute('position','right')
+                                    right_append.setAttribute('title','Добавить пустой токен')
+                                    right_append.setAttribute('trigger-id',empty_trigger_id)
+                                    right_append.setAttribute('v-on:click','addToken')
+                                    empty_trigger_id += 1
+                                    token_elements_row.appendChild(right_append)
+                                    }
+
+                                    token_elements.appendChild(token_elements_row)
+                                    token_column.appendChild(token_elements)
+                                    tokens_line.appendChild(token_column)
+                                }   
+
+                                sentence_area.appendChild(tokens_line)
+                                sentence.appendChild(sentence_area)
+                                text_row.appendChild(sentence)
+                                main_table.appendChild(text_row)
+                            }
+                            let ann_visible = []
+                            for(var i = 0; i < response.data.token_markups_ids.length; i++){
+                                ann_visible.push( new Vue({
+                                        el:  `[token-markup-id="${response.data.token_markups_ids[i]}"]`,
+                                        methods: {
+                                        onHoverAnnotation: select_ann,
+                                        outHoverAnnotation: unselect_ann
+                                    }
+                                    }))
+                            }
+                            function add_token(event){
+                            var token_id = event.currentTarget.getAttribute('parent-token')
+                            var position = event.currentTarget.getAttribute('position')
+                            axios({
+                                url: 'http://127.0.0.1:8000/show_text/api/add_empty_token',
+                                method: 'POST',
+                                data:{'parent_token': token_id, 'append_position':position},
+                                headers: {"X-CSRFToken": "{{csrf_token}}"}
+                            }).then(function (response){
+                                get_text();
+                            }).catch(function (error) {
+                                    // your action on error success
+                                        console.log(error);
+                                    });
+                            }
+                            let add_elements = []
+                            for(var i = 0; i<empty_trigger_id; i++){
+                                add_elements.push(
+                                    new Vue({
+                                        el:`[trigger-id = "${i}"]`,
+                                        methods:{
+                                            addToken:add_token
+                                        }
+                                    }))
+                            }
+                            pos_for_empty = empty_trigger_id
+                            console.log(window.pos_for_empty)
+                        })
+                .catch(function (error) {
+                // your action on error success
+                });
+    };
+    get_text()
+</script>
+
+</body>
+
+</html> 

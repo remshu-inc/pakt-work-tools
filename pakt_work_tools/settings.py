@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'text_app',
     'user_app',
     'right_app',
+    'search_app',
 ]
 
 AUTH_USER_MODEL = 'user_app.TblUser'
@@ -72,6 +73,11 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            
+            'libraries':{
+                'text_templatetags': 'text_app.templatetags.filters',
+                'user_templatetags': 'user_app.templatetags.filters',
+            }
         },
     },
 ]
@@ -130,6 +136,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

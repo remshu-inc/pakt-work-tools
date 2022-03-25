@@ -22,7 +22,7 @@ class TblUserRights(models.Model):
         
     right = models.ForeignKey(TblRights, on_delete=models.PROTECT)
     user = models.ForeignKey(TblUser, on_delete=models.PROTECT)
-    text = models.ForeignKey(TblText, on_delete=models.PROTECT)
+    text = models.ForeignKey(TblText, on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
         return self.id_user_right

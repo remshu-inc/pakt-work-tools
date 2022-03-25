@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-sm">
+    <main>
+        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+
+        <a href="/search1">Вариант</a>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2">
+            <button class="btn btn-outline-secondary" type="button" id="button-addon2">Поиск</button>
+        </div>
+        
+        <br><br>
+
+        <div class="main-text mt-5">
+            Петрозаводский аннотированный корпус текстов(ПАКТ) - корпус содержащий набор аннотированных студенческих текстов как на немецком, так и на французком языке. Так как на данный момент корпус является закрытым, то доступ для исследовательских целей возможен только по прямому обращению на почтовый адрес: <span class="email"><b>	koturova@petrsu.ru</b></span> <span style="font-size: 18px;">(Котюрова Ирина Аврамовна, кандидат филологических наук)</span>
+            <hr>
+            В качестве аннотаций выступает автоматическая частеречная разметка и ручная разметка ошибок.
+            <br><br>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <h1>Немецкий корпус</h1>
+                <b>Размер корпуса:</b> 232559 токена <span style="font-size: 12px; color: gray;">(на сентябрь 2021)</span>
+                <br>
+                <b>Чстеречная разметка: </b><br>TreeTagger, набор тегов STTS
+                <br>
+                <b>Разметка ошибок:</b> 
+                <ul>
+                    <li>неограниченная область ошибки</li>
+                    <li>трехступенчатая степень критичности ошибки</li>
+                    <li>три варианта возможной причины ошибки</li>
+                    <li>74 типа возможных ошибок</li>
+                </ul>
+            </div>
+            <div class="col">
+                <h1>Французский корпус</h1>
+                <b>Размер корпуса:</b> 20223 токена <span style="font-size: 12px; color: gray;">(на сентябрь 2021)</span>
+                <br>
+                <b>Частеречная разметка: </b><br>CoreNLP, набор тегов Treebank
+                <br>
+                <b>Разметка ошибок:</b>
+                <ul>
+                    <li>неограниченная область ошибки</li>
+                    <li>трехступенчатая степень критичности ошибки</li>
+                    <li>три варианта возможной причины ошибки</li>
+                    <li>65 типа возможных ошибок</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="main-text" style="margin-top: 0;">
+            Также часть корпуса имеет разметку эмоциональных компонентов для возможности проведения дополнительных исследований.
+            <br><br>
+        </div>
+
+        <div class="bottom-text">
+            Так как система, которая позволяет взаимодействовать с корпусом, находится в процессе разработки, то во время использования можно столкнуться с непредвиденными ошибками. Чтобы улучшить дальнейший пользовательский опыт просьба уведомлять о найденных проблемах на почтовый адрес: <span class="email"><b>remshu.nikita@gmail.com</b></span> <span style="font-size: 14px;">(Ремшу Никита Леонидович)</span> или <span class="email"><b>	koturova@petrsu.ru</b></span> <span style="font-size: 14px;">(Котюрова Ирина Аврамовна, кандидат филологических наук)</span>.
+        </div>
+
+    </main>
+</div>
+
+{%endblock%}
