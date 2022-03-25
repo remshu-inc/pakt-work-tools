@@ -32,15 +32,16 @@
       <li class="nav-item">
         <a class="nav-link" href="{% url 'logout' %}">Log Out({{ user }})</a>
       </li>
+      {% if user.is_teacher %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'signup' %}">Register Student</a>
+      </li>
+      {% endif %}
     </ul>
     {% else %}
     <ul class="nav">
       <li class="nav-item">
         <a class="nav-link" href="{% url 'login' %}">Log In</a>
-      </li>
-
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'signup' %}">Sign Up</a>
       </li>
     </ul>
     {% endif %}

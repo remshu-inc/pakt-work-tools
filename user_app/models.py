@@ -32,6 +32,14 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.last_name + ' ' + self.name
     
+    def is_teacher(self):
+        teacher = TblTeacher.objects.filter(user_id = self.id_user)
+        if len(teacher) != 0:
+            return True
+        else:
+            return False
+        
+    
 class TblTeacher(models.Model):
     class Meta:
         db_table = "TblTeacher"

@@ -16,8 +16,6 @@ from user_app.models import TblTeacher, TblUser
 #     template_name = 'corpus.html'
 
 def show_files(request, language = None, text_type = None):
-    # print(request.user.get_user_permissions)
-    
     # Для выбора языка
     if language == None:
         try:

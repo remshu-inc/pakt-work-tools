@@ -6,6 +6,11 @@ from django.shortcuts import render, redirect
 from .models import TblUser
 
 def signup(request):
+    try:
+        if not request.user.is_teacher:
+            return redirect('home')
+    except:
+        return redirect('home')
     
     if request.method == 'POST':
         form_user = UserCreationForm(request.POST)
@@ -22,33 +27,14 @@ def signup(request):
             form_user.add_error('password', 'Необходимо заполнить поле')
             return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student})
         
-        if form_user.is_valid() and form_student.is_valid():
-            # username = form_user.cleaned_data.get('login')
-            # password = form_user.cleaned_data.get('password')
-            
-            # user_object = TblUser.objects.filter(login = username)
-            # if len(user_object) != 0:
-            #     form_user.add_error('login', 'Логин уже существует')
-            #     return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student})
-            
-            
-            
+        if form_user.is_valid() and form_student.is_valid():            
             user = form_user.save()
             student = form_student.save(commit=False)
 
             student.user_id = user.id_user
             student.save()
-            
-            
-            username = form_user.cleaned_data.get('login')
-            password = form_user.cleaned_data.get('password')
-            
-            user = MyBackend.authenticate(login=username, password=password)
-            
-            if user:
-                login(request, user)
                 
-            return redirect('home')
+            return redirect('corpus')
             
     else:
         form_user = UserCreationForm()
@@ -59,7 +45,7 @@ def signup(request):
 def log_in(request):
     
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('corpus')
     
     if request.method == "POST":
         form_login = LoginForm(request.POST)
@@ -72,7 +58,7 @@ def log_in(request):
             
             if user:
                 login(request, user)
-                return redirect('home')
+                return redirect('corpus')
     else:
         form_login = LoginForm()
         

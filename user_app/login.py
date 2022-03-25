@@ -14,13 +14,6 @@ class MyBackend(BaseBackend):
             user = TblUser.objects.get(login=login, password=hash)
         except:
             return None
-        
-        teacher = TblTeacher.objects.filter(user_id = user.id_user)
-        if len(teacher) != 0:
-            user.is_teacher = True
-            print(user.is_teacher)
-        else:
-            user.is_teacher = False
             
         return user
         
