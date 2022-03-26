@@ -5,33 +5,86 @@
     <title>{{header}}</title>
 </head>
 <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      body {
+        overflow-y: scroll; /* добавить полосу прокрутки */ 
+      }
+#found-text-error{
+    color: #ec0404;
+    font-size: large;
+    font-weight: 900;
+}
+
+.text-module{
+    background-color: gray;
+    height: 100%;
+    width: 100%;
+}
+.header-area>div{
+    display: inline;
+    font-family: 'Montserrat', sans-serif;
+}
+.header-name{
+    color: rgba(13, 202, 240, 0.8);
+    font-size: 20pt;
+}
+.header{
+    font-size: 18pt;
+}
+
 .text-area{
-    display: block;
+    width:98.9vw;
     font-family:Verdana, Geneva, Tahoma, sans-serif;
     border-collapse: collapse; 
-    width: 70%;
-    margin-left: 5%;
-    margin-top: 10%;
-    max-height: 50px;
+    border: 1px solid rgba(109, 109, 109, 0.479);
 }
 
 .text-row{
-    border-bottom: 1px solid rgba(109, 109, 109, 0.479);
+    /* border-bottom: 1px solid rgba(109, 109, 109, 0.479); */
     user-select: none;
+}
+.sentence{
+    max-width: 70vw;
+    border-bottom: 1px solid rgba(109, 109, 109, 0.479);
+    overflow-x: scroll;
+    scroll-behavior:smooth;
+}
+.sentence::-webkit-scrollbar {
+    height: 5px;
+    background-color: #f1f1f1;
+}
+.sentence::-webkit-scrollbar-thumb {
+    background-color: #5ce4ff8f;
+}
+.sentence:hover::-webkit-scrollbar-thumb{
+    background-color: #0dcaf0;
+    transition: 1s;
 }
 
 .text-row:hover > .sentence-number{
     color:black;
 }
 .tools-column{
+    max-width: 20vw;
     padding-right:10pt;
 }
+.tools-column{
+    background-color: #f8f8f8;
+    padding-right: 2pt;
+    padding-left:5pt;
+}
 .tools-column > div{
-    display: inline;
+    display: block;
     font-weight: 600;
-    padding: 3pt;
+    font-size: large;
     text-align: center;
     visibility: hidden;
+    padding: 3pt;
 }
 .create-annotation-button{
     color:#04ec04;
@@ -59,30 +112,56 @@
 .sentence-number{
     color: rgba(109, 109, 109, 0.479);
     text-align: center;
-    padding-right:10pt;
+    padding-right:1pt;
+    padding-left:1pt;
     border-right: 1px solid rgba(109, 109, 109, 0.479);
 }
 
-.text-area{
-    vertical-align: middle;
-}
 .sentence-area{
     vertical-align:middle;
     border-spacing: 0 2pt;
+    /* border-collapse: collapse; */
 }
 
 .annotation{
     text-align: center;
 }
+.annotation-line{
+    height: 100%;
+}
+.annotation-cell{
+    padding: 0;
+    height: 100%;
+    
+}
+
+[annotation-position="end"]{
+    padding-right: 5pt;
+}
+[annotation-position="end"]>div{
+    border-top-right-radius: 3pt;
+    border-bottom-right-radius: 3pt;
+}
+[annotation-position="single"]{
+    padding-left: 5pt;
+    padding-right: 5pt;
+}
+[annotation-position="single"] > div{
+    border-radius: 3pt;
+}
+[annotation-position="start"]{
+    padding-left: 5pt;
+}
+[annotation-position="start"] > div{
+    border-top-left-radius: 3pt;
+    border-bottom-left-radius: 3pt;
+}
 
 .annotation-subtag{
-    border-top: 2px;
-    border-bottom: 2px;
     border-color: white;
     text-align: center;
-}
-.annotation-subtag:hover{
-    transition: 0.5s;
+    height: 100%;
+    width: 100%;
 }
 .token-elements{
     width: 100%;
@@ -94,10 +173,11 @@
 .token{
     text-align: center;
     padding: 4pt;
+    border-radius: 5pt;
 }
 
 .token:hover{
-    background-color: rgb(122, 122, 241);
+    background-color:#42c4fc;
     transition: 0.1s;
 }
 
@@ -105,20 +185,15 @@
     width: 5px;
 }
 
-.sentence-area > td {
-    min-width: 10pt;
+.sentence-area{
+    height: 100%;
     empty-cells: show;
 }
+.sentence-area > td {
+    min-width: 10pt;
+}
 
-[annotation-position="end"]{
-    border-top-right-radius: 3pt;
-    border-bottom-right-radius: 3pt;
-    border-right: 3pt solid rgba(255, 255, 255, 1);
-}
-[annotation-position="single"]{
-    border-right: 3pt solid rgba(255, 255, 255, 1);
-    border-left: 3pt solid rgba(255, 255, 255, 1);
-}
+
 td{
     text-align: center;
 }
@@ -147,348 +222,135 @@ td{
     display: none;
 }
 {%endif%}
-
-
+#annotation-create-form-area{
+    z-index: 1;
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow-y: hidden;
+    background-color: rgba(0, 0, 0, 0.452);
+}
+#lang-change-area{
+    font-family: Arial, Helvetica, sans-serif;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+#lang-change-area>label{
+    display: inline-block;
+}
+#lang-change-area>select{
+    display: inline-block;
+    padding: 4pt;
+    border:none;
+    color:white;
+    outline: none;
+    background-color: #0dcaf0;
+    border-radius: 4pt;
+}
+{%block annotation_edit_form_css%}{%endblock%}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <body>
-
+{%if founded%}
+{%if ann_right%}
+<div id="annotation-create-form-area">
+    {#Блок для формы созданя/редактирования аннотаций#}
+    {%block annotation_edit_form_html%}{%endblock%}
+</div>
+{%else%}
+<div id="annotation-create-form-area">
+    {#Блок для формы созданя/редактирования аннотаций#}
+    {%block annotation_watch_form_html%}{%endblock%}
+</div>
+{%endif%}
+<div id="lang-change-area" v-on:change="ChangeLang">
+    <label>Язык разметки:</label>
+    <select id="lang-select">
+        <option id="foreign-option" value="0">{{lang_name}}</option>
+        <option id="russian-option" value="1">Русский</option>
+    </select>
+</div>
+<div class = "text-place">
 <table class = "text-area"></table>
+</div>
 <script>
-    var selected_tokens = []
-    var key_down = false
-    document.addEventListener("mousedown",function(){key_down=true})
-    document.addEventListener("mouseup",function(){key_down=false})
-    
-    function select_ann(event)
-                {
-                var current_id = event.currentTarget.getAttribute('annotation-id')
-                var same_elements = document.getElementsByClassName('annotation-subtag')
-                for(var i =0; i<same_elements.length; i++){
-                    if(same_elements[i].getAttribute('annotation-id') == current_id){
-                        var token_id = same_elements[i].getAttribute('child-token-id') 
-                        same_elements[i].style.backgroundColor = 'rgba(166, 255, 218)';
-                        same_elements[i].style.fontWeight = "500";
-                        if(!selected_tokens.includes(parseInt(token_id))){
-                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
-                        child_element.style.backgroundColor = 'rgba(166, 248, 255, 0.8)';
-                        child_element.style.fontWeight = "300";
-                        }
-                        }
-                    }
-                }
-    function unselect_ann(event)
-    {
-        {
-                    var current_id = event.currentTarget.getAttribute('annotation-id')
-                    var same_elements = document.getElementsByClassName('annotation-subtag')
-                    for(var i =0; i<same_elements.length; i++){
-                    if(same_elements[i].getAttribute('annotation-id') == current_id){
-                        same_elements[i].style.backgroundColor = same_elements[i].getAttribute('ann-color');
-                        var token_id = same_elements[i].getAttribute('child-token-id') 
-                        same_elements[i].style.fontWeight = "";
-                        if(!selected_tokens.includes(parseInt(token_id))){
-                        var child_element = document.querySelector(`[token-id = "${token_id}"]`)
-                        child_element.style.backgroundColor = '';
-                        child_element.style.fontWeight = "";
-                        }
-                }
-                }
-            }
+document.body.onmousedown = function(eventData) {
+if (eventData.button === 0) {
+    key_down=true}
+}  
+document.body.onmouseup = function(eventData) {
+if (eventData.button === 0) {
+    key_down=false}
+}
+{%if ann_right%}
+{#режим редактирование аннотации (1-создание, 2-обновление)#} 
+var selected_tag = 0 //Удалить
+var get_classification_url = "http://127.0.0.1:8000/show_text/api/get_classification"
+var add_empty_token_url = 'http://127.0.0.1:8000/show_text/api/add_empty_token'
+var selected_tokens = []
+{%endif%}
+var markups_info = new Map()
+var text_id = {{text_id}}
+var language = 0
+var get_text_url = "http://127.0.0.1:8000/show_text/api/get_text"
+var edit_ann_url = "http://127.0.0.1:8000/show_text/api/annotation_edit"
+
+var key_down = false
+var text_response = null
+var classification_response = null
+
+{#Используемые функции#}
+{%block functions%}{%endblock%}
+
+{%if ann_right%}
+{#Создание формы#}
+{%block annotation_edit_form_script%}{%endblock%}
+{%endif%}
+
+{%if ann_right%}
+
+get_classification()
+{%endif%}
+{%block get_text%}{%endblock%}
+get_text()
+{%block bone_funcs%}{%endblock%}
+{%if ann_right%}
+var save_button = new Vue({
+    el:"#form-save-button",
+    methods:{
+        Save: function(){sent_annotation_info(edit_ann_url)
     }
-    function select_token(event){
-        var current_id = parseInt(event.currentTarget.getAttribute('token-id'))
-        if(selected_tokens.includes(current_id)){
-            selected_tokens.splice(selected_tokens.indexOf(current_id),1)
-            console.log(selected_tokens)
-            event.currentTarget.style.backgroundColor = ""
-            event.currentTarget.style.color = ""
-            event.currentTarget.style.fontWeight = ""
-            if(selected_tokens.length == 0){
-                var sent_index = event.currentTarget.getAttribute('token-sent-order')
-                var tools_columns = document.querySelectorAll(`[link-sent = "${sent_index}"]> div`)
-                for(var j = 0; j<tools_columns.length; j++){
-                    tools_columns[j].style.visibility = "hidden"
-                }
-            }
-            
-        }
-        else{
-        selected_tokens.push(current_id)
-        console.log(current_id)
-        event.currentTarget.style.backgroundColor = "#ff0000"
-        event.currentTarget.style.color = "white"
-        event.currentTarget.style.fontWeight = 500
-        if(selected_tokens.length == 1){
-                var sent_index = event.currentTarget.getAttribute('token-sent-order')
-                var tools_columns = document.querySelectorAll(`[link-sent = "${sent_index}"]> div`)
-                for(var j = 0; j<tools_columns.length; j++){
-                    tools_columns[j].style.visibility = "visible"
-                }
-            }
-        }
+}
+})
+var save_button = new Vue({
+    el:"#form-delete-button",
+    methods:{
+        Delete: function(){delete_annotation_info(edit_ann_url)
     }
-    function select_token_moving(event){
-        if(key_down){
-            var current_id = parseInt(event.currentTarget.getAttribute('token-id'))
-        if(!selected_tokens.includes(current_id)){
-            select_token(event)
-        }
+}
+})
+{%endif%}
+var annotation_create_form_close = new Vue({
+    el: "#annotation-create-form-close",
+    methods :{
+        CloseAnnCreateForm: close_ann_create_form
     }
+})
+var lang_changers = [new Vue({
+    el:"#lang-change-area",
+    methods:{
+        ChangeLang:reset_language
     }
-    function create_annotation_selection(event){
-        alert('Created!')
-    }
-    function delete_tokens_selection(event){
-        for(var i = 0; i<selected_tokens.length;i++){
-            var element = document.querySelector(`[token-id = "${selected_tokens[i]}"]`)
-            element.style.backgroundColor = ""
-            element.style.color = ""
-            element.style.fontWeight = "" 
-        }
-        selected_tokens = []
-        var all_tools = event.currentTarget.parentNode.children
-        for(var j = 0; j<all_tools.length; j++){
-            all_tools[j].style.visibility = "hidden"
-        }
-    }
-    var pos_for_empty = 0
-    function get_text(){
-        axios({
-                url: 'http://127.0.0.1:8000/show_text/api/get_text',
-                method: 'POST',
-                data: {'text_id': {{text_id}}},
-                headers: {"X-CSRFToken": "{{csrf_token}}"},
-                })
-                .then(function (response) {
-                    //чистим поле
-                    var main_table = document.getElementsByClassName("text-area")[0]
-                    while (main_table.firstChild) {
-                        main_table.removeChild(main_table.firstChild);
-                    }
-                    var tokens_ids = []
-                    var empty_trigger_id = 0
-
-                    var sentences_info = response.data.sentences
-                    for(var sent_index = 0; sent_index<sentences_info.length; sent_index++){
-
-                        var text_row = document.createElement('tr')
-                        text_row.setAttribute('class','text-row')
-
-                        var tools_column = document.createElement('td')
-                        tools_column.setAttribute('class','tools-column')
-                        tools_column.setAttribute('link-sent',sent_index)
-                        
-                        var create_annotation = document.createElement('div')
-                        create_annotation.setAttribute('class','create-annotation-button')
-                        create_annotation.setAttribute('title','Создать аннотацию')
-                        create_annotation.setAttribute('v-on:click','CreateAnnotation')
-                        create_annotation.setAttribute('create-button-id',`${sent_index}`)
-                        create_annotation.innerHTML = "+"
-                        
-                        var delete_selection = document.createElement('div')
-                        delete_selection.setAttribute('class','delete-annotation-button')
-                        delete_selection.setAttribute('title','Снять выделение')
-                        delete_selection.setAttribute('v-on:click','DeleteSelection')
-                        delete_selection.setAttribute('delete-button-id',`${sent_index}`)
-                        delete_selection.innerHTML = 'x'
-
-
-                        tools_column.appendChild(delete_selection)
-                        tools_column.appendChild(create_annotation)
-
-                        var sent_num_el = document.createElement('td')
-                        sent_num_el.setAttribute('class','sentence-number')
-                        sent_num_el.innerHTML = sent_index+1
-
-                        text_row.appendChild(tools_column)
-                        text_row.appendChild(sent_num_el)
-
-                        var sentence = document.createElement('td')
-                        sentence.setAttribute('class','sentence')
-                        
-                        var sentence_area = document.createElement('table')
-                        sentence_area.setAttribute('sentence-order',sent_index)
-                        sentence_area.setAttribute('class','sentence-area')
-
-                        for(var ann_line_index = 0; ann_line_index<sentences_info[sent_index].annotations.length;ann_line_index++){
-                            var line_number = sentences_info[sent_index].annotations.length - ann_line_index - 1
-                            var tokens_markups = sentences_info[sent_index].annotations[line_number]
-                            var ann_line = document.createElement('tr')
-                            ann_line.setAttribute("class","annotation-line")
-
-                            for(var tm_index = 0; tm_index <tokens_markups.length; tm_index++){
-                                var mrk_info = tokens_markups[tm_index]
-                                var token_markup = document.createElement('td')
-                                token_markup.setAttribute('class', 'annotation-empty')
-                                if(mrk_info.isann){
-                                    token_markup = document.createElement('td')
-                                    if(mrk_info.display){
-                                        if( {{lang}} == 0){
-                                            token_markup.innerHTML = mrk_info.tag_text
-                                        }
-                                        else {
-                                            token_markup.innerHTML = mrk_info.tag_text_rus
-                                        }
-                                    }
-                                    token_markup.setAttribute('class','annotation-subtag')
-                                    token_markup.setAttribute('annotation-id',mrk_info.ann_id)
-                                    token_markup.setAttribute('annotation-type',mrk_info.tag_type)
-                                    token_markup.setAttribute('annotation-position',mrk_info.ann_position)
-                                    token_markup.setAttribute('ann-color',mrk_info.ann_color)
-                                    token_markup.setAttribute('token-markup-id', mrk_info.token_markup_id)
-                                    token_markup.setAttribute('child-token-id',mrk_info.token_id)
-                                    token_markup.setAttribute("v-on:mouseover","onHoverAnnotation") 
-                                    token_markup.setAttribute("v-on:mouseleave","outHoverAnnotation")
-                                    token_markup.setAttribute("style",`background-color: ${mrk_info.ann_color};`)
-                                }
-                                ann_line.appendChild(token_markup)
-                                }
-                                sentence_area.appendChild(ann_line)
-                            }
-
-                                var tokens_line = document.createElement('tr')
-                                tokens_line.setAttribute('class','tokens-line')
-
-                                for(var token_index = 0; token_index<sentences_info[sent_index].tokens.length; token_index++){
-                                    var token_column = document.createElement('td')
-                                    token_column.setAttribute('class','token-column')
-                                    
-                                    var token_elements = document.createElement('tabel')
-                                    token_elements.setAttribute('class','token-elements')
-
-                                    var token_elements_row = document.createElement('tr')
-                                    token_elements_row.setAttribute('class', 'token-elements-row')
-
-                                    var token_info = sentences_info[sent_index].tokens[token_index]
-
-                                    if(token_index == 0){
-                                        var left_append = document.createElement('td')
-                                        left_append.innerHTML = '+'
-                                        left_append.setAttribute('class','empty-place-token')
-                                        left_append.setAttribute('parent-token',token_info.token_id)
-                                        left_append.setAttribute('position','left')
-                                        left_append.setAttribute('title','Добавить пустой токен')
-                                        left_append.setAttribute('trigger-id',empty_trigger_id)
-                                        left_append.setAttribute('v-on:click','addToken')
-                                        token_elements_row.appendChild(left_append)
-                                        empty_trigger_id+=1
-                                    }
-                                    var token = document.createElement('td')
-                                
-                                    if(token_info.text.length==0){
-                                        token.innerHTML = '|empty|'
-                                        token.setAttribute('style','color: black;')
-                                    }
-                                    else{
-                                        token.innerHTML = token_info.text
-                                    }
-                                    token.setAttribute('class','token')
-                                    token.setAttribute('v-on:click','SelectToken')
-                                    token.setAttribute('v-on:mouseover','AsTextSelectToken')
-                                    token.setAttribute('v-on:mouseleave','AsTextSelectToken')
-                                    token.setAttribute('token-id',token_info.token_id)
-                                    token.setAttribute('token-sent-order', token_info.sent_order_number)
-                                    tokens_ids.push(token_info.token_id)
-
-                                    token_elements_row.appendChild(token)
-                                    
-                                    if(token_info.text.length > 0){
-                                    var right_append = document.createElement('td')
-                                    right_append.innerHTML = '+'
-                                    right_append.setAttribute('class','empty-place-token')
-                                    right_append.setAttribute('parent-token',token_info.token_id)
-                                    right_append.setAttribute('position','right')
-                                    right_append.setAttribute('title','Добавить пустой токен')
-                                    right_append.setAttribute('trigger-id',empty_trigger_id)
-                                    right_append.setAttribute('v-on:click','addToken')
-                                    empty_trigger_id += 1
-                                    token_elements_row.appendChild(right_append)
-                                    }
-                                    
-                                    token_elements.appendChild(token_elements_row)
-                                    token_column.appendChild(token_elements)
-                                    tokens_line.appendChild(token_column)
-                                }   
-                                
-                                sentence_area.appendChild(tokens_line)
-                                sentence.appendChild(sentence_area)
-                                text_row.appendChild(sentence)
-                                main_table.appendChild(text_row)
-                            }
-                            let ann_visible = []
-                            for(var i = 0; i < response.data.token_markups_ids.length; i++){
-                                ann_visible.push( new Vue({
-                                        el:  `[token-markup-id="${response.data.token_markups_ids[i]}"]`,
-                                        methods: {
-                                        onHoverAnnotation: select_ann,
-                                        outHoverAnnotation: unselect_ann
-                                    }
-                                    }))
-                            }
-                            function add_token(event){
-                            var token_id = event.currentTarget.getAttribute('parent-token')
-                            var position = event.currentTarget.getAttribute('position')
-                            axios({
-                                url: 'http://127.0.0.1:8000/show_text/api/add_empty_token',
-                                method: 'POST',
-                                data:{'parent_token': token_id, 'append_position':position},
-                                headers: {"X-CSRFToken": "{{csrf_token}}"}
-                            }).then(function (response){
-                                get_text();
-                            }).catch(function (error) {
-                                    // your action on error success
-                                        console.log(error);
-                                    });
-                            }
-                            let add_elements = []
-                            for(var i = 0; i<empty_trigger_id; i++){
-                                add_elements.push(
-                                    new Vue({
-                                        el:`[trigger-id = "${i}"]`,
-                                        methods:{
-                                            addToken:add_token
-                                        }
-                                    }))
-                            }
-                            let selectable_tokens = []
-                            for(var i =0; i<tokens_ids.length; i++){
-                                selectable_tokens.push(new Vue({
-                                    el:`[token-id = "${tokens_ids[i]}"]`,
-                                    methods:{
-                                        SelectToken: select_token,
-                                        AsTextSelectToken: select_token_moving,
-                                    }
-                                }))
-                            }
-
-                            let annotation_creators = []
-                            let selection_deleters = []
-                            for(var i =0; i<sentences_info.length;i++){
-                            annotation_creators.push(new Vue({
-                                el: `[create-button-id = "${i}"]`,
-                                methods:{
-                                    CreateAnnotation: create_annotation_selection
-                                        }
-                                    }))
-                            selection_deleters.push(new Vue({
-                                el:`[delete-button-id = "${i}"]`,
-                                methods:{
-                                    DeleteSelection: delete_tokens_selection
-                                    }
-                                }))
-                            }
-                        })
-                .catch(function (error) {
-                // your action on error success
-                });
-    };
-    get_text()
+})]
 </script>
-
+{%else%}
+<div id="found-text-error">Текст не найден</div>
+{%endif%}
 </body>
 
 </html>

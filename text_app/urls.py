@@ -9,6 +9,8 @@ urlpatterns = [
     path('new_text/', views.new_file, name='new_text'),
     path('show_text/id/<int:text_id>/pos/<int:pos>/error/<int:error>/tag_lang/<str:language>', views.show_text),
     path('show_text/', views.show_text),
+    path('show_text/api/get_classification', api.get_classification),
     path('show_text/api/add_empty_token', api.add_empty_token),
-    path('show_text/api/get_text', api.get_text)
+    path('show_text/api/get_text', api.get_text),
+    path('show_text/api/annotation_edit', api.annotation_edit)
 ]

@@ -1,7 +1,8 @@
 # from django.views import generic
 # from .models import TblText
-from .models import TblLanguage, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from .forms import TextCreationForm
+from pickle import TRUE
+from .models import TblLanguage, TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from .forms import TextCreationForm, get_annotation_form
 from django.shortcuts import render
 from django.http import HttpResponse
 from copy import deepcopy
@@ -80,20 +81,43 @@ def new_file(request, language = None, text_type = None):
 
 
 def show_text(request, text_id = 1, pos = 1, error = 1, language = 'foreign'):
-    if pos == 1:
-        pos = True
-    else:
-        pos = False
-    if error == 1:
-        error = True
-    else:
-        error = False
-    if language == 'foreign':
-        language = 0
-    elif language == 'russian':
-        language = 1
-    else:
-        language = 0
+    text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name').all()
+    if text_info.exists():
+        header = text_info[0]['header']
+        text_language_name = text_info[0]['language_id__language_name']
+        text_language = text_info[0]['language_id']
+        tags = TblTag.objects.filter(tag_language_id = text_language).values('id_tag','tag_text','tag_text_russian', 'tag_parent','tag_color').all()
+        tags_info = []
+        if tags.exists():
+            for element in tags:
+                parent_id = 0
+                if element['tag_parent']>0:
+                    parent_id = element['tag_parent']
+                spoiler = False
+                for child in tags:
+                    if element['id_tag'] == child['tag_parent']:
+                        spoiler = True
+                        break
+                tags_info.append({
+                    'isspoiler':spoiler,
+                    'tag_id':element['id_tag'],
+                    'tag_text':element['tag_text'],
+                    'tag_text_russian':element['tag_text_russian'],
+                    'parent_id':parent_id,
+                    'tag_color':element['tag_color']
+                })
+        reasons = TblReason.objects.filter(reason_language_id = text_language).values('id_reason','reason_name')
+        grades = TblGrade.objects.filter(grade_language_id = text_language).values('id_grade','grade_name')
+        annotation_form = get_annotation_form(grades,reasons)
+        if pos == 1:
+            pos = True
+        else:
+            pos = False
+        if error == 1:
+            error = True
+        else:
+            error = False
 
-
-    return render(request, "text_show.html", context= {'text_id':text_id, 'found':True, 'pos':pos, 'error':error, 'lang':language})
+        return render(request, "work_area.html", context= {'founded':True,'ann_right':True, 'tags_info':tags_info, 'annotation_form':annotation_form, 'text_id':text_id,'header':header, 'pos':pos, 'error':error, 'lang_name':text_language_name})
+    else:
+        return render(request, 'work_area.html', context={'founded':False})
