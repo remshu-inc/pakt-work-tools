@@ -168,7 +168,7 @@ def past_in_template(markup, start, end, template):
   
 def show_text(request, text_id = 1, language = None, text_type = None):
     text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name').all()
-    if text_info.exists() and check_permissions_show_text(request.user.user_id, text_id):
+    if text_info.exists() and check_permissions_show_text(request.user.id_user, text_id):
         header = text_info[0]['header']
         text_language_name = text_info[0]['language_id__language_name']
         text_language = text_info[0]['language_id']
@@ -196,7 +196,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
         grades = TblGrade.objects.filter(grade_language_id = text_language).values('id_grade','grade_name')
         annotation_form = get_annotation_form(grades,reasons)
 
-        ann_right = check_permissions_work_with_annotations(request.user.id_uset, text_id)
+        ann_right = check_permissions_work_with_annotations(request.user.id_user, text_id)
 
         return render(request, "work_area.html", context= {'founded':True,'ann_right':ann_right,'user_id':request.user.id_user, 'tags_info':tags_info, 'annotation_form':annotation_form, 'text_id':text_id,'lang_name':text_language_name})
     else:
