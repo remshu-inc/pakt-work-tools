@@ -103,7 +103,7 @@ class TblText(models.Model):
     student_assesment = models.IntegerField(blank=True, null=True, choices=RATES)
     creation_course = models.IntegerField(choices=YEARS)
     
-    assessment = models.IntegerField()
+    assessment = models.IntegerField(blank=True, null=True)
     teacher = models.ForeignKey(TblTeacher, blank=True, null=True, on_delete=models.SET_NULL)
     
     pos_check = models.BooleanField(blank=True, null=True, default=0)
@@ -238,7 +238,4 @@ class TblTokenMarkup(models.Model):
     
     def __str__(self):
         return self.id_token_markup
-    
-
-    
     

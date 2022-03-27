@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <main>
+        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+
+        <div class="container-sm">
+            <a href="/search1">Вариант</a>
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value='"lieber"'>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Поиск</button>
+            </div>
+        </div>
+        
+        <br><br>
+
+        <table class="table table-hover table-sm">
+            <thead>
+                <tr class='corpus-tr'>
+                    <th scope="col">#</th>
+                    <th scope="col">Название текста</th>
+                    <th scope="col">Год создания</th>
+                    <th scope="col">Год обучения</th>
+                    <th scope="col">Результат поиска</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class='corpus-tr'>
+                    <td scope="col">1</td>
+                    <td><a href="Reise">Reise</a></td>
+                    <td>2022</td>
+                    <td>4</td>
+                    <td>Die Großstädter reisen <span style="background-color: #9ec5ff; padding-left: 5px; padding-right: 5px;">lieber</span> ans Meer oder in die Berge, weil sie im Urlaub mehr Ruhe wollen haben.</td>
+                </tr>
+                <tr class='corpus-tr'>
+                    <td scope="col">2</td>
+                    <td><a href="#">Diskussionsfragen</a></td>
+                    <td>2022</td>
+                    <td>4</td>
+                    <td>Dann <span style="background-color: #9ec5ff; padding-left: 5px; padding-right: 5px;">lieber</span> heute noch!</td>
+                </tr>
+                <tr class='corpus-tr'>
+                    <td scope="col">3</td>
+                    <td><a href="#">Test</a></td>
+                    <td>2022</td>
+                    <td>3</td>
+                    <td>Ich würde <span style="background-color: #9ec5ff; padding-left: 5px; padding-right: 5px;">lieber</span> von lügenden, grausamen, dummen Leute Abstand halten, die keinen...</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </main>
+</div>
+
+{%endblock%}

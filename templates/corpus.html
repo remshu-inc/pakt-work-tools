@@ -3,40 +3,50 @@
 
 <div class="container">
     <div class="row">
-        <!-- Blog Entries Column -->
-        <div class="col-md-12 mt-3 left">
 
-            {# For anonymous users #}
-            {% if not user.is_authenticated %}
+        {# ERROR #}
+        {% if error %}
 
-                <h1 class="text-center mt-5">
-                    You need to log in. 
-                </h1>
+        <h1 class="text-center mt-5 text-danger">
+            {{ text_html }} 
+        </h1>
 
-            {% endif %}
+        {% endif %}
 
+        {# For anonymous users #}
+        {% if not user.is_authenticated %}
 
+        <h1 class="text-center mt-5 text-danger">
+            You need to log in. 
+        </h1>
+
+        {% else %}
+            
+        <div class="col-md-10 mt-3 left">
             <!-- TODO: ССЫЛКА ВСЯ СТРОКА -->
-            <!-- For Language -->
+
+            {# For Language #}
             {% if list_language %}
             
             <table class="table table-hover table-sm">
                 <thead>
-                    <tr>
+                    <tr class='corpus-tr'>
                         <!-- <th scope="col">#</th> -->
-                        <th scope="col">Language</th>
+                        <th scope="col">Язык</th>
                     </tr>
                 </thead>
                 <tbody>
                     
                     {% for lanuage in list_language  %}
-                    <tr>
+                    <tr class='corpus-tr'>
                         <!-- <td scope="col">#</td> -->
                         <td>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
-                            </svg>
-                            <a href="{{ lanuage.language_name }}">{{ lanuage.language_name }}</a>
+                            <a href="{{ lanuage.language_name }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
+                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
+                                </svg>
+                                {{ lanuage.language_name }}
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -50,24 +60,26 @@
             
             <table class="table table-hover table-sm">
                 <thead>
-                    <tr>
+                    <tr class='corpus-tr'>
                         <!-- <th scope="col">#</th> -->
-                        <th scope="col">Text Type</th>
+                        <th scope="col">Тип текста</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <tr class='corpus-tr'>
                         <!-- <td scope="col">#</td> -->
-                        <td><a href="{% url 'home' %}">..</a></td>
+                        <td><a href="{% url 'corpus' %}">..</a></td>
                     </tr>
                     {% for text_type in list_text_type  %}
-                    <tr>
+                    <tr class='corpus-tr'>
                         <!-- <td scope="col">#</td> -->
                         <td>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
-                            </svg>
-                            <a href="{{ text_type.text_type_name }}">{{ text_type.text_type_name }}</a>
+                            <a href="{{ text_type.text_type_name }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
+                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
+                                </svg>
+                                {{ text_type.text_type_name }}
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -76,37 +88,54 @@
             
             {% endif %}
 
-            <!-- For Text -->
-            {% if list_text %}
+            {# For Text #}
+            {% if list_text_and_user %}
 
             <table class="table table-hover table-sm">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Header</th>
-                        <th scope="col">User ID</th>
-                        <th scope="col">Created Date</th>
+                <thead class="thead-dark">
+                    <tr class='corpus-tr d-flex'>
+                        <th scope="row"class="col-1 text-center">#</th>
+                        <th class="col-5"><a href="?order_by=header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            Название текста
+                        </a></th>
+                        <th class="col-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            Пользователь
+                        </th>
+                        <th class="col-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            Дата модификации
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <!-- <td scope="col">#</td> -->
-                        <td><a href="{% url 'language' language_selected %}">..</a></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                    <tr class='corpus-tr d-flex'>
+                        <td class="col-1 text-center">0</td>
+                        <td class="col-5"><a href="{% url 'language' language_selected %}">..</a></td>
+                        <td class="col-3"></td>
+                        <td class="col-3"></td>
                     </tr>
-                    {% for text in list_text  %}
-                    <tr>
-                        <td scope="col">#</td>
-                        <td>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
-                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-                            </svg>
-                            {{ text.header }}
+                    {% for text_and_user in list_text_and_user  %}
+                    
+                    <tr class='corpus-tr d-flex'>
+                        <td class="col-1 text-center">{{ forloop.counter }}</td>
+                        <td class="col-5">
+                            <a href="{{ text_and_user.0.id_text }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
+                                    <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
+                                </svg>
+                                {{ text_and_user.0.header }}
+                            </a>
                         </td>
-                        <td>{{ text.user_id }}</td>
-                        <td>{{ text.create_date }}</td>
+                        <td class="col-3">{{ text_and_user.1 }}</td>
+                        <td class="col-3">{{ text_and_user.0.modified_date }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -116,6 +145,16 @@
             
 
         </div>
+
+        
+        {% if work_with_file %}
+        <div class="col-md-2 mt-5">
+            <a href='new_text' class="button btn btn-success">Новый текст</a>
+            <!-- <button type="button" class="btn btn-danger">Danger</button> -->
+        </div>
+        {% endif %}
+
+        {% endif %}
     </div>
 </div>
 {%endblock%}

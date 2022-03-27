@@ -2,16 +2,136 @@
 {% block content %}
 
 <div class="container">
-    <main class="form-signup">
+    <main class="justify-content-center form-signup d-flex">
         
-        <form method="post">
-            {% csrf_token %}
-            <table>
-                {{ form_user.as_table }}
-                {{ form_student.as_table }}
-            </table>
-            <button type="submit">save</button>
-        </form>
+        <div class="col-4">
+            <h1 class="mt-3 text-center">Регистрация</h1>
+            {% load filters %}
+            <div class="form-group mt-4"></div>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form_user.non_field_errors }}
+                    {{ form_student.non_field_errors }}
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label for="{{ form_user.login.id_for_label }}" class="form-label">Логин</label>
+                            {% if not form_user.login.errors %}
+                            {{ form_user.login }}
+                            {% else %}
+                            {{ form_user.login|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.login.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form_user.password.id_for_label }}" class="form-label">Пароль</label>
+                            {% if not form_user.password.errors %}
+                            {{ form_user.password }}
+                            {% else %}
+                            {{ form_user.password|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-6">
+                            <label for="{{ form_user.last_name.id_for_label }}" class="form-label">Фамилия</label>
+                            {% if not form_user.last_name.errors %}
+                            {{ form_user.last_name }}
+                            {% else %}
+                            {{ form_user.last_name|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-6">
+                            <label for="{{ form_user.name.id_for_label }}" class="form-label">Имя</label>
+                            {% if not form_user.name.errors %}
+                            {{ form_user.name }}
+                            {% else %}
+                            {{ form_user.name|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form_user.patronymic.id_for_label }}" class="form-label">Отчество</label>
+                            {% if not form_user.patronymic.errors %}
+                            {{ form_user.patronymic }}
+                            {% else %}
+                            {{ form_user.patronymic|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form_student.birthdate.id_for_label }}" class="form-label">Дата рождения</label>
+                            {% if not form_student.birthdate.errors %}
+                            {{ form_student.birthdate }}
+                            {% else %}
+                            {{ form_student.birthdate|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form_student.gender.id_for_label }}" class="form-label">Пол</label>
+                            {% if not form_student.gender.errors %}
+                            {{ form_student.gender }}
+                            {% else %}
+                            {{ form_student.gender|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form_student.group_number.id_for_label }}" class="form-label">Номер группы</label>
+                            {% if not form_student.group_number.errors %}
+                            {{ form_student.group_number }}
+                            {% else %}
+                            {{ form_student.group_number|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form_student.course_number.id_for_label }}" class="form-label">Курс</label>
+                            {% if not form_student.course_number.errors %}
+                            {{ form_student.course_number }}
+                            {% else %}
+                            {{ form_student.course_number|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                Необходимо заполнить поле
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        
+                    </div>
+
+
+                    <button type="submit" class="mt-2 btn btn-success">Зарегистрировать студента</button>
+                </form>
+            </div>
+        </div>
 
     </main>
 </div>

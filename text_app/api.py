@@ -44,6 +44,7 @@ def get_classification(query):
     return(JsonResponse(tags_info))
 
 
+
 #----Получение текста и аннотаций------
 def get_text(query):
     if query.method == 'POST':
@@ -91,6 +92,7 @@ def get_text(query):
 
     # all_markups_id = [element['id_markup'] for element in TblMarkup.objects.filter(sentence_id__in = sentences_id).values('id_markup').all()]
 
+
     res_sents = [] #* Итоговые предложения
     all_token_markups_id = [] #* Id всех разметок токенов
 
@@ -100,12 +102,14 @@ def get_text(query):
         'token_id',
         'markup_id',
         'id_token_markup',
+
         'markup_id__start_token',
         'markup_id__end_token',
         'markup_id__tag_id__markup_type_id__markup_type_name', #Название типа разметки
         'token_id__order_number',
         'markup_id__change_date' #Номер токена в предложении,
         ).order_by('markup_id__change_date').all())
+
         all_token_markups_id += [element['id_token_markup'] for element in tokens_markups]
         sent_tokens = []
         for token in tokens:
@@ -120,10 +124,12 @@ def get_text(query):
                 sent_tokens.append({
                     'token_id':token['id_token'],
                     'order_number':token['order_number'],
+
                     'sent_order_number':token['sentence_id__order_number'],
                     'markups_ids': markups_ids,
                     'text': token_text
                 })
+
         ann_templates = past_in_template(tokens_markups, len(sent_tokens))
         res_sents.append(
             {
@@ -132,7 +138,9 @@ def get_text(query):
             }
         )
 
+
     return(JsonResponse({'sentences':res_sents, 'token_markups_ids':all_token_markups_id, 'markup_info':markup_info}))
+
 
 def add_empty_token(query):
     if query.method == 'POST':
@@ -260,3 +268,4 @@ def annotation_edit(query):
             
             
     return(HttpResponse())
+

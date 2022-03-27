@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-sm">
+    <main>
+        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+
+        <a href="/search1">Вариант</a>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value='"lieber"'>
+            <button class="btn btn-outline-secondary" type="button" id="button-addon2">Поиск</button>
+        </div>
+        
+        <br><br>
+
+        <h2 class="text-center mb-3">Reise</h2>
+
+        <p align="justify" stle="line-height: 2">
+            Die Welt ist ein Buch. Wenn du nicht reisst, siehst nur ihre eine Seite. Es ist nicht billig zu reisen, aber das Leben ist heute ohne Reisen unmöglich. Nach einem Arbeitsjahr bekommen die Menschen einen Urlaub, und sie haben keine Lust, den Urlaub zu Hause zu verbringen. 3Millionen Menschen reisen, um andere Länder und Städte zu sehen, etwas Neues zu entdecken, neue Menschen kennen zu lernen, ungewöhnliche Speisen zu probieren. Gewöhnlich planen die Menschen ihre Reisen im Voraus, weil sie die Probleme während der Reise nicht haben wollen. Sie wählen ihr Reiseziel und die Dauer ihrer Reise, um die Karte im Voraus zu besorgen, weil es billig ist. Es ist heute leicht, Tickets und Hotelzimmer im Internet zu buchen, aber viele Leute haben keine Zeit und Lust, ihre Reisen selbst zu organisieren. Dann wenden sie sich an ein Reisebüro, das  ihre Reise sehr interessant organisiert. Das Reiseziel und die Dauer der Reise hängen vor allem vom Geld ab, weil,  wie ich schon gesagt habe, es nicht billig zu reisen ist. Immer mehr Menschen wollen ins Ausland reisen, das sehr schön ist.  Man will auch  im Urlaub die Umgebung wechseln, weil ihre Urlaub schon langweilig ist. Die Menschen vom Lande oder aus einer Kleinstadt fahren gern in eine Großstadt, weil sie die Sehenswürdigkeiten zu besichtigen, Museen zu besuchen, in großen Kaufhäusern  einzukaufen und in Restaurants zu essen wollen. Die Großstädter reisen <span style="background-color: #9ec5ff; padding-left: 5px; padding-right: 5px;">lieber</span> ans Meer oder in die Berge, weil sie im Urlaub mehr Ruhe wollen haben. Man kann in verschiedenen Weisen reisen: mit dem Auto, den Zug, dem Flugzeug oder trampen, wie viele Reisenden reisen . Am liebsten mag ich mit dem Auto reisen, weil ich von keinem Fahrplan abhänge, und ich viel Gepäck mitnehmen kann.   Aber wenn ich das Ausland fahren will, fahre ich mit dem Flugzeug, um die Zeit einzusparen. 
+        </p>
+
+    </main>
+</div>
+
+{%endblock%}

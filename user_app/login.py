@@ -1,6 +1,5 @@
 from django.contrib.auth.backends import BaseBackend
-from user_app.models import TblUser
-from right_app.views import check_permissions_text
+from user_app.models import TblUser, TblTeacher
 from hashlib import sha512
 
 
@@ -15,8 +14,6 @@ class MyBackend(BaseBackend):
             user = TblUser.objects.get(login=login, password=hash)
         except:
             return None
-        
-        # user.permission_text = check_permissions_text(user.id_user)
             
         return user
         
