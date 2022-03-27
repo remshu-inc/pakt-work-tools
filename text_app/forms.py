@@ -9,6 +9,7 @@ class TextTypeChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return super().label_from_instance(obj)
         # return "TblLanguage #%s) %s" % (obj.id_language, obj.language_name)
+
         
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -37,8 +38,7 @@ class TextCreationForm(forms.ModelForm):
         }
         
     def __init__(self, user=None, language=None, text_type=None, *args, **kwargs):
-        super(TextCreationForm, self).__init__(*args, **kwargs)
-        
+        super(TextCreationForm, self).__init__(*args, **kwargs)    
         if user != None and language != None and text_type != None:
             
             # Если у пользователя нет прав загружать текст от чужого лица
@@ -60,5 +60,28 @@ class TextCreationForm(forms.ModelForm):
             self.fields['text_type'] = forms.ModelChoiceField(queryset=text_type_object, widget=forms.Select(attrs={'class': 'form-control'}))
             self.fields['text_type'].initial = text_type_object[0]
             self.fields['text_type'].widget.attrs['readonly'] = "readonly" 
+            
+def get_annotation_form(Grades, Reasons):
+    grades = [('0','Не указано')]
+    for element in Grades:
+        grades.append((element["id_grade"], element["grade_name"]))
+    reasons = [('0','Не указано')]
+    for element in Reasons:
+        reasons.append((element["id_reason"], element["reason_name"]))
+    class AnnotatioCreateForm(forms.Form):
+        nonlocal reasons
+        nonlocal grades
+        query_type = forms.IntegerField(widget=forms.HiddenInput(attrs={"id":"query-type-field"}))
+        classification_tag = forms.IntegerField(widget=forms.HiddenInput(attrs={"id":"selected-classif-tag"}))
+        tokens = forms.CharField(widget=forms.HiddenInput(attrs={"id":"selected-tokens"}))
+        markup_id = forms.IntegerField(widget=forms.HiddenInput(attrs={"id":"selected-markup-id"}))
+        reason = forms.ChoiceField(widget=forms.Select(attrs={"id":"selected_reason","class":"only-errors"}), choices=reasons, label = "Причина",required=False)
+        grade = forms.ChoiceField(widget=forms.Select(attrs={"id":"selected_grade","class":"only-errors"}), choices=grades, label = "Степень грубости:", required=False)
+        del reasons
+        del grades
+        correct = forms.CharField(widget = forms.Textarea(attrs={"id":"correct-text", "class":"only-errors"}), label = "Исправление:", max_length=255,required=False)#TODO: Уточнить
+        comment = forms.CharField(widget = forms.Textarea(attrs={"id":"comment-text"}), label = "Комментарий:", max_length=255,required=False)#TODO: Уточнить
+    
+    return(AnnotatioCreateForm)
             
             

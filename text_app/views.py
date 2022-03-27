@@ -1,12 +1,13 @@
 # from django.views import generic
 # from .models import TblText
-from .models import TblLanguage, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from .forms import TextCreationForm
-from django.shortcuts import render, redirect
+
+from .models import TblLanguage, TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from .forms import TextCreationForm, get_annotation_form
+from django.shortcuts import render
 from django.http import HttpResponse
 from copy import deepcopy
 from django.db.models import F
-from right_app.views import check_permissions_show_text
+from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text
 from user_app.models import TblTeacher, TblUser
 
 # Test
@@ -80,7 +81,7 @@ def show_files(request, language = None, text_type = None):
         return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language}))
     
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
- 
+
 def new_text(request, language = None, text_type = None):
     
     # Проверка на выбранный язык и тип текста
@@ -97,6 +98,7 @@ def new_text(request, language = None, text_type = None):
             return render(request, 'corpus.html')
     else:
         return render(request, 'corpus.html')
+
     
     if request.method == 'POST':
         from nltk.tokenize import sent_tokenize, word_tokenize
@@ -137,6 +139,7 @@ def new_text(request, language = None, text_type = None):
         
     return render(request, 'new_text.html', {'form_text': form_text})
 
+
 #Функция подстановки аннотаций в шаблон
 def past_in_template(markup, start, end, template):
     if start == end:
@@ -162,22 +165,39 @@ def past_in_template(markup, start, end, template):
         else:
             template[index]['ann_position'] = 'middle'
     return(template)
+  
+def show_text(request, text_id = 1, language = None, text_type = None):
+    text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name').all()
+    if text_info.exists() and check_permissions_show_text(request.user.user_id, text_id):
+        header = text_info[0]['header']
+        text_language_name = text_info[0]['language_id__language_name']
+        text_language = text_info[0]['language_id']
+        tags = TblTag.objects.filter(tag_language_id = text_language).values('id_tag','tag_text','tag_text_russian', 'tag_parent','tag_color').all()
+        tags_info = []
+        if tags.exists():
+            for element in tags:
+                parent_id = 0
+                if element['tag_parent']>0:
+                    parent_id = element['tag_parent']
+                spoiler = False
+                for child in tags:
+                    if element['id_tag'] == child['tag_parent']:
+                        spoiler = True
+                        break
+                tags_info.append({
+                    'isspoiler':spoiler,
+                    'tag_id':element['id_tag'],
+                    'tag_text':element['tag_text'],
+                    'tag_text_russian':element['tag_text_russian'],
+                    'parent_id':parent_id,
+                    'tag_color':element['tag_color']
+                })
+        reasons = TblReason.objects.filter(reason_language_id = text_language).values('id_reason','reason_name')
+        grades = TblGrade.objects.filter(grade_language_id = text_language).values('id_grade','grade_name')
+        annotation_form = get_annotation_form(grades,reasons)
 
+        ann_right = check_permissions_work_with_annotations(request.user.id_uset, text_id)
 
-def show_text(request, language_test = None, text_type_test = None, text_id = 1, pos = 1, error = 1, language = 'foreign'):
-    if pos == 1:
-        pos = True
+        return render(request, "work_area.html", context= {'founded':True,'ann_right':ann_right,'user_id':request.user.id_user, 'tags_info':tags_info, 'annotation_form':annotation_form, 'text_id':text_id,'lang_name':text_language_name})
     else:
-        pos = False
-    if error == 1:
-        error = True
-    else:
-        error = False
-    if language == 'foreign':
-        language = 0
-    elif language == 'russian':
-        language = 1
-    else:
-        language = 0
-
-    return render(request, "text_show.html", context= {'text_id':text_id, 'found':True, 'pos':pos, 'error':error, 'lang':language}) 
+        return render(request, 'work_area.html', context={'founded':False})
