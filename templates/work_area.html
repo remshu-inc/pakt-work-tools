@@ -315,6 +315,12 @@ function reset_errors_fields(hide_fields){
         var err_fields = document.getElementsByClassName("only-errors")
         for(var i=0; i<err_fields.length;i++){
             err_fields[i].parentNode.style.display = "none"
+            if(err_fields[i].tagName=="SELECT"){
+                err_fields[i].selectedIndex = 0;
+            }
+            else{
+                err_fields[i].value = ""
+            }
     }
     
     }
@@ -341,7 +347,10 @@ function close_ann_create_form(event){
     document.getElementById("tag-type-selected-tag").innerHTML = ""
     document.getElementById("tag-type-selected-tag").style.display = "none"
     document.getElementById("annotation-create-form-area").style.display = "none"
+    document.getElementById("form-delete-button").style.display = "none"
     document.getElementById("annotation-create-form-data").reset()
+    document.getElementById("creator-name").innerHTML = ""
+    document.getElementById("creator-field").style.display = "none"
     set_annotation_form_to_basic();
 }
 {%else%}
@@ -474,7 +483,8 @@ function modify_annotation_selection(event){
             only_err_content[i].parentNode.style.display = "block"
         }
     }
-
+    document.getElementById("creator-name").innerHTML = `${text_response.data.markup_info[markup_id].user_name} ${text_response.data.markup_info[markup_id].user_last_name}`
+    document.getElementById("creator-field").style.display = "block"
     document.getElementById("annotation-create-form-data").style.display = "block"
     document.getElementById("form-delete-button").style.display = "block"
     document.getElementById("query-type-field").value = 2
@@ -504,7 +514,7 @@ function modify_annotation_selection(event){
     if(text_response.data.markup_info[markup_id].markup_type == 1){
         var only_err_elems = document.getElementsByClassName("only-errors")
         for(var i = 0; i<only_err_elems.length; i++){
-            only_err_elems[i].style.display = "block"
+            only_err_elems[i].style.display = "table-row"
         }
     }
     document.getElementById("tag-reason-value").innerHTML = text_response.data.markup_info[markup_id].reason_text
@@ -582,10 +592,10 @@ function select_classification_selector(event){
     border-radius: 10pt;
     position: absolute;
     left:25%;
-    width: 50%;
-    height:96vh;
-    top:2vh;
-    bottom: 2vh;
+    width: 40vw;
+    height:98vh;
+    top:1vh;
+    bottom: 1vh;
     background-color: #0dcaf0;
 }
 #annotation-create-form-close{
@@ -638,6 +648,22 @@ function select_classification_selector(event){
     bottom:50px;
     background-color: white;
     overflow-y: auto;
+}
+#annotation-create-form-content::-webkit-scrollbar {
+    width: 10px;
+    background-color: #f1f1f1;
+}
+#annotation-create-form-content::-webkit-scrollbar-thumb {
+    width: 10px;
+    background-color: #9b9b9b;
+}
+textarea::-webkit-scrollbar{
+    width:8px;
+    background-color: #f1f1f1;
+}
+textarea::-webkit-scrollbar-thumb {
+    width: 8px;
+    background-color: #9b9b9b;
 }
 #tag-type-create-form-area{
     position: absolute;
@@ -700,7 +726,7 @@ function select_classification_selector(event){
 }
 #annotation-create-form-data{
     height:40vh;
-    width: 100%;
+    /* width: 100%; */
     padding-bottom: 5px;
     display:none;
 }
@@ -723,6 +749,7 @@ function select_classification_selector(event){
     list-style-type: none;
     display:block;
     margin-bottom: 5px;
+    width:80%;
 }
 #fields-list>li>label{
     display: block;
@@ -749,26 +776,34 @@ function select_classification_selector(event){
     cursor: pointer;
     outline: none;
     height:25px;
+    margin-bottom:8pt;
+    margin-right:-80%;
 }
 #form-save-button{
-    position: absolute;
-    right:5px;
-    bottom:40px;
+    // position: absolute;
+    // right:5px;
+    // bottom:40px;
     background-color: #15f00d;
 }
 #form-delete-button{
-    position: absolute;
-    bottom: 5px;
-    right:5px;
+    // position: absolute;
+    // bottom: 5px;
+    // right:5px;
     background-color: #f00d0d;
     display:none;
 }
 #tag-name-value{
-    max-width: max-content; 
-    margin-left: 5pt;
     border-radius: 4pt;
     border: 2pt solid white;
     padding: 4pt;
+}
+#creator-field{
+    display:none;
+    margin-bottom:5px;
+}
+#creator-name{
+    margin-left: 8px;
+    display:inline-block;
 }
 {%else%}
 
@@ -776,7 +811,7 @@ function select_classification_selector(event){
     border-radius: 10pt;
     position: absolute;
     left:20vw;
-    width: 60vw;
+    width: 40vw;
     height:40vh;
     top:30vh;
     background-color: #0dcaf0;
@@ -815,6 +850,7 @@ function select_classification_selector(event){
     background-color: white;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: 600;
+    border-collapse: collapse;
 }
 #annotation_watch_content{
     position: absolute;
@@ -836,17 +872,13 @@ function select_classification_selector(event){
 .form-li-label{
     text-align: left;
 }
-#tag-info-table>tbody>tr>td{
-    text-align:left;
-}
+
 .only-errors{
     display:none;
 }
 .info-value{
-    margin-left: 5pt;
     border-radius: 4pt;
     border: 2pt solid white;
-    /* padding: 4pt; */
 }
 #tag-reason-value{
     background-color: #f2fa8a;
@@ -873,8 +905,9 @@ function select_classification_selector(event){
                 <ul id="fields-list">
                 {{annotation_form.as_ul}}
                 </ul>
-                <button class = "form-button" id = "form-delete-button" type = "button" v-on:click = "Delete">Удалить</button>
+                <div id="creator-field">Создатель аннотации:<div id="creator-name"></div></div>
                 <button class = "form-button" id = "form-save-button" type = "button" v-on:click = "Save">Сохранить</button>
+                <button class = "form-button" id = "form-delete-button" type = "button" v-on:click = "Delete">Удалить</button>
             </form>
             </div>
         </div>
@@ -960,7 +993,7 @@ function sent_annotation_info(link){
         url: link,
         method: 'POST',
         data: 
-        {
+        {   'user_id':{{user_id}},
             'query_type': document.getElementById("query-type-field").value,
             'classification_tag': document.getElementById("selected-classif-tag").value,
             'tokens': document.getElementById("selected-tokens").value,
@@ -1003,8 +1036,12 @@ function delete_annotation_info(link){
 function reset_language(event){
     if(event.target.selectedIndex!=language){
         language = event.target.selectedIndex
-        re_built_classification(classification_response, language)
-        re_built_text(text_response,language)
+        {%if ann_right%}
+            re_built_classification(classification_response, language)
+            re_built_text(text_response,language)
+        {%else%}
+            re_built_text(text_response,language)
+        {%endif%}
     }
 }
 {%endblock%}

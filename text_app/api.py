@@ -2,6 +2,7 @@ from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 import json
 
 from .models import TblGrade, TblLanguage, TblReason, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from user_app.models import TblUser
 from .api_src import past_in_template
 from datetime import datetime
 
@@ -66,7 +67,9 @@ def get_text(query):
         'grade_text':element['grade_id__grade_name'],
         'user_last_name':element['user_id__last_name'],
         'user_name':element['user_id__name'],
-        'correct':element['correct']
+        'correct':element['correct'],
+        'user_name':element['user_id__name'],
+        'user_last_name':element['user_id__last_name']
         } for element in TblMarkup.objects.filter(sentence_id__in = sentences_id).values(
             'id_markup', 
             'tag_id__tag_text',
@@ -86,7 +89,7 @@ def get_text(query):
     #*Получение информации о токенах
     tokens = TblToken.objects.filter(sentence_id__in = sentences_id).values('id_token', 'text', 'sentence_id', 'order_number','sentence_id__order_number').order_by('sentence_id', 'order_number').all()
 
-    all_markups_id = [element['id_markup'] for element in TblMarkup.objects.filter(sentence_id__in = sentences_id).values('id_markup').all()]
+    # all_markups_id = [element['id_markup'] for element in TblMarkup.objects.filter(sentence_id__in = sentences_id).values('id_markup').all()]
 
     res_sents = [] #* Итоговые предложения
     all_token_markups_id = [] #* Id всех разметок токенов
@@ -100,8 +103,9 @@ def get_text(query):
         'markup_id__start_token',
         'markup_id__end_token',
         'markup_id__tag_id__markup_type_id__markup_type_name', #Название типа разметки
-        'token_id__order_number', #Номер токена в предложении,
-        ).order_by('markup_id__tag_id__markup_type_id__markup_type_name').all())
+        'token_id__order_number',
+        'markup_id__change_date' #Номер токена в предложении,
+        ).order_by('markup_id__change_date').all())
         all_token_markups_id += [element['id_token_markup'] for element in tokens_markups]
         sent_tokens = []
         for token in tokens:
@@ -182,7 +186,11 @@ def annotation_edit(query):
                     tag = TblTag.objects.get(id_tag = int(data['classification_tag']))
                 except:
                     return(JsonResponse({'status':'false','message':"Не корректное значение тега разметки"}, status=500))
-
+                #Информация о пользователе
+                try:
+                    user = TblUser.objects.get(id_user = int(data['user_id']))
+                except:
+                    return(JsonResponse({'status':'false','message':"Не корректное значение id пользователя"}, status=500))
                 #Получаем информацию о степени и критичности
                 if data['reason'] != '0' and data['reason'].isdigit():
                     reason = TblReason.objects.get(id_reason = int(data['reason']))
@@ -197,7 +205,7 @@ def annotation_edit(query):
                     token = start_token,
                     tag = tag,
                     sentence = sentence,
-                    user = None,
+                    user = user,
                     start_token = start_token,
                     end_token = end_token,
                     correct = data['correct'],
@@ -229,7 +237,10 @@ def annotation_edit(query):
                     reason = TblReason.objects.get(id_reason = int(data['reason']))
                 else:
                     reason = None
-                
+                try:
+                    user = TblUser.objects.get(id_user = int(data['user_id']))
+                except:
+                    return(JsonResponse({'status':'false','message':"Не корректное значение id пользователя"}, status=500))
                 if data['grade'] != '0' and data['grade'].isdigit():
                     grade = TblGrade.objects.get(id_grade = int(data['grade']))
                 else:
@@ -239,6 +250,7 @@ def annotation_edit(query):
                 update_row.grade = grade
                 update_row.tag = tag
                 update_row.correct = data['correct']
+                update_row.user = user
                 update_row.change_date = time
                 
                 update_row.save()

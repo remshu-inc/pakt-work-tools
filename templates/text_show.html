@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>{{header}}</title>
-</head>
-<style>
+{%extends "base.html"%}
+{%block styles%}
       html, body {
         height: 100%;
         margin: 0;
@@ -114,7 +109,7 @@
     text-align: center;
     padding-right:1pt;
     padding-left:1pt;
-    border-right: 1px solid rgba(109, 109, 109, 0.479);
+    border-right: 1px solid #6d6d6d7a;
 }
 
 .sentence-area{
@@ -231,8 +226,43 @@ td{
     overflow-y: hidden;
     background-color: rgba(0, 0, 0, 0.452);
 }
-#lang-change-area{
+#over-text{
     font-family: Arial, Helvetica, sans-serif;
+    user-select: none;
+}
+#display-settings>#display-settings-label{
+    text-align: center;
+    width:230px;
+    border-right: 1px #6d6d6d7a solid;
+    border-bottom: 1px #6d6d6d00 solid;
+}
+#display-settings>#display-settings-label:hover{
+    background-color: #0dcaf0;
+    color: white;
+    transition: 0.5s;
+}
+#text-options{
+    display: none;
+    position: absolute;
+    width:230px;
+    top:55px;
+    left:0;
+    border: 1px solid #0dcaf0;
+    color: white;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom-left-radius: 10pt;
+    border-bottom-right-radius: 10pt;
+}
+#display-settings>#display-settings-label:active + #text-options{
+    display: block;
+}
+#text-options:hover{
+    z-index: 2;
+    display: block;
+    background-color: #0dcaf0;
+}
+#lang-change-area{
     margin-bottom: 5px;
     margin-top: 5px;
     margin-left: 5px;
@@ -244,18 +274,25 @@ td{
     display: inline-block;
     padding: 4pt;
     border:none;
-    color:white;
+    color:black;
     outline: none;
-    background-color: #0dcaf0;
+    background-color: #f1f1f1;
     border-radius: 4pt;
 }
+#markup-change-area-table>tbody>tr>td{
+    text-align: left;
+}
 {%block annotation_edit_form_css%}{%endblock%}
+{%endblock styles%}
 </style>
 
+{%block plugins%}
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+{%endblock plugins%}
 
 <body>
+{%block content%}   
 {%if founded%}
 {%if ann_right%}
 <div id="annotation-create-form-area">
@@ -268,16 +305,40 @@ td{
     {%block annotation_watch_form_html%}{%endblock%}
 </div>
 {%endif%}
-<div id="lang-change-area" v-on:change="ChangeLang">
-    <label>Язык разметки:</label>
-    <select id="lang-select">
-        <option id="foreign-option" value="0">{{lang_name}}</option>
-        <option id="russian-option" value="1">Русский</option>
-    </select>
+<div id = "over-text">
+    <div id="display-settings">
+        <div id="display-settings-label">Настройки отображения</div>
+        <div id = "text-options">
+            <div id="lang-change-area" v-on:change="ChangeLang">
+                <label>Язык разметки:</label>
+                <select id="lang-select">
+                    <option id="foreign-option" value="0">{{lang_name}}</option>
+                    <option id="russian-option" value="1">Русский</option>
+                </select>
+            </div>
+            <div id = "markup-change-area">
+                <table id="markup-change-area-table">
+                    <tr>
+                        <td>Разметка частей речи:</td>
+                        <td><input type="checkbox" id="show-pos" v-on:click = "SwitchPos" checked></input></td>
+                    </tr>
+                    <tr>
+                        <td>Разметка ошибок:</td>
+                        <td><input type="checkbox" id="show-error" v-on:click = "SwitchError" checked></input></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 <div class = "text-place">
 <table class = "text-area"></table>
 </div>
+{%else%}
+<div id="found-text-error">Текст не найден</div>
+{%endif%}
+{%endblock content%}
+{%block script%}
 <script>
 document.body.onmousedown = function(eventData) {
 if (eventData.button === 0) {
@@ -287,6 +348,7 @@ document.body.onmouseup = function(eventData) {
 if (eventData.button === 0) {
     key_down=false}
 }
+
 {%if ann_right%}
 {#режим редактирование аннотации (1-создание, 2-обновление)#} 
 var selected_tag = 0 //Удалить
@@ -341,16 +403,46 @@ var annotation_create_form_close = new Vue({
         CloseAnnCreateForm: close_ann_create_form
     }
 })
-var lang_changers = [new Vue({
+var lang_changers = new Vue({
     el:"#lang-change-area",
     methods:{
         ChangeLang:reset_language
     }
-})]
+})
+var switchpos = new Vue({
+    el:"#show-pos",
+    methods:{
+        SwitchPos: function(event){
+            var html_tags = document.querySelectorAll('[annotation-type = "2"]')
+            var display_value = "none"
+            if(event.currentTarget.checked){
+                display_value = "block"
+            }
+            for(var i=0; i<html_tags.length;i++){
+                html_tags[i].style.display = display_value
+            }
+
+        }
+    }
+})
+var switcherr = new Vue({
+    el:"#show-error",
+    methods:{
+        SwitchError: function(event){
+            var html_tags = document.querySelectorAll('[annotation-type = "1"]')
+            var display_value = "none"
+            if(event.currentTarget.checked){
+                display_value = "block"
+            }
+            for(var i=0; i<html_tags.length;i++){
+                html_tags[i].style.display = display_value
+            }
+
+        }
+    }
+})
 </script>
-{%else%}
-<div id="found-text-error">Текст не найден</div>
-{%endif%}
+{%endblock script%}
 </body>
 
 </html>

@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from copy import deepcopy
 from django.db.models import F
-
+from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text
 # Test
 
 # class TextList(generic.ListView):
@@ -82,7 +82,7 @@ def new_file(request, language = None, text_type = None):
 
 def show_text(request, text_id = 1, pos = 1, error = 1, language = 'foreign'):
     text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name').all()
-    if text_info.exists():
+    if text_info.exists() and check_permissions_show_text(request.user.user_id, text_id):
         header = text_info[0]['header']
         text_language_name = text_info[0]['language_id__language_name']
         text_language = text_info[0]['language_id']
@@ -109,15 +109,9 @@ def show_text(request, text_id = 1, pos = 1, error = 1, language = 'foreign'):
         reasons = TblReason.objects.filter(reason_language_id = text_language).values('id_reason','reason_name')
         grades = TblGrade.objects.filter(grade_language_id = text_language).values('id_grade','grade_name')
         annotation_form = get_annotation_form(grades,reasons)
-        if pos == 1:
-            pos = True
-        else:
-            pos = False
-        if error == 1:
-            error = True
-        else:
-            error = False
 
-        return render(request, "work_area.html", context= {'founded':True,'ann_right':True, 'tags_info':tags_info, 'annotation_form':annotation_form, 'text_id':text_id,'header':header, 'pos':pos, 'error':error, 'lang_name':text_language_name})
+        ann_right = check_permissions_work_with_annotations(request.user.id_uset, text_id)
+
+        return render(request, "work_area.html", context= {'founded':True,'ann_right':ann_right,'user_id':request.user.id_user, 'tags_info':tags_info, 'annotation_form':annotation_form, 'text_id':text_id,'lang_name':text_language_name})
     else:
         return render(request, 'work_area.html', context={'founded':False})
