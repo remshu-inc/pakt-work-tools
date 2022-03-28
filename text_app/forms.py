@@ -62,3 +62,28 @@ class TextCreationForm(forms.ModelForm):
             self.fields['text_type'].widget.attrs['readonly'] = "readonly" 
             
             
+class SearchTextForm(forms.ModelForm):
+    
+    create_date = forms.DateField(widget=DateInput(attrs={'class': 'form-control'}))
+    modified_date = forms.DateField(widget=DateInput(attrs={'class': 'form-control'}))
+    # text_type = forms.ModelMultipleChoiceField(queryset=None, widget=Select(attrs={'class': 'form-control'}))
+    
+    class Meta:
+        model = TblText
+        fields = ('header', 'user', 'create_date', 'modified_date', 'creation_course', 'language', 'text_type', 'emotional', 'write_tool', 'write_place', 'education_level', 'self_rating', 'student_assesment')
+        
+        widgets = {
+            'header': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название текста', 'aria-describedby': 'button-addon'}),
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'language': forms.Select(attrs={'class': 'form-control', 'v-on:change': 'ChangeTypes'}),
+            'text_type': forms.Select(attrs={'class': 'form-control'}),
+            'emotional': forms.Select(attrs={'class': 'form-control'}),
+            'write_tool': forms.Select(attrs={'class': 'form-control'}),
+            'write_place': forms.Select(attrs={'class': 'form-control'}),
+            'education_level': forms.NumberInput(attrs={'class': 'form-control'}),
+            'self_rating': forms.Select(attrs={'class': 'form-control'}),
+            'student_assesment': forms.Select(attrs={'class': 'form-control'}),
+            'creation_course': forms.Select(attrs={'class': 'form-control'}),
+        }
+            
+            

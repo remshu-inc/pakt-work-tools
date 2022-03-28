@@ -1,0 +1,13 @@
+.search_result {
+    border-left: 3px #0d6efd solid;
+    padding-left: 10px;
+}
+
+.search_result:hover {
+    border-left: 3px red solid;
+}
+
+.search_header {
+    font-size: 12px;
+    background-color: #c9c9c9;
+}
