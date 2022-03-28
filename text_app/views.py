@@ -114,6 +114,7 @@ def corpus_search(request):
         
     else:
         form_search = SearchTextForm()
+        return(render(request, "corpus_search.html", context= {'form_search': form_search}))
         
     return(render(request, "corpus_search.html", context= {'form_search': form_search, 'list_text': list_text}))
   
