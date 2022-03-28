@@ -4,6 +4,7 @@ from django.urls import path
 
 urlpatterns = [
     path('corpus/', views.show_files, name='corpus'),
+    path('corpus_search/', views.corpus_search, name='corpus_search'),
     path('corpus/<str:language>/', views.show_files, name='language'),
     path('corpus/<str:language>/<str:text_type>/', views.show_files, name='text_type'),
 

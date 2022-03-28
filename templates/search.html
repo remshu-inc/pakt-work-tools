@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
+
+<div class="container-sm">
+    <main>
+        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+
+        <form action="{% url 'search' %}" method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="corpus_search" class="form-control" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
+
+                <button type="submit" class="btn btn-outline-secondary" id="button-addon2">Поиск</button>
+            </div>
+        </form>
+
+        <div class="search_list mt-5">
+            {% if list_search %}
+            {% for search in list_search  %}
+            <div class="search_result mt-3">
+                <div class="row">
+                    <div class="col-1">
+                        {{ forloop.counter }}
+                    </div>
+                    <div class="col">
+                        <div class="search_header">
+                            {{ search.header }}
+                            {% if search.create_date != None %}
+                            , {{ search.create_date }}
+                            {% endif %}
+                        </div>
+                        <div class="search_text">
+                            {% for token in search.tokens  %}
+                                {% if token.primary %}
+                                    <span style="color: red;">
+                                        {{ token.text }}
+                                    </span>
+                                {% else %}
+                                    {{ token.text }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+    </main>
+</div>
+
+{%endblock%}

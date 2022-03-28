@@ -40,7 +40,7 @@
                             </svg>
                             Фильтр
                         </button>
-                        <button name="corpus_search" class="btn btn-outline-secondary" type="button" id="button-addon">Поиск</button>
+                        <button class="btn btn-outline-secondary" type="submit">Поиск</button>
                     </div>
 
                     <div class="filter" id="list-filter">
@@ -87,101 +87,48 @@
                 </form>
             </div>
         </div>
-
-        <!-- {{ search_form.as_table }} -->
-
-
-
-
-
-        {% endif %}
             
-        <div class="col-md-10 mt-3 left">
+        <div class="col-md-10 mt-3">
             <!-- TODO: ССЫЛКА ВСЯ СТРОКА -->
-
-            {# For Language #}
-            {% if list_language %}
             
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr class='corpus-tr'>
-                        <!-- <th scope="col">#</th> -->
-                        <th scope="col">Язык</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    
-                    {% for lanuage in list_language  %}
-                    <tr class='corpus-tr'>
-                        <!-- <td scope="col">#</td> -->
-                        <td>
-                            <a href="{{ lanuage.language_name }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
-                                </svg>
-                                {{ lanuage.language_name }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            {% endif %}
-
-            <!-- For Text Type -->
-            {% if list_text_type %}
-            
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr class='corpus-tr'>
-                        <!-- <th scope="col">#</th> -->
-                        <th scope="col">Тип текста</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class='corpus-tr'>
-                        <!-- <td scope="col">#</td> -->
-                        <td><a href="{% url 'corpus' %}">..</a></td>
-                    </tr>
-                    {% for text_type in list_text_type  %}
-                    <tr class='corpus-tr'>
-                        <!-- <td scope="col">#</td> -->
-                        <td>
-                            <a href="{{ text_type.text_type_name }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
-                                </svg>
-                                {{ text_type.text_type_name }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            {% endif %}
-
             {# For Text #}
-            {% if list_text_and_user %}
+            {% if list_text %}
 
             <table class="table table-hover table-sm">
                 <thead class="thead-dark">
-                    <tr class='corpus-tr d-flex'>
-                        <th scope="row"class="col-1 text-center">#</th>
-                        <th class="col-5"><a href="?order_by=header">
+                    <tr class='corpus-tr'>
+                        <th class="text-center">#</th>
+                        <th><a href="?order_by=header">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
                             </svg>
                             Название текста
                         </a></th>
-                        <th class="col-3">
+                        <th class="text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            Язык
+                        </th>
+                        <th class="text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            Тип текста
+                        </th>
+                        <th class="text-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
                             </svg>
                             Пользователь
                         </th>
-                        <th class="col-3">
+                        <th class="text-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            Дата создания
+                        </th>
+                        <th class="text-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
                             </svg>
@@ -190,26 +137,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class='corpus-tr d-flex'>
-                        <td class="col-1 text-center">0</td>
-                        <td class="col-5"><a href="{% url 'language' language_selected %}">..</a></td>
-                        <td class="col-3"></td>
-                        <td class="col-3"></td>
-                    </tr>
-                    {% for text_and_user in list_text_and_user  %}
+                    {% for text in list_text  %}
                     
-                    <tr class='corpus-tr d-flex'>
-                        <td class="col-1 text-center">{{ forloop.counter }}</td>
-                        <td class="col-5">
-                            <a href="{{ text_and_user.0.id_text }}">
+                    <tr class='corpus-tr'>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td >
+                            <a href="{{ text.id_text }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
                                     <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
                                 </svg>
-                                {{ text_and_user.0.header }}
+                                {{ text.header }}
                             </a>
                         </td>
-                        <td class="col-3">{{ text_and_user.1 }}</td>
-                        <td class="col-3">{{ text_and_user.0.modified_date }}</td>
+                        <td class="text-center">{{ text.language }}</td>
+                        <td class="text-center">{{ text.text_type }}</td>
+                        <td class="text-center">{{ text.user }}</td>
+                        <td class="text-center">{{ text.create_date }}</td>
+                        <td class="text-center">{{ text.modified_date }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -217,25 +161,15 @@
 
             {% endif %}
             
-
         </div>
 
-        
-        {% if work_with_file %}
-        <div class="col-md-2 mt-5">
-            <a href='new_text' class="button btn btn-success">Новый текст</a>
-            <!-- <button type="button" class="btn btn-danger">Danger</button> -->
-        </div>
         {% endif %}
-
         {% endif %}
     </div>
 </div>
-
 {%endblock%}
 
 {% block script %}
-
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 
 <script>
@@ -243,6 +177,7 @@
         1: [{'text_type_name': '---------', 'id_text_type': ''}], 
         2: [{'text_type_name': '---------', 'id_text_type': ''}]
     };
+
     {% for text_type in form_search.text_type.field.queryset %}
 
         {% if text_type.language_id == 1 %}
@@ -252,6 +187,15 @@
         {% endif %}
 
     {% endfor %}
+
+    var type_selector = document.getElementById("id_text_type")
+    while (type_selector.firstChild) {
+        type_selector.removeChild(type_selector.firstChild);
+    }
+    var field = document.createElement("option")
+    field.setAttribute("value",``)
+    field.innerHTML = '---------'
+    type_selector.appendChild(field)
 
     var lang_select = new Vue({
         el:"#id_language",
@@ -265,11 +209,21 @@
                 while (type_selector.firstChild) {
                     type_selector.removeChild(type_selector.firstChild);
                 }
-                for(var i=0; i < text_types[lang_id].length; i++){
+                if (lang_id == '')
+                {
                     var field = document.createElement("option")
-                    field.setAttribute("value",`${text_types[lang_id][i]['id_text_type']}`)
-                    field.innerHTML = text_types[lang_id][i]['text_type_name']
+                    field.setAttribute("value",``)
+                    field.innerHTML = '---------'
                     type_selector.appendChild(field)
+                }
+                else
+                {
+                    for(var i = 0; i < text_types[lang_id].length; i++){
+                        var field = document.createElement("option")
+                        field.setAttribute("value",`${text_types[lang_id][i]['id_text_type']}`)
+                        field.innerHTML = text_types[lang_id][i]['text_type_name']
+                        type_selector.appendChild(field)
+                    }
                 }
 
                 type_selector.selectedIndex = 0
@@ -293,5 +247,4 @@
         }
     })
 </script>
-
 {%endblock%}

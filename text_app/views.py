@@ -2,13 +2,14 @@
 # from .models import TblText
 
 from .models import TblLanguage, TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from .forms import TextCreationForm, get_annotation_form
-from django.shortcuts import render
+from .forms import TextCreationForm, get_annotation_form, SearchTextForm
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from copy import deepcopy
-from django.db.models import F
+from django.db.models import F, Q
 from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text
 from user_app.models import TblTeacher, TblUser
+
 
 # Test
 
@@ -18,10 +19,19 @@ from user_app.models import TblTeacher, TblUser
 
 def show_files(request, language = None, text_type = None):
     # Для выбора языка
+    if not request.user.is_authenticated:
+        return redirect('home')
+    elif request.user.is_teacher:
+        form_search = SearchTextForm()
+        
+    # if request.POST['corpus_search']:
+        # return redirect(request) 
+    
     if language == None:
         try:
             list_language = TblLanguage.objects.all()
-            return render(request, "corpus.html", context= {'list_language': list_language})
+            print(list_language)
+            return render(request, "corpus.html", context= {'list_language': list_language, 'form_search': form_search})
             
         # except TblLanguage.DoesNotExist:
         # TODO: прописать исключение для каждой ошибки?
@@ -40,7 +50,7 @@ def show_files(request, language = None, text_type = None):
         if len(list_text_type) == 0:
             return(render(request, "corpus.html", context = {'error': True, 'text_html':'Text type not found'}))
         else:
-            return(render(request, "corpus.html", context= {'list_text_type': list_text_type}))
+            return(render(request, "corpus.html", context= {'list_text_type': list_text_type, 'form_search': form_search}))
         
     # Для выбора текста
     else:
@@ -78,10 +88,35 @@ def show_files(request, language = None, text_type = None):
             else:
                 list_text_and_user.append([text, user.last_name + ' ' + user.name])
             
-        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language}))
+        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search}))
     
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
-
+  
+def corpus_search(request):
+    if request.POST:
+        form_search = SearchTextForm(request.POST)
+        # Entry.objects.all().filter(pub_date__year=2006)
+        filters = Q()
+        if form_search.data['header']:
+            filters &= Q(header = form_search.data['header'])
+        if form_search.data['user']:
+            filters &= Q(user_id = form_search.data['user'])
+        if form_search.data['language']:
+            filters &= Q(language_id = form_search.data['language'])
+        if form_search.data['text_type']:
+            filters &= Q(text_type_id = form_search.data['text_type'])
+        if form_search.data['create_date']:
+            filters &= Q(create_date = form_search.data['create_date'])
+        if form_search.data['modified_date']:
+            filters &= Q(modified_date = form_search.data['modified_date'])
+        
+        list_text = TblText.objects.filter(filters)
+        
+    else:
+        form_search = SearchTextForm()
+        
+    return(render(request, "corpus_search.html", context= {'form_search': form_search, 'list_text': list_text}))
+  
 def new_text(request, language = None, text_type = None):
     
     # Проверка на выбранный язык и тип текста

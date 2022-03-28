@@ -5,11 +5,14 @@
     <main>
         <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
 
-        <a href="/search1">Вариант</a>
-        <div class="input-group">
-            <input type="text" class="form-control" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2">
-            <button class="btn btn-outline-secondary" type="button" id="button-addon2">Поиск</button>
-        </div>
+        <form action="{% url 'search' %}" method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="corpus_search" class="form-control" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2">
+
+                <button type="submit" class="btn btn-outline-secondary" id="button-addon2">Поиск</button>
+            </div>
+        </form>
         
         <br><br>
 
