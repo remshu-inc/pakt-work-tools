@@ -220,6 +220,7 @@ class TblMarkup(models.Model):
     reason = models.ForeignKey(TblReason, blank=True, null=True, on_delete=models.SET_NULL)
 
     correct = models.TextField(blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
     change_date = models.DateField()
     
     def __str__(self):

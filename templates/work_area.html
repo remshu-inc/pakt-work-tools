@@ -40,7 +40,7 @@ function re_built_classification(response, lang){
             spoiler.setAttribute('spoiler-tag-id',`${tags[i].tag_id}`)
             spoiler.setAttribute('spoiler-condition','0')
             spoiler.setAttribute('v-on:click','SpoilerClassificationSelect')
-            spoiler.innerHTML = "▼"
+            spoiler.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-right-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg>'
 
             var content = document.createElement('div')
             content.setAttribute('class','classification-tag-content')
@@ -90,18 +90,18 @@ function re_built_text(response, lang){
         tools_column.setAttribute('link-sent',sent_index)
         {%if ann_right%}
             var create_annotation = document.createElement('div')
-            create_annotation.setAttribute('class','create-annotation-button')
+            create_annotation.setAttribute('class','create-annotation-button tools-button')
             create_annotation.setAttribute('title','Создать аннотацию')
             create_annotation.setAttribute('v-on:click','CreateAnnotation')
             create_annotation.setAttribute('create-button-id',`${sent_index}`)
-            create_annotation.innerHTML = "+"
+            create_annotation.innerHTML ='<svg width="1.5em" height="1.5em" viewBox="0 0 16 16" class="bi bi-plus-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4a.5.5 0 0 0-1 0v3.5H4a.5.5 0 0 0 0 1h3.5V12a.5.5 0 0 0 1 0V8.5H12a.5.5 0 0 0 0-1H8.5V4z"/></svg>'
             
             var delete_selection = document.createElement('div')
-            delete_selection.setAttribute('class','delete-annotation-button')
+            delete_selection.setAttribute('class','delete-annotation-button tools-button')
             delete_selection.setAttribute('title','Снять выделение')
             delete_selection.setAttribute('v-on:click','DeleteSelection')
             delete_selection.setAttribute('delete-button-id',`${sent_index}`)
-            delete_selection.innerHTML = 'x'
+            delete_selection.innerHTML =  '<svg width="1.5em" height="1.5em" viewBox="0 0 16 16" class="bi bi-x-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.146-3.146a.5.5 0 0 0-.708-.708L8 7.293 4.854 4.146a.5.5 0 1 0-.708.708L7.293 8l-3.147 3.146a.5.5 0 0 0 .708.708L8 8.707l3.146 3.147a.5.5 0 0 0 .708-.708L8.707 8l3.147-3.146z"/></svg>'
 
 
             tools_column.appendChild(delete_selection)
@@ -180,7 +180,7 @@ function re_built_text(response, lang){
                     if(token_index == 0){
                         var left_append = document.createElement('td')
                         {%if ann_right%}
-                        left_append.innerHTML = "+"
+                        left_append.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5z"/></svg>'
                         left_append.setAttribute('class','empty-place-token')
                         left_append.setAttribute('parent-token',token_info.token_id)
                         left_append.setAttribute('position','left')
@@ -196,8 +196,9 @@ function re_built_text(response, lang){
                     var token = document.createElement('div')
                     token_cell.setAttribute('class','token_cell')
 
-                    if(token_info.text.length==0){
-                        token.innerHTML = '|empty|'
+                    if(token_info.text.length == 0){
+                        token.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" id="Isolation_Mode" data-name="Isolation Mode" viewBox="0 0 24 24" width="2em" height="1em"><circle cx="21.517" cy="12.066" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="2.5" cy="12" r="2.5"/></svg>'
+                        token.setAttribute('title','Пустой токен')
                         token.setAttribute('style','color: black;')
                     }
                     else{
@@ -217,7 +218,7 @@ function re_built_text(response, lang){
                     if(token_info.text.length > 0){
                     var right_append = document.createElement('td')
                     {%if ann_right%}
-                    right_append.innerHTML = "+"
+                    right_append.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 5a.5.5 0 0 0-1 0v4.793L5.354 7.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 9.793V5z"/></svg>'
                     right_append.setAttribute('class','empty-place-token')
                     right_append.setAttribute('parent-token',token_info.token_id)
                     right_append.setAttribute('position','right')
@@ -338,7 +339,7 @@ function set_annotation_form_to_basic(){
             tag_contents[i].style.display = "none"
             var spoiler = tag_contents[i].parentNode.getElementsByClassName("classification-tag-spoiler")[0]
             spoiler.setAttribute("spoiler-condition","0")
-            spoiler.innerHTML = "▼"
+            spoiler.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-right-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg>'
         }
         document.getElementById("annotation-create-form-data").style.display = "none"
 }
@@ -359,6 +360,7 @@ function close_ann_create_form(event){
     document.getElementById("tag-reason-value").innerHTML = ""
     document.getElementById("tag-grade-value").innerHTML = ""
     document.getElementById("tag-correct-value").innerHTML = ""
+    document.getElementById("tag-comment-value").innerHTML = ""
     document.getElementById("annotation-create-form-area").style.display = "none"
     var only_errors = document.getElementsByClassName("only-errors")
     for(var i=0; i<only_errors.length; i++){
@@ -406,6 +408,7 @@ function select_token(event){
         selected_tokens.splice(selected_tokens.indexOf(current_id),1)
         event.currentTarget.style.backgroundColor = ""
         event.currentTarget.style.color = ""
+        event.currentTarget.style.fill = ""
         event.currentTarget.style.fontWeight = ""
         if(selected_tokens.length == 0){
             var sent_index = event.currentTarget.getAttribute('token-sent-order')
@@ -420,6 +423,7 @@ function select_token(event){
         selected_tokens.push(current_id)
         event.currentTarget.style.backgroundColor = "#ff0000"
         event.currentTarget.style.color = "white"
+        event.currentTarget.style.fill = "white"
         event.currentTarget.style.fontWeight = 500
         if(selected_tokens.length == 1){
             var sent_index = event.currentTarget.getAttribute('token-sent-order')
@@ -470,7 +474,7 @@ function modify_annotation_selection(event){
         }
     }
     document.getElementById("correct-text").value = text_response.data.markup_info[markup_id].correct
-
+    document.getElementById("comment-text").value = text_response.data.markup_info[markup_id].comment
     if(text_response.data.markup_info[markup_id].markup_type == 2){
         var only_err_content = document.getElementsByClassName("only-errors")
         for(var i = 0;i< only_err_content.length; i++){
@@ -520,6 +524,7 @@ function modify_annotation_selection(event){
     document.getElementById("tag-reason-value").innerHTML = text_response.data.markup_info[markup_id].reason_text
     document.getElementById("tag-grade-value").innerHTML = text_response.data.markup_info[markup_id].grade_text
     document.getElementById("tag-correct-value").innerHTML = text_response.data.markup_info[markup_id].correct
+    document.getElementById("tag-comment-value").innerHTML = text_response.data.markup_info[markup_id].comment
 
 }
 {%endif%}
@@ -528,6 +533,7 @@ function delete_tokens_selection(event){
         var element = document.querySelector(`[token-id = "${selected_tokens[i]}"]`)
         element.style.backgroundColor = ""
         element.style.color = ""
+        element.style.fill = ""
         element.style.fontWeight = "" 
     }
     selected_tokens = []
@@ -540,13 +546,13 @@ function delete_tokens_selection(event){
 function select_classification_spoiler(event){
     var element = event.currentTarget
     if(element.getAttribute('spoiler-condition') == 0){
-        element.innerHTML = "▲"
+        element.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">    <path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>'
         element.setAttribute('spoiler-condition','1')
         var element_id = element.getAttribute('spoiler-tag-id')
         var content = document.querySelector(`[content-tag-id = "${element_id}"]`)
         content.style.display = "block"        }
     else{
-        element.innerHTML = "▼"
+        element.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-right-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg>'
         element.setAttribute('spoiler-condition','0')
         var element_id = element.getAttribute('spoiler-tag-id')
         var content = document.querySelector(`[content-tag-id = "${element_id}"]`)
@@ -588,64 +594,19 @@ function select_classification_selector(event){
 {#CSS-состовляющая создания/редактирования аннотации#}
 {%block annotation_edit_form_css%}
 {%if ann_right%}
-#annotation-create-form{
-    border-radius: 10pt;
-    position: absolute;
-    left:25%;
-    width: 40vw;
-    height:98vh;
-    top:1vh;
-    bottom: 1vh;
-    background-color: #0dcaf0;
-}
-#annotation-create-form-close{
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    user-select: none;
-    cursor:pointer;
-    max-width: 50px;
-    min-width: 50px;
-    font-weight: 600;
-    font-size: 20pt;
-    color: white;
-    position: absolute;
-    right:0px;
-    display: inline-block;
-}
-#annotation-create-form-close:hover{
-    transition: 0.5s;
-    color: #ec0404;
-    font-weight: bold;
 
-}
-
-#annotation-create-form-close:hover > div{
-    transform: rotate(-90deg);
-    transition: 0.5s;
-}
-#annotation-create-form-name{
-    user-select: none;
-    font-family: 'Montserrat', sans-serif;
-    font-size: larger;
-    font-weight: 600;
-    color: white;
-    position: absolute;
-    width: 200px;
-    left: 10px;
-    top:10px;
-    display: inline-block;
-
-}
 #tag-type-create-form-area-name{
     margin-bottom: 5px;
 }
 #annotation-create-form-content{
-    position: absolute;
     border-radius: 10pt;
-    left:10px;
-    right: 10px;
-    top:50px;
-    bottom:50px;
+    margin-left:10px;
+    margin-right: 10px;
+    margin-top:20px;
+    padding-top: 20px;
+    padding-bottom: 40px;
+    padding-left:10px;
+    padding-right:10px;
     background-color: white;
     overflow-y: auto;
 }
@@ -666,7 +627,6 @@ textarea::-webkit-scrollbar-thumb {
     background-color: #9b9b9b;
 }
 #tag-type-create-form-area{
-    position: absolute;
     font-family: 'Montserrat', sans-serif;
     font-size: medium;
     font-weight: 600;
@@ -697,11 +657,9 @@ textarea::-webkit-scrollbar-thumb {
     padding: 4pt;
 }
 .classification-tag-spoiler{
-    width:10pt;
-    height: 10pt;
-    border-radius: 50%;
+    width:1em;
+    height: 1em;
     text-align: center;
-    vertical-align: middle;
 }
 .classifiation-tag-info>div{
     display: inline-block;
@@ -731,7 +689,6 @@ textarea::-webkit-scrollbar-thumb {
     display:none;
 }
 #annotation-create-submit{
-    position: absolute;
     bottom: 10px;
     right:0px;
     background-color: #0dcaf0;
@@ -768,27 +725,25 @@ textarea::-webkit-scrollbar-thumb {
 }
 .form-button{
     padding: 4pt;
-    width: 90px;
     font-weight: 600;
     color:white;
     border:none;
     border-radius: 4pt;
     cursor: pointer;
     outline: none;
-    height:25px;
     margin-bottom:8pt;
     margin-right:-80%;
 }
 #form-save-button{
-    // position: absolute;
+    /* // position: absolute;
     // right:5px;
-    // bottom:40px;
+    // bottom:40px; */
     background-color: #15f00d;
 }
 #form-delete-button{
-    // position: absolute;
+    /* // position: absolute;
     // bottom: 5px;
-    // right:5px;
+    // right:5px; */
     background-color: #f00d0d;
     display:none;
 }
@@ -807,66 +762,33 @@ textarea::-webkit-scrollbar-thumb {
 }
 {%else%}
 
-#annotation-create-form{
-    border-radius: 10pt;
-    position: absolute;
-    left:20vw;
-    width: 40vw;
-    height:40vh;
-    top:30vh;
-    background-color: #0dcaf0;
-    vertical-align: middle;
-}
-#annotation-create-form-close{
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    user-select: none;
-    cursor:pointer;
-    max-width: 50px;
-    min-width: 50px;
-    font-weight: 600;
-    font-size: 20pt;
-    color: white;
-    position: absolute;
-    right:0px;
-    display: inline-block;
-}
-#annotation-create-form-close:hover{
-    transition: 0.5s;
-    color: #ec0404;
-    font-weight: bold;
-
-}
-
-#annotation-create-form-close:hover > div{
-    transform: rotate(-90deg);
-    transition: 0.5s;
-}
 #tag-info-table{
     margin-left: auto;
     margin-right: auto;
-    height: 30vh;
-    width: 30vw;
+    /* height: 30vh;
+    width: 30vw; */
     background-color: white;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: 600;
     border-collapse: collapse;
 }
-#annotation_watch_content{
-    position: absolute;
-    left:10px;
-    right: 10px;
-    top:30px;
-    bottom:10px;
-    background-color: white;
+#annotation-watch-content{
     border-radius: 10pt;
-    overflow: auto;
+    margin-left:10px;
+    margin-right: 10px;
+    margin-top:20px;
+    padding-top: 20px;
+    padding-bottom: 40px;
+    padding-left:10px;
+    padding-right:10px;
+    background-color: white;
+    overflow-y: auto;
 }
-#annotation_watch_content::-webkit-scrollbar {
+#annotation-watch-content::-webkit-scrollbar {
     width: 10px;
     background-color: #f1f1f1;
 }
-#annotation_watch_content::-webkit-scrollbar-thumb {
+#annotation-watch-content::-webkit-scrollbar-thumb {
     background-color: #0dcaf0;
 }
 .form-li-label{
@@ -881,12 +803,53 @@ textarea::-webkit-scrollbar-thumb {
     border: 2pt solid white;
 }
 #tag-reason-value{
+    width:fit-content;
     background-color: #f2fa8a;
 }
 #tag-grade-value{
+    width:fit-content;
     background-color: #fad38a;
 }
 {%endif%}
+
+#annotation-create-form{
+    border-radius: 10pt;
+    width: 40%;
+    margin: auto;
+    margin-top:auto;
+    padding-bottom:20px;
+    background-color: #0dcaf0;
+}
+#annotation-create-form-close{
+    font-family: Arial, Helvetica, sans-serif;
+    user-select: none;
+    cursor:pointer;
+    text-align: center;
+    font-weight: 600;
+    font-size: 20pt;
+    color: white;
+    float:right;
+    width:40px;
+    display: inline-block;
+}
+#annotation-create-form-close>svg{
+    fill:white;
+    transition: 0.5s;
+}
+#annotation-create-form-close:hover > svg{
+    fill:var(--color-decline)
+}
+#annotation-create-form-name{
+    user-select: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: larger;
+    font-weight: 600;
+    color: white;
+    display: inline-block;
+    padding-left: 10px;
+    padding-top: 10px;
+
+}
 {%endblock%}
 
 {#HTML-состовляющая создания/редактирования аннотации#}
@@ -894,7 +857,11 @@ textarea::-webkit-scrollbar-thumb {
 
 <div id = "annotation-create-form">
     <div id = "annotation-create-form-name">Аннотирование</div>
-    <div id = "annotation-create-form-close" v-on:click = "CloseAnnCreateForm"><div>×</div></div>
+    <div id = "annotation-create-form-close" v-on:click = "CloseAnnCreateForm">
+    <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-x-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.146-3.146a.5.5 0 0 0-.708-.708L8 7.293 4.854 4.146a.5.5 0 1 0-.708.708L7.293 8l-3.147 3.146a.5.5 0 0 0 .708.708L8 8.707l3.146 3.147a.5.5 0 0 0 .708-.708L8.707 8l3.147-3.146z"/>
+  </svg>
+    </div>
     <div id = "annotation-create-form-content">
         <div id = "tag-type-create-form-area">
             <div id ="tag-type-create-form-area-name">Выберите тег:</div>
@@ -918,8 +885,13 @@ textarea::-webkit-scrollbar-thumb {
 
 {%block annotation_watch_form_html%}
 <div id = "annotation-create-form">
-    <div id = "annotation-create-form-close" v-on:click = "CloseAnnCreateForm"><div>×</div></div>
-    <div id="annotation_watch_content">
+<div id = "annotation-create-form-name">Просмотр</div>
+<div id = "annotation-create-form-close" v-on:click = "CloseAnnCreateForm">
+<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-x-circle-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.146-3.146a.5.5 0 0 0-.708-.708L8 7.293 4.854 4.146a.5.5 0 1 0-.708.708L7.293 8l-3.147 3.146a.5.5 0 0 0 .708.708L8 8.707l3.146 3.147a.5.5 0 0 0 .708-.708L8.707 8l3.147-3.146z"/>
+</svg>
+</div>
+    <div id="annotation-watch-content">
     <table id="tag-info-table">
         <tr id = "tag-name">
             <td class = "form-li-label">Тег: </td>
@@ -943,6 +915,12 @@ textarea::-webkit-scrollbar-thumb {
             <td class = "form-li-label">Правильный вариант: </td>
             <td>
             <div id = "tag-correct-value" class = "info-value"></div>
+            </td>
+        </tr>
+        <tr id = "tag-comment" class = "only-errors">
+            <td class = "form-li-label">Комментарий преподавателя</td>
+            <td>
+            <div id = "tag-comment-value" class = "info-value"></div>
             </td>
         </tr>
     </table>

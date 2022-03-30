@@ -69,8 +69,7 @@ def get_text(query):
         'user_last_name':element['user_id__last_name'],
         'user_name':element['user_id__name'],
         'correct':element['correct'],
-        'user_name':element['user_id__name'],
-        'user_last_name':element['user_id__last_name']
+        'comment':element['comment']
         } for element in TblMarkup.objects.filter(sentence_id__in = sentences_id).values(
             'id_markup', 
             'tag_id__tag_text',
@@ -84,7 +83,8 @@ def get_text(query):
             'grade_id__grade_name',
             'user_id__last_name',
             'user_id__name',
-            'correct'
+            'correct',
+            'comment'
             ).all()} 
             #TODO Добавить обработку комментария
     #*Получение информации о токенах
@@ -216,6 +216,7 @@ def annotation_edit(query):
                     user = user,
                     start_token = start_token,
                     end_token = end_token,
+                    comment = data['comment'],
                     correct = data['correct'],
                     change_date = time,
                     grade = grade,
@@ -258,8 +259,10 @@ def annotation_edit(query):
                 update_row.grade = grade
                 update_row.tag = tag
                 update_row.correct = data['correct']
+                update_row.comment = data['comment']
                 update_row.user = user
                 update_row.change_date = time
+
                 
                 update_row.save()
         elif data['query_type'] == '3':
