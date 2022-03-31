@@ -48,7 +48,7 @@ git clone https://github.com/remshu/pakt-work-tools.git
 и перейдите в папку
 6. Установите все требуемые библиотеки
 `
-pip install -r requirements.txt
+pip install -r pakt-work-tools\requirements.txt
 `
 7. Измените данные для работы с БД в `pakt_app\settings.py`
 ```
