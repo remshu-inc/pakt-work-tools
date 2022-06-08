@@ -3,7 +3,7 @@
 
     <ul class="nav">
       <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">PACT</a>
+        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">ПАКТ</a>
       </li>
 
       {% if user.is_authenticated %}
@@ -30,18 +30,18 @@
     {% if user.is_authenticated %}
     <ul class="nav">
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'logout' %}">Log Out({{ user }})</a>
+        <a class="nav-link" href="{% url 'logout' %}">Выход({{ user }})</a>
       </li>
       {% if user.is_teacher %}
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'signup' %}">Register Student</a>
+        <a class="nav-link" href="{% url 'signup' %}">Регистрация студента</a>
       </li>
       {% endif %}
     </ul>
     {% else %}
     <ul class="nav">
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'login' %}">Log In</a>
+        <a class="nav-link" href="{% url 'login' %}">Вход</a>
       </li>
     </ul>
     {% endif %}
