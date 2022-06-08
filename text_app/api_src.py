@@ -14,13 +14,13 @@ def past_in_template(markups, sent_length:int):
                 blocked_position.append(markup['token_id__order_number'])
                 used_markups.append(markup['id_token_markup'])
 
-                if markup['token_id'] == markup['markup_id__start_token'] == markup['markup_id__end_token']:
+                if markup['position'] == 0 == markup['last']:
                     display = True
                     position = 'single'
-                elif markup['token_id'] == markup['markup_id__start_token']:
+                elif markup['position'] == 0:
                     display = True
                     position = 'start'
-                elif markup['token_id'] == markup['markup_id__end_token']:
+                elif markup['position'] == markup['last']:
                     display = False
                     position = 'end'
                 else:

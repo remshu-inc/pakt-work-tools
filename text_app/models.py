@@ -213,8 +213,8 @@ class TblMarkup(models.Model):
     
     user = models.ForeignKey(TblUser, blank=True, null=True, on_delete=models.SET_NULL)
     
-    start_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="start_token", db_column='start_token')
-    end_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="end_token", db_column='end_token')
+    # start_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="start_token", db_column='start_token')
+    # end_token = models.ForeignKey(TblToken, on_delete=models.CASCADE, related_name="end_token", db_column='end_token')
     
     grade = models.ForeignKey(TblGrade, blank=True, null=True, on_delete=models.SET_NULL)
     reason = models.ForeignKey(TblReason, blank=True, null=True, on_delete=models.SET_NULL)

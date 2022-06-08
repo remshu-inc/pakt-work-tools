@@ -101,14 +101,15 @@ def get_text(query):
         tokens_markups = list(TblTokenMarkup.objects.filter(token_id__sentence_id = sentence['id_sentence']).values(
         'token_id',
         'markup_id',
+        'position',
         'id_token_markup',
-
-        'markup_id__start_token',
-        'markup_id__end_token',
         'markup_id__tag_id__markup_type_id__markup_type_name', #Название типа разметки
         'token_id__order_number',
         'markup_id__change_date' #Номер токена в предложении,
         ).order_by('markup_id__change_date').all())
+
+        for i in range(len(tokens_markups)):
+            tokens_markups[i]['last'] = TblTokenMarkup.objects.filter(markup_id = tokens_markups[i]['markup_id']).count()-1
 
         all_token_markups_id += [element['id_token_markup'] for element in tokens_markups]
         sent_tokens = []
@@ -185,7 +186,7 @@ def annotation_edit(query):
                 
                 #Информация о позиции
                 start_token = TblToken.objects.get(id_token = tokens_info[0]['id_token'])
-                end_token = TblToken.objects.get(id_token = tokens_info[len(tokens_info)-1]['id_token'])
+                # end_token = TblToken.objects.get(id_token = tokens_info[len(tokens_info)-1]['id_token'])
                 sentence = TblSentence.objects.get(id_sentence = tokens_info[0]['sentence_id'])
                 if not data['classification_tag'].isdigit():
                     return(JsonResponse({'status':'false','message':"Не указан тег разметки"}, status=500))
@@ -214,8 +215,8 @@ def annotation_edit(query):
                     tag = tag,
                     sentence = sentence,
                     user = user,
-                    start_token = start_token,
-                    end_token = end_token,
+                    # start_token = start_token,
+                    # end_token = end_token,
                     comment = data['comment'],
                     correct = data['correct'],
                     change_date = time,
