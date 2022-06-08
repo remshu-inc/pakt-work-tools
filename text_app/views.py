@@ -178,32 +178,6 @@ def new_text(request, language = None, text_type = None):
         
     return render(request, 'new_text.html', {'form_text': form_text})
 
-
-#Функция подстановки аннотаций в шаблон
-def past_in_template(markup, start, end, template):
-    if start == end:
-        position = 'single'
-    else:
-        position = 'start'
-
-    template[start] =  {
-            'isann': True,
-            'display':True,
-            'ann_position': position,
-            'ann_id': markup['id_markup'],
-            'tag_text': markup['tag_text'],
-            'tag_text_rus': markup['tag_text_russian'],
-            'tag_type': markup['markup_type_name']
-        }
-        
-    for index in range(start+1, end+1):
-        template[index] = deepcopy(template[start])
-        template[index]['display'] = False
-        if index == end:
-            template[index]['ann_position'] = 'end'
-        else:
-            template[index]['ann_position'] = 'middle'
-    return(template)
   
 def show_text(request, text_id = 1, language = None, text_type = None):
     text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name').all()
