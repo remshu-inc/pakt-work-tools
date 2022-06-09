@@ -528,6 +528,7 @@ function modify_annotation_selection(event){
 
 }
 {%endif%}
+
 function delete_tokens_selection(event){
     for(var i = 0; i<selected_tokens.length;i++){
         var element = document.querySelector(`[token-id = "${selected_tokens[i]}"]`)
@@ -928,6 +929,8 @@ textarea::-webkit-scrollbar-thumb {
 </div>
 {%endblock%}
 {%block annotation_edit_form_script%}
+
+{#Получение классификации#}
 function get_classification(){
     axios({
         url: 'http://127.0.0.1:8000/show_text/api/get_classification',

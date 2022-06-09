@@ -13,5 +13,10 @@ urlpatterns = [
     path('show_text/api/get_classification', api.get_classification),
     path('show_text/api/add_empty_token', api.add_empty_token),
     path('show_text/api/get_text', api.get_text),
-    path('show_text/api/annotation_edit', api.annotation_edit)
+    path('show_text/api/annotation_edit', api.annotation_edit),
+    
+    path('corpus/<str:language>/<str:text_type>/<int:text_id>/asses_edit', views.assessment_form, 
+        name = 'asses_edit'),
+    path('corpus/<str:language>/<str:text_type>/<int:text_id>/meta_edit', views.meta_form, 
+        name = 'meta_edit'),
 ]

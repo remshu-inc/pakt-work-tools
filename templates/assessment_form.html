@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if right%}
+<div class="container">
+    <main class="d-flex justify-content-center align-items-center">
+        <div class="row">
+            <div class="col-12">
+            <form method="POST" novalidate>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label>Оценка</label>
+                            {{form.assessment}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
+                            <label>Проверка частеречной разметки</label>
+                            {{form.pos_check}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
+                            <label>Проверка разметки ошибок</label>
+                            {{form.error_tag_check}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <input type="submit" value="Сохранить" class = 'mt-2 btn btn-success'>
+            </form>
+            <button class = 'mt-2 mb-3 btn btn-secondary' onclick="history.back()">Назад</button>
+        </div>
+    </div>
+    </main>
+</div>
+{%else%}
+Сервис недоступен (Недостаточно прав)
+{%endif%}
+{%endblock%}

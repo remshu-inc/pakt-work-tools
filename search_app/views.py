@@ -63,6 +63,7 @@ def _parse_cql(user_query = None):
             for part in parts_token_cql:            
                 
                 filters &= _filter_shaping(part)
+
         
         # Парсинг альтернативных вариантов
         # TODO: Исправить вывод дублированных текстов(где совпадает и токен, и тег)

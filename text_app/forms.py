@@ -3,7 +3,7 @@ from django import forms
 from .models import TblLanguage, TblText, TblTextType
 from user_app.models import TblUser, TblStudent
 import datetime
-from right_app.views import check_permissions_new_text
+from right_app.views import check_permissions_new_text, check_permissions_work_with_annotations
 
 class TextTypeChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -23,7 +23,22 @@ class TextCreationForm(forms.ModelForm):
     
     class Meta:
         model = TblText
-        fields = ('header', 'user', 'create_date', 'modified_date', 'text', 'creation_course', 'language', 'text_type', 'emotional', 'write_tool', 'write_place', 'education_level', 'self_rating', 'student_assesment')
+        fields = (
+            'header',
+            'user',
+            'create_date',
+            'modified_date',
+            'text',
+            'creation_course',
+            'language',
+            'text_type',
+            'emotional',
+            'write_tool',
+            'write_place',
+            'education_level',
+            'self_rating',
+            'student_assesment'
+            )
         
         widgets = {
             'header': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
@@ -61,16 +76,19 @@ class TextCreationForm(forms.ModelForm):
             self.fields['text_type'].initial = text_type_object[0]
             self.fields['text_type'].widget.attrs['readonly'] = "readonly" 
             
+            
 def get_annotation_form(Grades, Reasons):
     grades = [('0','Не указано')]
     for element in Grades:
         grades.append((element["id_grade"], element["grade_name"]))
+
     reasons = [('0','Не указано')]
     for element in Reasons:
         reasons.append((element["id_reason"], element["reason_name"]))
     class AnnotatioCreateForm(forms.Form):
         nonlocal reasons
         nonlocal grades
+
         query_type = forms.IntegerField(widget=forms.HiddenInput(attrs={"id":"query-type-field"}))
         classification_tag = forms.IntegerField(widget=forms.HiddenInput(attrs={"id":"selected-classif-tag"}))
         tokens = forms.CharField(widget=forms.HiddenInput(attrs={"id":"selected-tokens"}))
@@ -108,5 +126,67 @@ class SearchTextForm(forms.ModelForm):
             'student_assesment': forms.Select(attrs={'class': 'form-control'}),
             'creation_course': forms.Select(attrs={'class': 'form-control'}),
         }
+
+class AssessmentModify(forms.ModelForm):
+    class Meta:
+        model = TblText
+        fields = (
+                'assessment', 
+                'pos_check',
+                'error_tag_check', 
+                'teacher',
+                'pos_check_user',
+                'error_tag_check_user',
+                'pos_check_date',
+                'error_tag_check_date'
+                )
+        rates = [(i,str(i)) for i in range(6)]
+        widgets = {
+            'assessment': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+            'pos_check': forms.Select(attrs={'class': 'form-control'}, choices = [(True,'Проверенно'),\
+                (False,'Не указано')]),
+            'error_tag_check': forms.Select(attrs={'class': 'form-control'}, choices = [(True,\
+                'Проверенно'), (False,'Не указано')]),
+            'teacher': forms.HiddenInput(),
+            'pos_check_user':forms.HiddenInput(),
+            'error_tag_check_user':forms.HiddenInput(),
+            'pos_check_date':forms.HiddenInput(),
+            'error_tag_check_date':forms.HiddenInput()
+        }
+    def __init__(self, initial, is_teacher, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        for key in initial:
+            self.fields[key].initial = initial[key]
+
+        if not is_teacher:
+            self.fields['assessment'].widget.attrs['readonly'] = "readonly"
+
+class MetaModify(forms.ModelForm):
+    class Meta:
+        model = TblText
+        fields = (
+            'emotional',
+            'write_tool',
+            'write_place',
+            'education_level',
+            'self_rating',
+            'student_assesment'
+        )
+    
+        widgets = {
+            'emotional': forms.Select(attrs={'class': 'form-control'}),
+            'write_tool': forms.Select(attrs={'class': 'form-control'}),
+            'write_place': forms.Select(attrs={'class': 'form-control'}),
+            'education_level': forms.NumberInput(attrs={'class': 'form-control'}),
+            'self_rating': forms.Select(attrs={'class': 'form-control'}),
+            'student_assesment': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, initial, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        for key in initial:
+            self.fields[key].initial = initial[key]
             
             

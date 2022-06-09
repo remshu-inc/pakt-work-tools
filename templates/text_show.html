@@ -58,7 +58,7 @@
     background-color: #5ce4ff8f;
 }
 .sentence:hover::-webkit-scrollbar-thumb{
-    background-color: #0dcaf0;
+    background-color: #00bfe6;
     transition: 1s;
 
 }
@@ -236,38 +236,104 @@ td{
     font-family: Arial, Helvetica, sans-serif;
     user-select: none;
 }
-#display-settings>#display-settings-label{
+.over-text-fields{
+    display:inline-block;
+    margin-left:-4px;
+    width:230px;
+}
+.over-text-labels{
     text-align: center;
     width:230px;
     border-right: 1px #6d6d6d7a solid;
     border-bottom: 1px #6d6d6d00 solid;
+    margin-left:-4px;
 }
-#display-settings>#display-settings-label:hover{
-    background-color: #0dcaf0;
+.over-text-labels:hover{
+    background-color: #00bfe6;
     color: white;
     transition: 0.5s;
 }
-#text-options{
+
+.meta-list{
+        margin-left: 0;
+        padding-left: 0;
+}
+.meta-row{
+    list-style-type: none;
+}
+
+.over-text-menu{
     display: none;
     position: absolute;
-    width:230px;
+    min-width:230px;
     top:55px;
-    left:0;
-    border: 1px solid #0dcaf0;
+    border: 1px solid #00bfe6;
     color: white;
     font-weight: 600;
+    padding-top: 10px;
     padding-bottom: 10px;
+    padding-left:4px;
+    padding-right:4px;
     border-bottom-left-radius: 10pt;
     border-bottom-right-radius: 10pt;
+    margin-left:-4px;
 }
+
+#display-settings{
+    margin-left:2px;
+}
+
 #display-settings>#display-settings-label:active + #text-options{
     display: block;
 }
-#text-options:hover{
+
+#text-info-field>#display-text-info-label:active + #text-info-menu{
+    display: block;
+}
+
+
+#author-info-field>#display-author-info-label:active + #author-info-menu{
+    display: block;
+}
+
+
+#meta-info-field>#display-meta-info-label:active + #meta-info-menu{
+    display: block;
+}
+
+
+#assessment-info-field>#display-assessment-info-label:active + #assessment-info-menu{
+    display: block;
+}
+
+#assessment-info-menu:hover, 
+#meta-info-menu:hover,
+#author-info-menu:hover,
+#text-info-menu:hover,
+#text-options:hover
+{
     z-index: 2;
     display: block;
-    background-color: #0dcaf0;
+    background-color: #00bfe6;
 }
+
+.bad-meta-field{
+    color:#ff2427;
+}
+.normal-meta-field{
+    color:#ffe95e;
+}
+.update-button,.update-button:active, .update-button:hover {
+    padding: 4pt;
+    border:none;
+    color:black;
+    outline: none;
+    background-color: #f1f1f1;
+    border-radius: 4pt;
+    margin-left: 35%;
+    text-decoration: none;
+}
+
 #lang-change-area{
     margin-bottom: 5px;
     margin-top: 5px;
@@ -285,8 +351,12 @@ td{
     background-color: #f1f1f1;
     border-radius: 4pt;
 }
+
 #markup-change-area-table>tbody>tr>td{
     text-align: left;
+}
+[annotation-type = "2"]{
+    display:none;
 }
 {%block annotation_edit_form_css%}{%endblock%}
 {%endblock styles%}
@@ -312,21 +382,22 @@ td{
 </div>
 {%endif%}
 <div id = "over-text">
-    <div id="display-settings">
-        <div id="display-settings-label">Настройки отображения</div>
-        <div id = "text-options">
-            <div id="lang-change-area" v-on:change="ChangeLang">
-                <label>Язык разметки:</label>
-                <select id="lang-select">
-                    <option id="foreign-option" value="0">{{lang_name}}</option>
-                    <option id="russian-option" value="1">Русский</option>
-                </select>
-            </div>
+    <div id="display-settings" class="over-text-fields">
+        <div id="display-settings-label" class = "over-text-labels">Настройки отображения</div>
+            <div id = "text-options" class = 'over-text-menu'>
+                <div id="lang-change-area" v-on:change="ChangeLang">
+                    <label>Язык разметки:</label>
+                    <select id="lang-select">
+                        <option id="foreign-option" value="0">{{lang_name}}</option>
+                        <option id="russian-option" value="1">Русский</option>
+                    </select>
+                </div>
+
             <div id = "markup-change-area">
                 <table id="markup-change-area-table">
                     <tr>
                         <td>Разметка частей речи:</td>
-                        <td><input type="checkbox" id="show-pos" v-on:click = "SwitchPos" checked></input></td>
+                        <td><input type="checkbox" id="show-pos" v-on:click = "SwitchPos"></input></td>
                     </tr>
                     <tr>
                         <td>Разметка ошибок:</td>
@@ -334,6 +405,104 @@ td{
                     </tr>
                 </table>
             </div>
+        </div>
+    </div>
+    
+    <div id="text-info-field" class="over-text-fields">
+        <div id="display-text-info-label", class = "over-text-labels">Информация о тексте</div>
+        <div id = 'text-info-menu' class = 'over-text-menu'>
+            <ul class = 'meta-list'>
+                <li class = 'meta-row'>Название:
+                    <font class = 'normal-meta-field'>{{text_info.text_name}}</font>
+                </li>
+                <li class = 'meta-row'>Тип текста: 
+                    <font class = 'normal-meta-field'>{{text_info.text_type}}</font></li>
+                <li class = 'meta-row'>Курс создания: 
+                    <font class = 'normal-meta-field'>{{text_info.course}}</font></li>
+                <li class = 'meta-row'>Дата создания: 
+                    <font class = 'normal-meta-field'>{{text_info.create_date}}</font></li>
+            </ul>
+            {%if text_owner%}
+            <!-- <button class = 'update-button'>Изменить</button> -->
+            {%endif%}
+        </div>
+    </div>
+
+    <div id="author-info-field" class="over-text-fields">
+        <div id="display-author-info-label", class = "over-text-labels">Информация об авторе</div>
+        <div id = 'author-info-menu' class = 'over-text-menu'>
+            <ul class = 'meta-list'>
+                <li class = 'meta-row'>Имя автора: 
+                    <font class = 'normal-meta-field'>{{text_info.author_name}}</font></li>
+                <li class = 'meta-row'>Группа: 
+                    <font class = 'normal-meta-field'>{{text_info.group_number}}</font></li>
+            </ul>
+            <!-- <button class = 'update-button'>Изменить</button> -->
+        </div>
+    </div>
+
+    <div id="meta-info-field" class="over-text-fields">
+        <div id="display-meta-info-label", class = "over-text-labels">Метаданные</div>
+        <div id = 'meta-info-menu' class = 'over-text-menu'>
+            <ul class = 'meta-list'>
+                <li class = 'meta-row'>Эмоциональное состояние: 
+                    <font class = 'normal-meta-field'>{{text_info.emotional}}</font></li>
+                <li class = 'meta-row'>Средство написания: 
+                    <font class = 'normal-meta-field'>{{text_info.write_tool}}</font></li>
+                <li class = 'meta-row'>Место написания: 
+                    <font class = 'normal-meta-field'>{{text_info.write_place}}</font></li>
+                <li class = 'meta-row'>Уровень знания языка: 
+                    <font class = 'normal-meta-field'>{{text_info.education_level}}</font></li>
+                <li class = 'meta-row'>Самооценивание: 
+                    <font class = 'normal-meta-field'>{{text_info.self_rating}}</font></li>
+                <li class = 'meta-row'>Оценка задания студентом: 
+                    <font class = 'normal-meta-field'>{{text_info.student_assessment}}</font></li>
+            </ul>
+            {%if text_owner%}
+            <a class = 'update-button' href = 'meta_edit'>Изменить</a>
+            {%endif%}
+        </div>
+    </div>
+
+    <div id="assessment-info-field" class="over-text-fields">
+        <div id="display-assessment-info-label", class = "over-text-labels">Проверка работы</div>
+        <div id = 'assessment-info-menu' class = 'over-text-menu'>
+            <ul class = 'meta-list'>
+                {%if text_info.assessment%}
+                <li class = 'meta-row'>Оценка: 
+                    <font class = 'normal-meta-field'>{{text_info.assessment}}</font></li>
+                <li class = 'meta-row'>Проеряющий: 
+                    <font class = 'normal-meta-field'>{{text_info.teacher_name}}</font></li>
+                {%else%}
+                <li class = 'meta-row'>Оценка: 
+                    <font class = 'bad-meta-field'>Отсутствует</font></li>
+                {%endif%}
+                {%if text_info.pos_check%}
+                <li class = 'meta-row'>Проверка POS разметки: 
+                    <font class = 'normal-meta-field'>Проверено</font></li>
+                <li class = 'meta-row'>Проверил POS разметку: 
+                    <font class = 'normal-meta-field'>{{text_info.pos_check_name}}</font></li>
+                {%else%}
+                <li class = 'meta-row'>Проверка POS разметки: 
+                    <font class = 'bad-meta-field'>Отсутствует</font></li>
+                {%endif%}
+
+                {%if text_info.error_check%}
+                <li class = 'meta-row'>Проверка разметки ошибок: 
+                    <font class = 'normal-meta-field'>Проверено</font></li>
+                <li class = 'meta-row'>Проверил разметку ошибок: 
+                    <font class = 'normal-meta-field'>{{text_info.error_check_name}}</font></li>
+                {%else%}
+                <li class = 'meta-row'>Проверка разметки ошибок: 
+                    <font class = 'bad-meta-field'>Отсутствует</font>
+                </li>
+                {%endif%}
+            </ul>
+            {%if ann_right%}
+
+            <a class = 'update-button' href = 'asses_edit'>Изменить</a>
+            {%endif%}
+        </div>
         </div>
     </div>
 </div>
