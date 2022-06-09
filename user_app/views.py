@@ -49,7 +49,7 @@ def log_in(request):
     
     if request.method == "POST":
         form_login = LoginForm(request.POST)
-        print(form_login)
+        # print(form_login)
         if form_login.is_valid():
             username = form_login.cleaned_data["login"]
             password = form_login.cleaned_data["password"]

@@ -2,13 +2,14 @@
 # from .models import TblText
 
 from .models import TblLanguage, TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from .forms import TextCreationForm, get_annotation_form, SearchTextForm
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
 from copy import deepcopy
 from django.db.models import F, Q
-from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text
-from user_app.models import TblTeacher, TblUser
+from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text
+from user_app.models import TblTeacher, TblUser, TblStudent
+import datetime
 
 
 # Test
@@ -175,9 +176,192 @@ def new_text(request, language = None, text_type = None):
         
     return render(request, 'new_text.html', {'form_text': form_text})
 
-  
+def _drop_none(info_dict:dict, ignore:list):
+    result = {}
+    for key in info_dict.keys():
+        if key not in ignore and \
+            (info_dict[key] == None or (type(info_dict[key]) == int and info_dict[key] < 0)):
+            
+            result[key] = 'Не указано'
+        else:
+            result[key] = info_dict[key]
+    return(result)
+
+def _get_text_info(text_id:int):
+    '''
+    Function for getting meta information
+
+    params:
+    text_id (int) -- id of current text
+
+    return:
+    dict of metatags 
+    '''
+    raw_info = TblText.objects.filter(id_text = text_id).values(
+        'header',
+        'user_id',
+        'user_id__name',
+        'user_id__last_name',
+        'creation_course',
+        'create_date',
+        'text_type_id__text_type_name',
+        'emotional_id__emotional_name',
+        'write_tool_id__write_tool_name',
+        'write_place_id__write_place_name',
+        'education_level',
+        'self_rating',
+        'student_assesment',
+        'assessment',
+        'teacher_id__user_id__name',
+        'teacher_id__user_id__last_name',
+        'pos_check',
+        'pos_check_user_id__name',
+        'pos_check_user_id__last_name',
+        'error_tag_check',
+        'error_tag_check_user_id__name',
+        'error_tag_check_user_id__last_name'
+    ).all()[0]
+
+    group_number = TblStudent.objects.filter(user_id = raw_info['user_id'])\
+        .values('group_number')\
+            .all()[0]['group_number']
+
+    raw_info = _drop_none(raw_info,['assessment','pos_check','error_tag_check'])
+    raw_info['assessment'] = False if not raw_info['assessment']\
+         or raw_info['assessment'] < 0 else raw_info['assessment']
+
+    assessment_name = str(raw_info['teacher_id__user_id__name']) + ' ' +\
+             str(raw_info['teacher_id__user_id__last_name'])
+    assessment_name = 'Не указано' if assessment_name == 'Не указано Не указано' else assessment_name
+
+    pos_name = str(raw_info['pos_check_user_id__name']) + ' ' +\
+            str(raw_info['pos_check_user_id__last_name'])
+    pos_name = 'Не указано' if pos_name == 'Не указано Не указано' else pos_name
+
+    error_name =  str(raw_info['error_tag_check_user_id__name']) + ' ' +\
+            str(raw_info['error_tag_check_user_id__last_name'])
+    error_name = 'Не указано' if error_name == 'Не указано Не указано' else error_name
+
+    return({
+
+        # Информация о тексте
+        'text_name':raw_info['header'],
+        'text_type':raw_info['text_type_id__text_type_name'],
+        'course':raw_info['creation_course'],
+        'create_date':raw_info['create_date'],
+        
+        #Информация об авторе
+
+        'author_name':str(raw_info['user_id__name']) + '  ' + str(raw_info['user_id__last_name']),
+        'group_number':group_number,
+
+        #Мета. информация
+        'emotional':raw_info['emotional_id__emotional_name'],
+        'write_tool':raw_info['write_tool_id__write_tool_name'],
+        'write_place':raw_info['write_place_id__write_place_name'],
+        'education_level':raw_info['education_level'],
+        'self_rating':raw_info['self_rating'],
+        'student_assessment':raw_info['student_assesment'],
+
+        #Оценка работы
+        'assessment': raw_info['assessment'],
+
+        'teacher_name': assessment_name,
+
+        'pos_check':raw_info['pos_check'],
+        'pos_check_name': pos_name,
+
+        'error_check':raw_info['error_tag_check'],
+        'error_check_name': error_name
+
+    })
+
+
+#Form for assessments modify
+def assessment_form(request, text_id = 1, **kwargs):
+    if check_permissions_work_with_annotations(request.user.id_user, text_id):
+    
+        initial_values = TblText.objects.filter(id_text = text_id).values(
+                'assessment',
+                'pos_check',
+                'error_tag_check').all()[0]
+
+        if request.method == "POST":
+                # instance = get_object_or_404(TblText, id_text = text_id)
+                instance = TblText.objects.get(id_text = text_id)
+                form = AssessmentModify(initial_values, request.user.is_teacher,
+                                request.POST or None, 
+                                instance=instance)
+
+                if form.is_valid():
+                    assessment = form.cleaned_data['assessment']
+                    pos_check = form.cleaned_data['pos_check']
+                    error_tag_check = form.cleaned_data['error_tag_check']
+        
+                    if assessment != initial_values['assessment'] and request.user.is_teacher:
+                        teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
+                        print(teacher_id)
+                        form.instance.teacher = teacher_id
+                    
+                    if pos_check != initial_values['pos_check']:
+                        form.instance.pos_check_user = TblUser.objects.get(id_user =\
+                             request.user.id_user)
+                        form.instance.pos_check_date = datetime.date.today()#.strftime('%Y-%M-%d')
+
+                    if error_tag_check != initial_values['error_tag_check']:
+                        form.instance.error_tag_check_user = TblUser.objects.get(id_user =\
+                             request.user.id_user)
+                        form.instance.error_tag_check_date = datetime.date.today()#.strftime('%Y-%M-%d')
+                        
+
+                    form.save()
+                return(redirect(request.path[:request.path.rfind('/')+1]))
+        else:
+            form = AssessmentModify(initial_values, request.user.is_teacher)
+            return(render(request, 'assessment_form.html', {
+                'right':True,
+                'form':form
+                }))
+        
+    else:
+        return(render(request, 'assessment_form.html', {'right':False}))
+
+
+#Form for meta modify
+def meta_form(request, text_id = 1, **kwargs):
+    if  request.user.id_user == TblText.objects\
+        .filter(id_text = text_id).values('user_id')[0]['user_id']:
+        
+        initial_values = TblText.objects.filter(id_text = text_id).values(
+                            'emotional',
+            'write_tool',
+            'write_place',
+            'education_level',
+            'self_rating',
+            'student_assesment').all()[0]
+
+        if request.method == "POST":
+            # instance = get_object_or_404(TblText, id_text = text_id)
+            instance = TblText.objects.get(id_text = text_id)
+            form = MetaModify(initial_values,
+                            request.POST or None, 
+                            instance=instance)
+            
+            if form.is_valid():
+                form.save()
+            return(redirect(request.path[:request.path.rfind('/')+1]))
+        else:
+            form = MetaModify(initial_values)
+            return(render(request, 'meta_form.html', {
+                'right':True,
+                'form':form
+                }))
+    else:
+        return(render(request, 'meta_form.html', {'right':False}))
+
+
 def show_text(request, text_id = 1, language = None, text_type = None):
-    text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name').all()
+    text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name', 'user_id').all()
     if text_info.exists() and check_permissions_show_text(request.user.id_user, text_id):
         header = text_info[0]['header']
         text_language_name = text_info[0]['language_id__language_name']
@@ -207,7 +391,19 @@ def show_text(request, text_id = 1, language = None, text_type = None):
         annotation_form = get_annotation_form(grades,reasons)
 
         ann_right = check_permissions_work_with_annotations(request.user.id_user, text_id)
+        text_owner = True if request.user.id_user == text_info[0]['user_id'] else False
 
-        return render(request, "work_area.html", context= {'founded':True,'ann_right':ann_right,'user_id':request.user.id_user, 'tags_info':tags_info, 'annotation_form':annotation_form, 'text_id':text_id,'lang_name':text_language_name})
+        text_meta_info = _get_text_info(text_id)
+
+        return render(request, "work_area.html", context= {
+            'founded':True,
+            'ann_right':ann_right,
+            'text_owner':text_owner,
+            'user_id':request.user.id_user,
+            'annotation_form':annotation_form, 
+            'text_id':text_id,
+            'lang_name':text_language_name,
+            'text_info':text_meta_info
+            })
     else:
         return render(request, 'work_area.html', context={'founded':False})

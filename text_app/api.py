@@ -210,7 +210,7 @@ def annotation_edit(query):
                     grade = TblGrade.objects.get(id_grade = int(data['grade']))
                 else:
                     grade = None
-                new_row = TblMarkup(
+                    new_row = TblMarkup(
                     token = start_token,
                     tag = tag,
                     sentence = sentence,

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if right%}
+<div class="container">
+    <main class="d-flex justify-content-center align-items-center">
+        <div class="row">
+            <div class="col-12">
+            <form method="POST" novalidate>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label>Эмоциональное состояние</label>
+                            {{form.emotional}}
+                        </div>
+
+                        <div class = 'mb-3'>
+                            <label>Средство написания</label>
+                            {{form.write_tool}}
+                        </div>
+
+                        <div class = 'mb-3'>
+                            <label>Место написания</label>
+                            {{form.write_place}}
+                        </div>
+
+                        <div class = 'mb-3'>
+                            <label>Уровень знания языка (в годах)</label>
+                            {{form.education_level}}
+                        </div>
+                        
+                        <div class = 'mb-3'>
+                            <label>Самооценка работы</label>
+                            {{form.self_rating}}
+                        </div>
+                        
+                        <div class = 'mb-3'>
+                            <label>Оценка задания студентом</label>
+                            {{form.student_assesment}}
+                        </div>
+                        
+                        
+
+                        <input type="submit" value="Сохранить" class = 'mt-2 btn btn-success'>
+            </form>
+            <button class = 'mt-2 mb-3 btn btn-secondary' onclick="history.back()">Назад</button>
+        </div>
+    </div>
+    </main>
+</div>
+{%else%}
+Сервис недоступен (Недостаточно прав)
+{%endif%}
+{%endblock%}

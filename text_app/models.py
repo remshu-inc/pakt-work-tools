@@ -95,8 +95,8 @@ class TblText(models.Model):
     
     header = models.CharField(max_length=255)
     text = models.TextField()
-    create_date = models.DateField()
-    modified_date = models.DateField()
+    create_date = models.DateField(null=True)
+    modified_date = models.DateField(null=True)
     
     education_level = models.IntegerField(blank=True, null=True)
     self_rating = models.IntegerField(blank=True, null=True, choices=RATES)
