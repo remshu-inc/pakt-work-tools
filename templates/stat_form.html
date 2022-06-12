@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if right%}
+<div class="container">
+    <main class="d-flex justify-content-center align-items-center">
+        <div class="row">
+            <div class="col-12">
+            <form method="POST" novalidate>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label>Выбор группы</label>
+                            <div>{{form.group_number}}</div>
+                        </div>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label>Выбор курса</label>
+                            <div>{{form.course_number}}</div>
+                        </div>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label>Детализация запроса</label>
+                            <div>{{form.output_type}}</div>
+                        </div>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label>Параметр подсчёта</label>
+                            <div>{{form.stat_by}}</div>
+                        </div>
+
+                        <input type="submit" value="Скачать" class = 'mt-2 btn btn-success save_button', onclick = "document.getElementById('warning-message').style.visibility = 'hidden';">
+            </form>
+            <button class = 'mt-2 mb-3 btn btn-secondary' onclick="history.back()">Назад</button>
+        </div>
+    </div>
+    </main>
+    {%if no_data%}
+    <div class="alert alert-danger" role="alert" id = 'warning-message'>
+        Результат запроса пуст, попробуйте изменить запрос.
+      </div>
+    {%endif%}
+</div>
+{%else%}
+Сервис недоступен (Недостаточно прав)
+{%endif%}
+{%endblock%}

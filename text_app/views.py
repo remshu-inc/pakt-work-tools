@@ -277,7 +277,7 @@ def _get_text_info(text_id:int):
     })
 
 
-#Form for assessments modify
+#Form for assessments modify proccesing
 def assessment_form(request, text_id = 1, **kwargs):
     if check_permissions_work_with_annotations(request.user.id_user, text_id):
     

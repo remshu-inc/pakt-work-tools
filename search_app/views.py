@@ -1,7 +1,12 @@
 from django.shortcuts import redirect, render
+from django.http import HttpResponse
 from text_app.models import TblTag, TblMarkup, TblToken, TblSentence
 from django.db.models import Q
 import re
+from .forms import StatisticForm
+from .stat_src import built_group_stat
+from wsgiref.util import FileWrapper
+from os import remove
 
 def index(request):
     return render(request, "index.html")
@@ -125,3 +130,33 @@ def search(request):
 
     else:
         return redirect(request, 'home')
+
+
+def get_stat(request):
+    if request.user.is_teacher:
+        if request.method != 'POST':
+            return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(), 'no_data':False}))
+        else:
+            form = StatisticForm(request.POST or None)
+            if form.is_valid():
+
+                value = [int(element) for element in form.cleaned_data['group_number']]
+                course_number = int(form.cleaned_data['course_number'])
+                detalization = int(form.cleaned_data['output_type'])
+                stat_by = int(form.cleaned_data['stat_by'])
+
+                stat_res = built_group_stat(value, course_number,detalization, stat_by, request.user.id_user)
+                if stat_res['state']:
+
+                    response = HttpResponse(FileWrapper(open(stat_res['folder_link'],'rb')), content_type='application/zip')
+                    
+                    filename = stat_res['file_name'].replace(" ", "_")
+                    print(filename)
+                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+
+                    remove(stat_res['folder_link'])
+                    return(response)
+                else:
+                    return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(), 'no_data':True}))
+    else:
+        return(render(request, 'stat_form.html', {'right':False, 'no_data':False}))
