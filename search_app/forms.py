@@ -1,3 +1,4 @@
+from datetime import datetime
 from faulthandler import disable
 from django import forms
 from text_app.models import TblLanguage, TblText, TblTextType
@@ -11,8 +12,10 @@ class StatisticForm(forms.Form):
     # group_number = forms.MultipleChoiceField()
     # course_number = forms.ChoiceField()
 
-    output_type = forms.ChoiceField(choices=[(1, 'Суммарно по всей группе'), (2, 'По каждому студенту группы')])
+    output_type = forms.ChoiceField(choices=[(1, 'Общая сводка'), (2, 'По каждому студенту')])
     stat_by = forms.ChoiceField(choices = [(1, 'Только по ошибкам'), (2, 'Только по метаданным'), (3, 'По всем')])
+    start_date = forms.DateField(initial =datetime(1, 1, 1, 0, 0),  widget = forms.widgets.DateInput(attrs={'type': 'date'}))
+    end_date = forms.DateField(initial =datetime.today,  widget = forms.widgets.DateInput(attrs={'type': 'date'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

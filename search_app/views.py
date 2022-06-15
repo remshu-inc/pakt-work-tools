@@ -144,14 +144,15 @@ def get_stat(request):
                 course_number = int(form.cleaned_data['course_number'])
                 detalization = int(form.cleaned_data['output_type'])
                 stat_by = int(form.cleaned_data['stat_by'])
+                start_date = form.cleaned_data['start_date']
+                end_date = form.cleaned_data['end_date']
 
-                stat_res = built_group_stat(value, course_number,detalization, stat_by, request.user.id_user)
+                stat_res = built_group_stat(value, course_number,detalization, stat_by, request.user.id_user, start_date, end_date)
                 if stat_res['state']:
 
                     response = HttpResponse(FileWrapper(open(stat_res['folder_link'],'rb')), content_type='application/zip')
                     
                     filename = stat_res['file_name'].replace(" ", "_")
-                    print(filename)
                     response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
 
                     remove(stat_res['folder_link'])

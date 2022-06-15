@@ -56,12 +56,18 @@ def _check_frames(dict_of_frames:dict):
             return(True)
     return(False)
 
-def built_group_stat(group_numbers:int, course_number:int, detalization:int, search_by:int, requester_id:int):
+def built_group_stat(group_numbers:int, course_number:int,detalization:int, search_by:int,
+        requester_id:int, start_date, end_date):
 
+    #*Create query for dates
+    dates_limits = Q(creation_date__gte = start_date) & Q(creation_date__lte = end_date)
+
+    #* Transform course number
     if course_number != -2:
         course_number = [course_number]
     else:
         course_number = [i for i in range(-1,6)]
+        
     #* Get all users id from current group
     students_info =  _queryset_to_list(TblStudent.objects.order_by('group_number').filter(group_number__in = group_numbers).values('user_id', 'group_number').all())
 
@@ -105,14 +111,14 @@ def built_group_stat(group_numbers:int, course_number:int, detalization:int, sea
     if search_by == 1 or search_by == 3:
         queries[0] = list(TblMarkup.objects.filter(
             Q(token_id__sentence_id__text_id__user_id__in = users_id) &
-            Q(tag_id__markup_type_id__markup_type_name ='error') &
-            Q(token_id__sentence_id__text_id__creation_course__in = course_number)
+            Q(tag_id__markup_type_id__markup_type_name ='error') & 
+            Q(token_id__sentence_id__text_id__creation_course__in = course_number) 
             ).values('token_id__sentence_id__text_id__user_id','tag_id__tag_text'))
     
     if search_by == 2 or search_by == 3:
         queries[1] = list(TblText.objects.filter(
             Q(user_id__in = users_id) &
-            Q(creation_course__in = course_number) 
+            Q(creation_course__in = course_number) & dates_limits
             ).values(
                 'user_id',
                 'emotional__emotional_name',
