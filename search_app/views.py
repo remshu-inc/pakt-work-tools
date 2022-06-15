@@ -61,13 +61,14 @@ def _parse_cql(user_query = None):
     
     for token_cql in cql:
         
+        # TODO: парсить word не из tblmarkup
         # Парсинг нескольких параметров
         if "&" in token_cql:
             parts_token_cql = token_cql[1:-1].split('&')
-            for part in parts_token_cql:
+            for part in parts_token_cql:            
                 
                 filters &= _filter_shaping(part)
-            # print(filters)
+
         
         # Парсинг альтернативных вариантов
         # TODO: Исправить вывод дублированных текстов(где совпадает и токен, и тег)
@@ -77,7 +78,6 @@ def _parse_cql(user_query = None):
             for part in parts_token_cql:
                 
                 alt_filters |= _filter_shaping(part)
-
 
             filters &= alt_filters
                 

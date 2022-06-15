@@ -30,7 +30,7 @@
 
         <div class="d-flex justify-content-center mt-5">
             <div class="col-6">
-                <form method="post" novalidate>
+                <form action="{% url 'corpus_search' %}" method="post" novalidate>
                     {% csrf_token %}
                     <div class="input-group mb-1">
                         {{ form_search.header }}
@@ -40,7 +40,7 @@
                             </svg>
                             Фильтр
                         </button>
-                        <button name="corpus_search" class="btn btn-outline-secondary" type="button" id="button-addon">Поиск</button>
+                        <button name="corpus_search" class="btn btn-outline-secondary" type="submit" id="button-addon">Поиск</button>
                     </div>
 
                     <div class="filter" id="list-filter">
