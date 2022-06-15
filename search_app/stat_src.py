@@ -67,7 +67,7 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
         course_number = [course_number]
     else:
         course_number = [i for i in range(-1,6)]
-        
+
     #* Get all users id from current group
     students_info =  _queryset_to_list(TblStudent.objects.order_by('group_number').filter(group_number__in = group_numbers).values('user_id', 'group_number').all())
 

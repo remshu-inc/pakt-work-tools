@@ -14,7 +14,6 @@ class StatisticForm(forms.Form):
 
     output_type = forms.ChoiceField(choices=[(1, 'Общая сводка'), (2, 'По каждому студенту')])
     stat_by = forms.ChoiceField(choices = [(1, 'Только по ошибкам'), (2, 'Только по метаданным'), (3, 'По всем')])
-    start_date = forms.DateField(initial =datetime(1, 1, 1, 0, 0),  widget = forms.widgets.DateInput(attrs={'type': 'date'}))
     end_date = forms.DateField(initial =datetime.today,  widget = forms.widgets.DateInput(attrs={'type': 'date'}))
 
     def __init__(self, *args, **kwargs):
@@ -28,5 +27,12 @@ class StatisticForm(forms.Form):
         choices = [[-2, 'Любой']] + list(TblText.objects.all().order_by('creation_course').values_list("creation_course","creation_course").distinct()),
         required=True)
 
-    
+        year_ = datetime.today().year
+        month_ = datetime.today().month 
 
+        if month_ < 9:
+            initial_start_date = datetime(year_-1, 9, 1)
+        else:
+            initial_start_date = datetime(year_, 9, 1)
+
+        self.fields['start_date'] = forms.DateField(initial =initial_start_date,  widget = forms.widgets.DateInput(attrs={'type': 'date'}))
