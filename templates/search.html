@@ -18,6 +18,12 @@
         </form>
 
         <div class="search_list mt-5">
+            {% if error_search %}
+            <div class="search_result mt-3">
+                <h1 style="color: red;">{{ error_search }}</h1>
+            </div>
+            {% endif %}
+
             {% if list_search %}
             {% for search in list_search  %}
             <div class="search_result mt-3">

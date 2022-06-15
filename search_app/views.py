@@ -67,7 +67,8 @@ def _parse_cql(user_query = None):
             parts_token_cql = token_cql[1:-1].split('&')
             for part in parts_token_cql:            
                 
-                filters &= _filter_shaping(part)
+                if _filter_shaping(part) != None:
+                    filters &= _filter_shaping(part)
 
         
         # Парсинг альтернативных вариантов
@@ -77,14 +78,19 @@ def _parse_cql(user_query = None):
             alt_filters = Q()
             for part in parts_token_cql:
                 
-                alt_filters |= _filter_shaping(part)
+                if _filter_shaping(part) != None:
+                    alt_filters |= _filter_shaping(part)
 
             filters &= alt_filters
                 
         
         else:
-            filters &= _filter_shaping(token_cql)
-    
+            if _filter_shaping(token_cql) != None:
+                filters &= _filter_shaping(token_cql)
+                
+    if filters == Q():
+        return None
+        
     return filters
                     
                     
@@ -92,6 +98,8 @@ def search(request):
     if request.POST:
         user_query = request.POST['corpus_search']
         filters = _parse_cql(user_query)
+        if filters == None:
+            return render(request, "search.html", context={'error_search': 'Text not Found', 'search_value': request.POST['corpus_search']})
         
         # Получение строк по заданным условиям
         sentence_objects = TblMarkup.objects.filter(filters).values(
@@ -100,7 +108,7 @@ def search(request):
         
         # TODO: пропписать исключение
         if len(sentence_objects) == 0:
-            pass
+            return render(request, "search.html", context={'error_search': 'Text not Found', 'search_value': request.POST['corpus_search']})
         
         list_search = []
         for sentence in sentence_objects:
