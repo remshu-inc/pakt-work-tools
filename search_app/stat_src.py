@@ -39,16 +39,14 @@ def _get_errors(main_frame:pd.DataFrame, frame_name:str):
     return({frame_name:error_frame})
 
 def _get_meta(main_frame:pd.DataFrame, frame_name:str):
-    meta_dict = {}
+    meta_dict = []
     for column in main_frame.columns[1:]:
         
-        new_column = main_frame.groupby(column).count().iloc[:,[0]]
-        new_column.columns = ['Частота']
-        
-        meta_dict.update([{column, ''}, new_column.to_dict('records'), {'',''}])
+        new_column = main_frame.groupby(column).count().iloc[:,[0]].reset_index()
+        new_column.columns = ['Название','Частота']
+        meta_dict += [{'Название':column,'Частота':''}]+new_column.to_dict('records')+[{'Название':'','Частота':''}]
 
-    
-    return({frame_name:pd.DataFrame(data = meta_dict)})
+    return({frame_name: pd.DataFrame(data = meta_dict)})
 
 def _check_frames(dict_of_frames:dict):
     for key in dict_of_frames.keys():
@@ -60,7 +58,9 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
         requester_id:int, start_date, end_date):
 
     #*Create query for dates
-    dates_limits = Q(creation_date__gte = start_date) & Q(creation_date__lte = end_date)
+    markup_dates_limits = Q(token_id__sentence_id__text_id__create_date__gte = start_date)\
+     & Q(token_id__sentence_id__text_id__create_date__lte = end_date)
+    dates_limits = Q(create_date__gte = start_date) & Q(create_date__lte = end_date)
 
     #* Transform course number
     if course_number != -2:
@@ -69,7 +69,7 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
         course_number = [i for i in range(-1,6)]
 
     #* Get all users id from current group
-    students_info =  _queryset_to_list(TblStudent.objects.order_by('group_number').filter(group_number__in = group_numbers).values('user_id', 'group_number').all())
+    students_info =  _queryset_to_list(TblStudent.objects.order_by('group_number').filter(Q(group_number__in = group_numbers)).values('user_id', 'group_number').all())
 
     group_users = students_info['user_id']
     group_numbers = students_info['group_number']
@@ -112,7 +112,7 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
         queries[0] = list(TblMarkup.objects.filter(
             Q(token_id__sentence_id__text_id__user_id__in = users_id) &
             Q(tag_id__markup_type_id__markup_type_name ='error') & 
-            Q(token_id__sentence_id__text_id__creation_course__in = course_number) 
+            Q(token_id__sentence_id__text_id__creation_course__in = course_number) & markup_dates_limits
             ).values('token_id__sentence_id__text_id__user_id','tag_id__tag_text'))
     
     if search_by == 2 or search_by == 3:
@@ -193,13 +193,18 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
 
     for key in results.keys():
         if results[key]:
+            if key == 'meta':
+                include_index = False
+            else:
+                include_index = True
+
             file_path = total_folder+f'/{key}.xlsx'
             writer = pd.ExcelWriter(file_path, engine = 'xlsxwriter')
             for frame_dict in results[key]:
                 sheet_name = list(frame_dict.keys())[0]
                 frame = frame_dict[sheet_name]
 
-                frame.to_excel(writer, sheet_name = sheet_name)
+                frame.to_excel(writer, sheet_name = sheet_name, index = include_index)
             writer.save()
             writer.close()
     
