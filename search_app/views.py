@@ -13,7 +13,7 @@ def index(request):
 
 
 def _filter_shaping(cql):
-    """Формирование филтра на основе cql
+    """Формирование фильтра на основе cql
 
     Keyword arguments:
     cql -- Запроса пользователя
@@ -26,19 +26,35 @@ def _filter_shaping(cql):
     # Удаление всех пробелов
     cql = cql.replace(" ", "")
     
-    # Обработка словоформ
+    # Обработка токенов соответсвующих словоформе
     if 'word=' in cql:
-        return Q(token_id__text__iexact = word)
+        # REGEX
+        if word[0:2] == '.*' and word[-2:] == '.*':
+            return Q(token_id__text__contains = word[2:-2])
+        elif word[-2:] == '.*':
+            return Q(token_id__text__startswith = word[:-2])
+        elif word[0:2] == '.*':
+            return Q(token_id__text__endswith = word[2:])
+        else:
+            return Q(token_id__text__iexact = word)
         
-    # Обрабокта тегов ошибок и частеречной разметки
+    # Обрабокта токенов с указанными тегами ошибок и частеречной разметки
     elif 'error=' in cql or 'pos=' in cql:
         return Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word))
         
-    # Обработка словоформ
+    # Обработка токенов не соответсвующих словоформе
     if 'word!=' in cql:
-        return ~Q(token_id__text__iexact = word)
+        # REGEX
+        if word[0:2] == '.*' and word[-2:] == '.*':
+            return ~Q(token_id__text__contains = word[2:-2])
+        elif word[-2:] == '.*':
+            return ~Q(token_id__text__startswith = word[:-2])
+        elif word[0:2] == '.*':
+            return ~Q(token_id__text__endswith = word[2:])
+        else:
+            return ~Q(token_id__text__iexact = word)
         
-    # Обрабокта тегов ошибок и частеречной разметки
+    # Обрабокта токенов без указанных тегов ошибок и частеречной разметки
     elif 'error!=' in cql or 'pos=' in cql:
         return ~Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word))
     
