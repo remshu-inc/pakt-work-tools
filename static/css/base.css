@@ -23,6 +23,11 @@ a {
     color: white;
 }
 
+input:focus {
+    /* border: 1px solid #0d6efd !important; */
+    box-shadow: none !important;
+}
+
 .head-text {
     text-align: center;
     margin-top: 70px;
@@ -43,4 +48,55 @@ a {
 .email {
     color: rgba(13, 202, 240, 0.8);
     /* color: white; */
+}
+
+.auth-page {
+    margin-top: 150px;
+    max-width: 500px;
+    padding: 0px 40px;
+}
+
+.signup-page {
+    margin-top: 100px;
+    max-width: 500px;
+    padding: 0px 40px;
+}
+
+.pakt-btn {
+    background-color: #0d6efd;
+    color: white;
+    float: right;
+}
+
+.custom-input {
+    position: relative;
+    padding: 5px 0;
+    border: 1px solid grey;
+    border-radius: 0.25em;
+    margin-top: 20px;
+}
+
+.custom-input:focus-within {
+    border-color: #0d6efd;
+}
+
+.custom-input > label {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background-color:white;
+    padding: 0 5px;
+    font-size: 14px;
+}
+
+.custom-input > input {
+    border: none;
+    box-shadow: none !important;
+    font-size: 14px;
+}
+
+.custom-input select {
+    border: none;
+    box-shadow: none !important;
+    font-size: 14px;
 }
