@@ -95,7 +95,13 @@ input:focus {
     font-size: 14px;
 }
 
-.custom-input select {
+.custom-input > select {
+    border: none;
+    box-shadow: none !important;
+    font-size: 14px;
+}
+
+.custom-input > textarea {
     border: none;
     box-shadow: none !important;
     font-size: 14px;
