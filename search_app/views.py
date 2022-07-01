@@ -1,14 +1,23 @@
+from os import remove
+import re
+from wsgiref.util import FileWrapper
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
-from text_app.models import TblTag, TblMarkup, TblToken, TblSentence
 from django.db.models import Q
-import re
+from text_app.models import TblMarkup, TblToken
 from .forms import StatisticForm
 from .stat_src import built_group_stat
-from wsgiref.util import FileWrapper
-from os import remove
 
 def index(request):
+    """ Рендер главной страницы
+
+    Args:
+        request: http-запрос с пользовательской информацией
+
+    Returns:
+        HttpResponse: html главной страницы
+    """
+    
     return render(request, "index.html")
 
 
@@ -55,7 +64,7 @@ def _filter_shaping(cql):
             return ~Q(token_id__text__iexact = word)
         
     # Обрабокта токенов без указанных тегов ошибок и частеречной разметки
-    elif 'error!=' in cql or 'pos=' in cql:
+    elif 'error!=' in cql or 'pos!=' in cql:
         return ~Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word))
     
     return None
@@ -81,9 +90,9 @@ def _parse_cql(user_query = None):
         # Парсинг нескольких параметров
         if "&" in token_cql:
             parts_token_cql = token_cql[1:-1].split('&')
-            for part in parts_token_cql:            
-                
-                if _filter_shaping(part) != None:
+            for part in parts_token_cql:
+
+                if _filter_shaping(part) is not None:
                     filters &= _filter_shaping(part)
 
         
@@ -94,14 +103,14 @@ def _parse_cql(user_query = None):
             alt_filters = Q()
             for part in parts_token_cql:
                 
-                if _filter_shaping(part) != None:
+                if _filter_shaping(part) is not None:
                     alt_filters |= _filter_shaping(part)
 
             filters &= alt_filters
                 
         
         else:
-            if _filter_shaping(token_cql) != None:
+            if _filter_shaping(token_cql) is not None:
                 filters &= _filter_shaping(token_cql)
                 
     if filters == Q():
@@ -111,10 +120,18 @@ def _parse_cql(user_query = None):
                     
                     
 def search(request):
+    """ Обработка поискового запроса пользователя и генерация результата
+
+    Args:
+        request: http-запрос с пользовательской информацией
+
+    Returns:
+        HttpResponse: html страница с результатом поиска
+    """
     if request.POST:
         user_query = request.POST['corpus_search']
         filters = _parse_cql(user_query)
-        if filters == None:
+        if filters is None:
             return render(request, "search.html", context={'error_search': 'Text not Found', 'search_value': request.POST['corpus_search']})
         
         # Получение строк по заданным условиям
