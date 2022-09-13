@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import TblUser, TblStudent
 from hashlib import sha512
+import datetime
 
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -49,3 +50,21 @@ class StudentCreationForm(forms.ModelForm):
 class LoginForm(forms.Form):
     login = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+
+#* Group creation form
+
+class GroupCreationForm(forms.Form):
+    default = datetime.datetime.now()
+    if 0 < default.month < 9:
+        default = default.year - 1
+    else:
+        default = default.year
+
+    group_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), max_length=256)
+    year = forms.CharField(widget  = forms.TextInput(attrs={'class':'form-control'}), 
+        initial = str(default),
+        max_length=4)
+
+
+

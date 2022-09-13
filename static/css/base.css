@@ -1,3 +1,7 @@
+:root{
+    --active-text-color: #0d6efd;
+}
+
 * {
     font-family: 'Montserrat', sans-serif !important;
 }
@@ -16,6 +20,14 @@ a {
 
 .errorlist {
     list-style: none;
+}
+
+.non-round{
+    border-radius: 0px !important;
+}
+
+.non-padding{
+    padding: 0 !important;
 }
 
 *::selection {
@@ -105,4 +117,35 @@ input:focus {
     border: none;
     box-shadow: none !important;
     font-size: 14px;
+}
+
+.active-text {
+    color: var(--active-text-color);
+}
+
+.section-head-text{
+    color:var(--active-text-color);
+    font-size: 15pt;
+    cursor:default;
+}
+
+.section-row{
+    border-radius: 0 !important;
+    padding: 0 !important;
+}
+
+
+.section-row-button{
+    padding-left: 30px;
+    border:0 !important;
+    border-radius: 0 !important;
+    background-color: white;
+    color: var(--active-text-color);
+    width:100%;
+    text-align: left;
+}
+
+.section-row-button:hover{
+    color:white;
+    background-color: var(--active-text-color);
 }

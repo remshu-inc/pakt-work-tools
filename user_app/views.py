@@ -1,9 +1,13 @@
 from django.contrib.auth import login, logout
 from .login import MyBackend
 # from django.contrib.auth.forms import UserCreationForm
-from .forms import UserCreationForm, StudentCreationForm, LoginForm
 from django.shortcuts import render, redirect
-from .models import TblUser
+from django.db.models import Q
+from .models import TblUser, TblGroup
+from .forms import UserCreationForm, StudentCreationForm, LoginForm,  GroupCreationForm
+
+from string import punctuation
+from datetime import datetime
 
 def signup(request):
     try:
@@ -69,3 +73,107 @@ def log_out(request):
     
     logout(request)
     return redirect('home')
+
+#* Teacher managment page
+def manage(request):
+    if  request.user.is_teacher:
+        return(render(request, 'manage_page.html', {'teacher': True}))
+    else:
+        return(render(request, 'manage_page.html', {'teacher': False}))
+
+#* Group creation page
+def _symbol_check(name:str)->bool:
+    """_summary_
+    Checking the group name for adequacy
+
+    Args:
+        name (str): Name of group  
+
+    Returns:
+        bool: Decision of adequacy
+    """    
+    bad_symbols = punctuation+' \t\n'
+    for symbol in name:
+        if symbol not in bad_symbols:
+            return(True)
+    return(False)
+
+
+def group_creation(request):
+    if request.user.is_teacher:
+        if request.method != 'POST':
+            return(render(request, 'group_creation_form.html', 
+            {
+                'right':True,
+                'form': GroupCreationForm(),
+                'bad_name':False,
+                'bad_year':False,
+                'exist':False,
+                'success':False,
+            }))
+        else:
+            form = GroupCreationForm(request.POST or None)
+            if form.is_valid():
+                group_name = str(form.cleaned_data['group_name'])
+                year = str(form.cleaned_data['year'])
+
+                if _symbol_check(group_name):
+                    if year.isnumeric() and 999 < int(year) < datetime.now().year+1:
+
+                        enrollement_date = datetime(int(year), 9, 1)
+                        valid_sample = TblGroup.objects.filter(Q(group_name = group_name)\
+                             & Q(enrollement_date = enrollement_date)).values('id_group').all()
+                        
+                        if not valid_sample.exists():
+                            new_row = TblGroup(group_name = group_name, enrollement_date = enrollement_date)
+                            new_row.save()
+
+                            return(render(request, 'group_creation_form.html', 
+                                {
+                                    'right':True,
+                                    'form': GroupCreationForm(),
+                                    'bad_name':False,
+                                    'bad_year':False,
+                                    'exist':False,
+                                    'success':True,
+                            }))
+                        else:
+                            return(render(request, 'group_creation_form.html', 
+                                {
+                                    'right':True,
+                                    'form': GroupCreationForm(),
+                                    'bad_name':False,
+                                    'bad_year':False,
+                                    'exist':True,
+                                    'success':False,
+                            }))
+                    else:
+                        return(render(request, 'group_creation_form.html', 
+                            {
+                                'right':True,
+                                'form': GroupCreationForm(),
+                                'bad_name':False,
+                                'bad_year':True,
+                                'exist':False,
+                                'success':False,
+                        }))
+            else:
+                return(render(request, 'group_creation_form.html', 
+                    {
+                        'right':True,
+                        'form': GroupCreationForm(),
+                        'bad_name':True,
+                        'bad_year':False,
+                        'exist':False,
+                        'success':False,
+                }))  
+    else:
+        return(render(request, 'group_creation_form.html', 
+            {
+                'right':False,
+                'form': GroupCreationForm(),
+                'bad_name':False,
+                'bad_year':False,
+                'exist':False,
+                'success':False,
+        }))

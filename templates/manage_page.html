@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if teacher%}
+        <div class="card non-round">
+            <div class="card-header">
+                <div class = "section-head-text">
+                    Студенты:
+                </div>
+            </div>
+            <div class="card-body non-padding">
+                <ul class="list-group">
+                    <li class="list-group-item section-row">
+                        <a href="{% url 'signup' %}" class = 'btn btn-primary section-row-button' >
+                            Регистрация студента
+                        </a>
+
+                        </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card non-round">
+            <div class="card-header">
+                <div class = "section-head-text">
+                    Группы:
+                </div>
+            </div>
+            <div class="card-body non-padding">
+                <ul class="list-group">
+                    <a href = "{% url 'group_creation'%}" class = 'btn btn-primary section-row-button' >
+                        Создание группы
+                    </a>
+                    <a href = 'https://www.google.com' class = 'btn btn-primary section-row-button' >
+                        Изменение группы
+                    </a>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card non-round">
+            <div class="card-header">
+                <div class = "section-head-text">
+                    Анализ:
+                </div>
+            </div>
+            <div class="card-body non-padding">
+                <ul class="list-group">
+                    <a href="{% url 'statistic' %}" class = 'btn btn-primary section-row-button' >
+                        Экспорт статистики
+                    </a>
+                </ul>
+            </div>
+        </div>
+
+{%else%}
+<h1>Отказано в доступе<h1>
+{%endif%}
+
+{%endblock%}

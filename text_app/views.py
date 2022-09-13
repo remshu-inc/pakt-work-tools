@@ -227,7 +227,7 @@ def _get_text_info(text_id:int):
 
     group_number = TblStudent.objects.filter(user_id = raw_info['user_id'])\
         .values('group_number')\
-            .all()[0]['group_number']
+            .all()[0]['group_number'] #! ПЕРЕПИСАТЬ
 
     raw_info = _drop_none(raw_info,['assessment','pos_check','error_tag_check'])
     raw_info['assessment'] = False if not raw_info['assessment']\

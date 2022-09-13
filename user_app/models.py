@@ -74,3 +74,24 @@ class TblStudent(models.Model):
     # TODO: исправить
     def __str__(self):
         return self.user.last_name + ' ' + self.user.name + ' ' + str(self.group_number)
+
+
+class TblGroup(models.Model):
+    
+    class Meta:
+        db_table = 'TblGroup'
+
+    id_group =  models.AutoField(primary_key=True)
+    group_name = models.CharField(max_length=256)
+    enrollement_date = models.DateField(blank=True, null=True)
+
+
+class TblStudentGroup(models.Model):
+
+    class Meta:
+        db_table = 'TblStudentGroup'
+
+    id_studentgroup = models.AutoField(primary_key=True)
+    student = models.ForeignKey(TblStudent, on_delete=models.CASCADE, db_column= 'student_id')
+    group = models.ForeignKey(TblGroup, on_delete=models.CASCADE, db_column='group_id')
+    current = models.BooleanField(default=False)
