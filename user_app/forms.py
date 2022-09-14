@@ -66,5 +66,35 @@ class GroupCreationForm(forms.Form):
         initial = str(default),
         max_length=4)
 
+class GroupModifyForm(forms.Form):
+    fields = ['group_name', 'year']
 
+    def __init__(self, year, group_name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['year']  =   forms.CharField(
+            widget=forms.TextInput(attrs={'class': 'form-control'}),
+            initial = str(year),
+            max_length=4)
+
+        self.fields['group_name'] = forms.CharField(
+            widget  = forms.TextInput(attrs={'class':'form-control'}), 
+            initial = group_name,
+            max_length =256)
+
+class GroupModifyStudent(forms.Form):
+    fields = ['studs']
+    def __init__(self, students, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        options = []
+        for student in students:
+            options.append(
+                (student['id'],
+                student['id_str']+' '
+                +str(student['last_name'])+' '
+                +str(student['name'])+' '
+                +str(student['patronymic'])+' ('
+                +str(student['login'])+')')
+                )
+        self.fields['studs'] = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
+                                        choices=options)
 

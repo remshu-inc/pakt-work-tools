@@ -1,10 +1,12 @@
 :root{
     --active-text-color: #0d6efd;
+    --options-select-color:#0073ff9d;
 }
 
 * {
     font-family: 'Montserrat', sans-serif !important;
 }
+
 
 a {
     /* color: #0dcaf0; */
@@ -28,6 +30,10 @@ a {
 
 .non-padding{
     padding: 0 !important;
+}
+
+.non-border{
+    border:0 !important;
 }
 
 *::selection {
@@ -125,7 +131,7 @@ input:focus {
 
 .section-head-text{
     color:var(--active-text-color);
-    font-size: 15pt;
+    font-size: 13pt;
     cursor:default;
 }
 
@@ -147,5 +153,53 @@ input:focus {
 
 .section-row-button:hover{
     color:white;
-    background-color: var(--active-text-color);
+    background-color: var(--options-select-color);
 }
+
+.cell-padding{
+    padding-left: 20px !important;
+    padding-right:5px !important;
+}
+
+.table-top-border{
+    border-top-width: 2px;
+    border-top-color: #d1d1d1;
+}
+
+.selectable-table-row:hover>td{
+    background-color: #cbcbcb65 !important;
+    /* color:white; */
+}
+.selectable-table-row>td{
+    cursor: default;
+}
+
+.index-cell{
+    color: #858585;
+}
+
+.cell-button{
+    width:150px;
+    height:40px;
+    text-align: center;
+    background-color: var(--active-text-color) !important;
+}
+
+.card-header-wbtn{
+    padding: 0;
+}
+.list-option-btn{
+    height: 100% !important;
+    background-color: var(--active-text-color);
+    border-radius: 0;
+    border-top-right-radius: 20px;
+    font-weight: 600;
+    color: white;
+    transition-duration: 0.5s;
+    width: 250px;
+}
+.list-option-btn:hover{
+    background-color: #0047b3;
+    color:white;
+}
+

@@ -21,7 +21,7 @@
                             <label title = 'Год формирования группы'>Год начала обучения</label>
                             <div>{{form.year}}</div>
                         </div>
-                        <input type="submit" value="Создать" class = 'mt-2 btn btn-success save_button', onclick = "document.getElementById('warning-message').style.visibility = 'hidden';">
+                        <input type="submit" value="Создать" class = 'mt-2 btn btn-success save_button'>
             </form>
             <a class = 'mt-2 mb-3 btn btn-secondary' href="{% url 'manage'%}">Назад</a>
         </div>
@@ -54,6 +54,9 @@
 
 </div>
 {%else%}
-Сервис недоступен (Недостаточно прав)
+<div class='card-header non-padding'>
+    <b>Сервис недоступен (Недостаточно прав)</div>
+</div>
 {%endif%}
+
 {%endblock%}
