@@ -1,7 +1,7 @@
 # from django.views import generic
 # from .models import TblText
 
-from .models import TblLanguage, TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from .models import TblLanguage, TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
 from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -225,9 +225,15 @@ def _get_text_info(text_id:int):
         'error_tag_check_user_id__last_name'
     ).all()[0]
 
-    group_number = TblStudent.objects.filter(user_id = raw_info['user_id'])\
-        .values('group_number')\
-            .all()[0]['group_number'] #! ПЕРЕПИСАТЬ
+    group_number = TblTextGroup.objects.filter(text_id = text_id)
+    
+    if group_number.exists():
+        group_number = group_number.values('group_id__group_name', 'group_id__enrollement_date')[0]
+        group_number = group_number['group_id__group_name']+' ('\
+            +str(group_number[ 'group_id__enrollement_date'].year)+')'
+    
+    else:
+        group_number = 'Отсутствует'
 
     raw_info = _drop_none(raw_info,['assessment','pos_check','error_tag_check'])
     raw_info['assessment'] = False if not raw_info['assessment']\

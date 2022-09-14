@@ -1,6 +1,8 @@
 :root{
     --active-text-color: #0d6efd;
     --options-select-color:#0073ff9d;
+    --warning-color:#fd0d0d;
+    --warning-select-color:#ff00009d;
 }
 
 * {
@@ -34,6 +36,9 @@ a {
 
 .non-border{
     border:0 !important;
+}
+.non-margin{
+    margin:0px !important;
 }
 
 *::selection {
@@ -201,5 +206,26 @@ input:focus {
 .list-option-btn:hover{
     background-color: #0047b3;
     color:white;
+}
+
+.list-option-warning-btn{
+    height: 100% !important;
+    background-color: var(--warning-color);
+    border-radius: 0;
+    border-top-right-radius: 20px;
+    font-weight: 600;
+    color: white;
+    transition-duration: 0.5s;
+    width: 250px;
+}
+.list-option-warning-btn:hover{
+    background-color: var(--warning-select-color);
+    color:white;
+}
+
+
+.top-notification{
+    margin:0px !important;
+    border-radius: 0px !important;
 }
 

@@ -4,7 +4,7 @@ from .login import MyBackend
 # from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.db.models import Q
-from .models import TblUser, TblGroup, TblStudentGroup
+from .models import TblUser, TblStudent, TblGroup, TblStudentGroup
 from .forms import UserCreationForm, StudentCreationForm, LoginForm,  GroupCreationForm, GroupModifyForm, GroupModifyStudent
 
 from string import punctuation
@@ -209,29 +209,30 @@ def group_selection(request):
 
 #* Group modify
 def _get_group_students(group_id:int, in_:bool)->list:
+    students_in_group =  TblStudentGroup.objects.filter(group_id = group_id).values('student_id') 
     if in_:
-        query = Q(group_id=group_id)
+        query = Q(id_student__in = students_in_group)
     else:
-        query = ~Q(group_id = group_id)
+        query = ~Q(id_student__in = students_in_group)
     
-    students = TblStudentGroup.objects.filter(query).values(
-    'student_id',
-    'student_id__user_id__login',
-    'student_id__user_id__last_name', 
-    'student_id__user_id__name',
-    'student_id__user_id__patronymic',
+    students = TblStudent.objects.filter(query).values(
+    'id_student',
+    'user_id__login',
+    'user_id__last_name', 
+    'user_id__name',
+    'user_id__patronymic',
     )
 
     students_reform = []
 
     for student in students:
         students_reform.append({
-            'id':student['student_id'],
-            'id_str':str(student['student_id']),
-            'login':student['student_id__user_id__login'],
-            'last_name':student['student_id__user_id__last_name'],
-            'name':student['student_id__user_id__name'],
-            'patronymic': student['student_id__user_id__patronymic']
+            'id':student['id_student'],
+            'id_str':str(student['id_student']),
+            'login':student['user_id__login'],
+            'last_name':student['user_id__last_name'],
+            'name':student['user_id__name'],
+            'patronymic': student['user_id__patronymic']
         })
     
     return(students_reform)
@@ -243,8 +244,8 @@ def group_modify(request, group_id):
         if groups.exists():
             year = groups[0]['enrollement_date'].year
             group_name = groups[0]['group_name']
-            students = _get_group_students(group_id, True)
-            students_all = _get_group_students(group_id, False)
+            students_in = _get_group_students(group_id, True)
+            students_out = _get_group_students(group_id, False)
         else:
             return(render(request,'group_modify.html', context= {
                 'right':True,
@@ -261,9 +262,9 @@ def group_modify(request, group_id):
                     'exist':True,
                     'bad_name':False,
                     'bad_year':False,
-                    'group_students':students,
-                    'del_std_form': GroupModifyStudent(students),
-                    'add_std_form': GroupModifyStudent(students_all),
+                    'group_students':students_in,
+                    'del_std_form': GroupModifyStudent(students_in),
+                    'add_std_form': GroupModifyStudent(students_out),
                     'data_form':GroupModifyForm(year, group_name)}))
         
         #* Modify info about group
@@ -288,9 +289,9 @@ def group_modify(request, group_id):
                             'exist':True,
                             'bad_name':False,
                             'bad_year':False,
-                            'group_students':students,
-                            'del_std_form': GroupModifyStudent(students),
-                            'add_std_form': GroupModifyStudent(students_all),
+                            'group_students':students_in,
+                            'del_std_form': GroupModifyStudent(students_in),
+                            'add_std_form': GroupModifyStudent(students_out),
                             'data_form':GroupModifyForm(year, group_name)}))
 
                     else:
@@ -299,9 +300,9 @@ def group_modify(request, group_id):
                             'exist':True,
                             'bad_name':False,
                             'bad_year':True,
-                            'group_students':students,
-                            'del_std_form': GroupModifyStudent(students),
-                            'add_std_form': GroupModifyStudent(students_all),
+                            'group_students':students_in,
+                            'del_std_form': GroupModifyStudent(students_in),
+                            'add_std_form': GroupModifyStudent(students_out),
                             'data_form':GroupModifyForm(year, group_name)}))
                 else:
                     return(render(request, 'group_modify.html', context={
@@ -309,37 +310,76 @@ def group_modify(request, group_id):
                         'exist':True,
                         'bad_name':True,
                         'bad_year':False,
-                        'group_students':students,
-                        'del_std_form': GroupModifyStudent(students),
-                        'add_std_form': GroupModifyStudent(students_all),
+                        'group_students':students_in,
+                        'del_std_form': GroupModifyStudent(students_in),
+                        'add_std_form': GroupModifyStudent(students_out),
                         'data_form':GroupModifyForm(year, group_name)}))
+
         elif 'add_studs' in request.POST:
-            #TODO: Добавить обработку
-                    updated_students_in = _get_group_students(group_id, True)
-                    updated_students_out = _get_group_students(group_id, False)
+            form = GroupModifyStudent(students_out, request.POST or None)
+
+            if form.is_valid():
+                values = [int(element) for element in  form.cleaned_data['studs']]
+                #TODO: Добавить вывод ошибки
+                if  not TblStudentGroup.objects.filter(\
+                    Q(group_id = group_id) & \
+                    Q(student_id__in = values)).exists():
+
+                    values =  [TblStudentGroup(student_id = value, group_id = group_id) for value in values]
+                    TblStudentGroup.objects.bulk_create(values)
+                
+                updated_students_in = _get_group_students(group_id, True)
+                updated_students_out = _get_group_students(group_id, False)
+
+                return(render(request, 'group_modify.html', context={
+                    'right':True,
+                    'exist':True,
+                    'bad_name':False,
+                    'bad_year':False,
+                    'group_students':updated_students_in,
+                    'del_std_form': GroupModifyStudent(updated_students_in),
+                    'add_std_form': GroupModifyStudent(updated_students_out),
+                    'data_form':GroupModifyForm(year, group_name)}))
+            else:
+                return(render(request, 'group_modify.html', context={
+                    'right':False}))
+
+        elif 'del_studs' in request.POST:
+            form = GroupModifyStudent(students_in, request.POST or None)
+            if form.is_valid():
+                values = [int(element) for element in  form.cleaned_data['studs']]
+                
+                query = TblStudentGroup.objects.filter(Q(group_id = group_id) & Q(student_id__in = values))
+                #TODO: Добавить вывод ошибки
+                if  query.exists() and len(query) == len(values):
+                    query.delete()
+                else:
                     return(render(request, 'group_modify.html', context={
                         'right':True,
                         'exist':True,
                         'bad_name':False,
                         'bad_year':False,
-                        'group_students':students,
-                        'del_std_form': GroupModifyStudent(updated_students_in),
-                        'add_std_form': GroupModifyStudent(updated_students_out),
+                        'group_students':students_in,
+                        'del_std_form': GroupModifyStudent(students_in),
+                        'add_std_form': GroupModifyStudent(students_out),
                         'data_form':GroupModifyForm(year, group_name)}))
+                
+                updated_students_in = _get_group_students(group_id, True)
+                updated_students_out = _get_group_students(group_id, False)
 
-        elif 'del_studs' in request.POST:
-            #TODO: Добавить обработку
-            updated_students_in = _get_group_students(group_id, True)
-            updated_students_out = _get_group_students(group_id, False)
-            return(render(request, 'group_modify.html', context={
-                'right':True,
-                'exist':True,
-                'bad_name':False,
-                'bad_year':False,
-                'group_students':students,
-                'del_std_form': GroupModifyStudent(updated_students_in),
-                'add_std_form': GroupModifyStudent(updated_students_out),
-                'data_form':GroupModifyForm(year, group_name)}))
+                return(render(request, 'group_modify.html', context={
+                    'right':True,
+                    'exist':True,
+                    'bad_name':False,
+                    'bad_year':False,
+                    'group_students':updated_students_in,
+                    'del_std_form': GroupModifyStudent(updated_students_in),
+                    'add_std_form': GroupModifyStudent(updated_students_out),
+                    'data_form':GroupModifyForm(year, group_name)}))
+        
+        elif 'del_group' in request.POST:
+            TblGroup.objects.filter(id_group = group_id).delete()
+            return(redirect('group_selection'))
         
         else:
             return(render(request, 'group_modify.html', context={

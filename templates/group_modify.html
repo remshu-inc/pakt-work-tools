@@ -1,9 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-
 {%if right%}
 {%if exist%}
+{%if bad_name%}
+<div class="alert alert-danger top-notification" role="alert" id = 'warning-message'>
+    Ошибка в названии группы (должна присутствовать хотя бы одна буква или цифра)
+</div>
+{%endif%}
 
+{%if bad_year%}
+    <div class="alert alert-danger top-notification" role="alert" id = 'warning-message'>
+        Неверно указан год 
+    </div>
+{%endif%}
 <div class="card non-round">
     <div class="card-header non-padding non-border">
         <div class = "section-head-text">
@@ -117,26 +126,34 @@
         </div>
 </div>
 
-
-{%if bad_name%}
-<div class="alert alert-danger" role="alert" id = 'warning-message'>
-    Ошибка в названии группы (должна присутствовать хотя бы одна буква или цифра)
+<div class="card non-round">
+    <div class="card-header non-padding non-border">
+        <div class = "section-head-text">
+            <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#del_group" role="button" aria-expanded="false" aria-controls="del_group">
+                Удаление группы
+              </a>
+        </div>
+    </div>
+        <div class="collapse" id="del_group">
+            <div class="card-body">
+                <ul class="list-group">
+                    <form method="POST" novalidate onSubmit="return confirm('Удалить группу?');">
+                        {% csrf_token %}
+                        <input type="submit" value="Удалить группу" class = 'mt-2 btn btn-danger save_button', name = 'del_group' hre>
+                    </form>
+                </ul>
+            </div>
+        </div>
 </div>
-{%endif%}
 
-{%if bad_year%}
-<div class="alert alert-danger" role="alert" id = 'warning-message'>
-    Неверно указан год 
-</div>
-{%endif%}
 {%else%}
-<div class='card-header non-padding'>
+<div class='card-header non-padding non-border'>
    <b> Группы не существует</b>
 </div>
 {%endif%}
 {%else%}
 <div class='card-header non-padding'>
-    <b>Сервис недоступен (Недостаточно прав)</b>
+    <b>Недостаточно прав или произошла ошибка записи</b>
 </div>
 {%endif%}
 <div class='card-header non-padding'>
