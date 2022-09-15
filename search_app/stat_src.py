@@ -1,6 +1,7 @@
 import pandas as pd
 from text_app.models import TblText, TblSentence, TblMarkup, TblMarkupType
-from user_app.models import TblUser, TblStudent
+from user_app.models import TblUser, TblStudent, TblGroup, TblStudentGroup
+from text_app.models import TblTextGroup
 from django.db.models import Q
 from datetime import datetime
 import numpy as np
@@ -54,7 +55,7 @@ def _check_frames(dict_of_frames:dict):
             return(True)
     return(False)
 
-def built_group_stat(group_numbers:int, course_number:int,detalization:int, search_by:int,
+def built_group_stat(group_ids:int, course_number:int,detalization:int, search_by:int,
         requester_id:int, start_date, end_date):
 
     #*Create query for dates
@@ -69,10 +70,20 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
         course_number = [i for i in range(-1,6)]
 
     #* Get all users id from current group
-    students_info =  _queryset_to_list(TblStudent.objects.order_by('group_number').filter(Q(group_number__in = group_numbers)).values('user_id', 'group_number').all())
+    students_info =  _queryset_to_list(TblStudentGroup.objects.order_by('group_id')\
+        .filter(Q(group_id__in = group_ids)).values(
+            'group_id',
+            'student_id__user_id',
+            'group_id__group_name',
+            'group_id__enrollement_date').all())
+        # TblStudent.objects.order_by('group_number').filter(Q(group_number__in = group_numbers)).values('user_id', 'group_number').all())
 
     group_users = students_info['user_id']
-    group_numbers = students_info['group_number']
+    group_names = students_info['group_id__group_name']+' ('\
+        +str(students_info['group_id__enrollement_date'].year)+'/'\
+        +str(students_info['group_id__enrollement_date'].year+1)
+    group_id = students_info['group_id']
+    works = TblTextGroup.objects.filter(group_id__in = group_id).values('text_id')
 
     del students_info
     #* Get users names 
@@ -101,7 +112,7 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
         users_info['patronymic'])]
 
     #* DataFrame for user's info
-    users_frame = pd.DataFrame(data = {'user_id':users_id,'user_name':users_names, 'group': group_numbers})
+    users_frame = pd.DataFrame(data = {'user_id':users_id,'user_name':users_names, 'group': group_names})
     
     del users_names, users_info
     #* List for QuerySets
@@ -112,12 +123,14 @@ def built_group_stat(group_numbers:int, course_number:int,detalization:int, sear
         queries[0] = list(TblMarkup.objects.filter(
             Q(token_id__sentence_id__text_id__user_id__in = users_id) &
             Q(tag_id__markup_type_id__markup_type_name ='error') & 
+            Q(token_id__sentence_id__text_id__in = works) &
             Q(token_id__sentence_id__text_id__creation_course__in = course_number) & markup_dates_limits
             ).values('token_id__sentence_id__text_id__user_id','tag_id__tag_text'))
     
     if search_by == 2 or search_by == 3:
         queries[1] = list(TblText.objects.filter(
             Q(user_id__in = users_id) &
+            Q(text_id__in = works) &
             Q(creation_course__in = course_number) & dates_limits
             ).values(
                 'user_id',
