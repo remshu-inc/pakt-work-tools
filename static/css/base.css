@@ -229,3 +229,13 @@ input:focus {
     border-radius: 0px !important;
 }
 
+.adapt-form>div, input{
+    display: inline;
+}
+
+.field-append{
+    padding-top:1pt;
+    padding-left: 0;
+    font-size: 16pt;
+}
+

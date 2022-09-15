@@ -186,7 +186,8 @@ def group_selection(request):
         if groups.exists():
             groups = groups.values()
             for index in range(len(groups)):
-                groups[index]['enrollement_date'] = str(groups[index]['enrollement_date'].year)
+                groups[index]['enrollement_date'] = str(groups[index]['enrollement_date'].year)\
+                    +' /  '+str(groups[index]['enrollement_date'].year+1)
 
             return(render(request, 'group_select.html', context = {
                 'right':True,

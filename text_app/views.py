@@ -230,7 +230,8 @@ def _get_text_info(text_id:int):
     if group_number.exists():
         group_number = group_number.values('group_id__group_name', 'group_id__enrollement_date')[0]
         group_number = group_number['group_id__group_name']+' ('\
-            +str(group_number[ 'group_id__enrollement_date'].year)+')'
+            +str(group_number[ 'group_id__enrollement_date'].year)+' / '+\
+            str(group_number[ 'group_id__enrollement_date'].year+1)+')'
     
     else:
         group_number = 'Отсутствует'

@@ -18,9 +18,23 @@
                         </div>
                         <div class = 'mb-3'>
                             {% csrf_token %}
-                            <label title = 'Год формирования группы'>Год начала обучения</label>
-                            <div>{{form.year}}</div>
+                            <label title = 'Год формирования группы'>Год обучения</label>
+                            <div class='container-fluid non-padding'>
+                                <div class = 'row'>
+                                    <div id = 'start-year' class="col">{{form.year}}</div><div id='end-year'  class="col col-9 field-append">/</div>
+                            </div>
+                            </div>
                         </div>
+                        <script>
+                            var year = document.getElementById('start-year').children[0]
+                            
+                            document.getElementById('end-year').innerHTML =
+                                    "/  "+(parseInt(year.value)+1).toString();
+                            year.oninput = function() {
+                                document.getElementById('end-year').innerHTML =
+                                    "/  "+(parseInt(year.value)+1).toString();
+                                }; 
+                        </script>
                         <input type="submit" value="Создать" class = 'mt-2 btn btn-success save_button'>
             </form>
             <a class = 'mt-2 mb-3 btn btn-secondary' href="{% url 'manage'%}">Назад</a>
