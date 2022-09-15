@@ -5,7 +5,7 @@ from .login import MyBackend
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from .models import TblUser, TblStudent, TblGroup, TblStudentGroup
-from .forms import UserCreationForm, StudentCreationForm, LoginForm,  GroupCreationForm, GroupModifyForm, GroupModifyStudent
+from .forms import UserCreationForm, StudentCreationForm, LoginForm,  GroupCreationForm, GroupModifyForm, GroupModifyStudent, StudentGroupCreationForm
 
 from string import punctuation
 from datetime import datetime
@@ -20,6 +20,8 @@ def signup(request):
     if request.method == 'POST':
         form_user = UserCreationForm(request.POST)
         form_student = StudentCreationForm(request.POST)
+        form_student_group = StudentGroupCreationForm(request.POST)
+        
         
         if request.POST['login'] == '' and request.POST['password'] == '':
             form_user.add_error('login', 'Необходимо заполнить поле')
@@ -32,20 +34,33 @@ def signup(request):
             form_user.add_error('password', 'Необходимо заполнить поле')
             return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student})
         
-        if form_user.is_valid() and form_student.is_valid():            
+        # Дописать валидацию для form_student_group.is_valid()
+        if form_user.is_valid() and form_student.is_valid():     
+            
+            # Save User       
             user = form_user.save()
+            
+            # Save Student
             student = form_student.save(commit=False)
-
             student.user_id = user.id_user
-            student.save()
+            print(student)
+            student = student.save()
+            
+            # Save StudentGroup
+            student_group = form_student_group.save(commit=False)
+            
+            student_group.student_id = student.id_student
+            print(student_group.group_id)
+            student_group.save()
                 
             return redirect('corpus')
             
     else:
         form_user = UserCreationForm()
         form_student = StudentCreationForm()
+        form_student_group = StudentGroupCreationForm()
         
-    return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student})
+    return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
 
 def log_in(request):
     

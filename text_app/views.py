@@ -10,6 +10,7 @@ from django.db.models import F, Q
 from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text
 from user_app.models import TblTeacher, TblUser, TblStudent
 import datetime
+from log_app.views import log_text
 
 
 # Test
@@ -20,6 +21,7 @@ import datetime
 
 def show_files(request, language = None, text_type = None):
     # Для выбора языка
+    
     if not request.user.is_authenticated:
         return redirect('home')
     elif request.user.is_teacher:
@@ -141,7 +143,7 @@ def new_text(request, language = None, text_type = None):
 
     
     if request.method == 'POST':
-        from nltk.tokenize import sent_tokenize, word_tokenize
+        # from nltk.tokenize import sent_tokenize, word_tokenize
         form_text = TextCreationForm(request.user, language_object[0], text_type_objects[0], data=request.POST)
         
         if form_text.is_valid():
@@ -168,6 +170,8 @@ def new_text(request, language = None, text_type = None):
                     token_object.save()
                     
                     count_token += 1
+                    
+            log_text('create', request.user, text.header, text.user_id, language, text_type)
 
             return redirect('/corpus/' + language + '/' + text_type)
         else:
@@ -335,7 +339,6 @@ def assessment_form(request, text_id = 1, **kwargs):
         
     else:
         return(render(request, 'assessment_form.html', {'right':False}))
-
 
 #Form for meta modify
 def meta_form(request, text_id = 1, **kwargs):

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import TblUser, TblStudent
+from .models import TblGroup, TblStudentGroup, TblUser, TblStudent
 from hashlib import sha512
 import datetime
 
@@ -19,7 +19,6 @@ class UserCreationForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
         }
-
         
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -33,19 +32,50 @@ class UserCreationForm(forms.ModelForm):
             user.save()
             
         return user
+    
         
 class StudentCreationForm(forms.ModelForm):
     birthdate = forms.DateField(widget=DateInput(attrs={'class': 'form-control'}))
     
     class Meta:
         model = TblStudent
-        fields = ('birthdate', 'gender', 'group_number', 'course_number')
+        fields = ('birthdate', 'gender', 'course_number')
         
         widgets = {
             'gender': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
-            'group_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
+            # 'group_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
             'course_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
+        }  
+        
+        # Выдать список из существующих групп
+        # self.fields['group_number'] = forms.ModelChoiceField(queryset=TblGroup.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
+        
+    def save(self, commit=True):
+        student = super().save(commit=False)
+        
+        if commit:
+            student.save()
+            
+        return student
+
+class StudentGroupCreationForm(forms.ModelForm):
+    class Meta:
+        model = TblStudentGroup
+        fields = ('group',)
+        
+        widgets = {
+            'group': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
         }
+        
+    def save(self, commit=True):
+        student_group = super().save(commit=False)
+        
+        if commit:
+            student_group.save()
+            
+        return student_group
+
+
 
 class LoginForm(forms.Form):
     login = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
