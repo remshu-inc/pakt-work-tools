@@ -67,7 +67,7 @@ class TblStudent(models.Model):
     
     birthdate = models.DateField(blank=True, null=True)
     gender = models.BooleanField(blank=True, null=True, choices=GENDER)
-    group_number = models.IntegerField()
+    # group_number = models.IntegerField()
     course_number = models.IntegerField()
     deduction = models.DateField(blank=True, null=True)
     
