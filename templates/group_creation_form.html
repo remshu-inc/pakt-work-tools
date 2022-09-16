@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if right%}
+<div class="container">
+    <main class="d-flex justify-content-center align-items-center">
+
+        <div class="row">
+            <div class="col-12">
+                <div class="col-12">
+                    <h1 class="mt-3 text-center">Создание группы</h1>
+                </div>
+            <form method="POST" novalidate>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label title = 'Не более 256 символов'>Название группы</label>
+                            <div>{{form.group_name}}</div>
+                        </div>
+                        <div class = 'mb-3'>
+                            {% csrf_token %}
+                            <label title = 'Год формирования группы'>Год обучения</label>
+                            <div class='container-fluid non-padding'>
+                                <div class = 'row'>
+                                    <div id = 'start-year' class="col">{{form.year}}</div><div id='end-year'  class="col col-9 field-append">/</div>
+                            </div>
+                            </div>
+                        </div>
+                        <script>
+                            var year = document.getElementById('start-year').children[0]
+                            
+                            document.getElementById('end-year').innerHTML =
+                                    "/  "+(parseInt(year.value)+1).toString();
+                            year.oninput = function() {
+                                document.getElementById('end-year').innerHTML =
+                                    "/  "+(parseInt(year.value)+1).toString();
+                                }; 
+                        </script>
+                        <input type="submit" value="Создать" class = 'mt-2 btn btn-success save_button'>
+            </form>
+            <a class = 'mt-2 mb-3 btn btn-secondary' href="{% url 'manage'%}">Назад</a>
+        </div>
+    </div>
+    </main>
+    {%if exist%}
+    <div class="alert alert-danger" role="alert" id = 'warning-message'>
+        Такая группа уже существует
+    </div>
+    {%else%}
+        {%if success%}
+        <div class="alert alert-success" role="alert">
+            Группа успешно создана
+        </div>
+        {%else%}
+            {%if bad_name%}
+            <div class="alert alert-danger" role="alert" id = 'warning-message'>
+                Ошибка в названии группы (должна присутствовать хотя бы одна буква или цифра)
+            </div>
+            {%endif%}
+
+            {%if bad_year%}
+            <div class="alert alert-danger" role="alert" id = 'warning-message'>
+                Неверно указан год 
+            </div>
+            {%endif%}
+
+        {%endif%}
+    {%endif%}
+
+</div>
+{%else%}
+<div class='card-header non-padding'>
+    <b>Сервис недоступен (Недостаточно прав)</div>
+</div>
+{%endif%}
+
+{%endblock%}

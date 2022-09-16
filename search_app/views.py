@@ -181,7 +181,7 @@ def get_stat(request):
             form = StatisticForm(request.POST or None)
             if form.is_valid():
 
-                value = [int(element) for element in form.cleaned_data['group_number']]
+                value = [int(element) for element in form.cleaned_data['group']]
                 course_number = int(form.cleaned_data['course_number'])
                 detalization = int(form.cleaned_data['output_type'])
                 stat_by = int(form.cleaned_data['stat_by'])

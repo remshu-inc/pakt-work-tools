@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if right%}
+    {%if groups_exist%}
+        <table class="table table-borderless">
+            <thead class = 'table-light active-text non-border'>
+            <tr class = 'table-top-border'>
+                <th scope="col" class = 'cell-padding section-head-text'>Id</th>
+                <th scope="col" class='section-head-text'>Название</th>
+                <th scope="col" class='section-head-text'>Учебный год</th>
+                <th scope="col" class='section-head-text'></th>
+            </tr>
+            </thead>
+            <tbody>
+            {%for group in groups%}
+            <tr class = 'selectable-table-row cell-paddings'>
+                <td scope="row" class = 'cell-padding index-cell'>{{group.id_group}}</td>
+                <td class = 'cell-padding'>{{group.group_name}}</td>
+                <td class = 'cell-padding'>{{group.enrollement_date}}</td>
+                <td class = 'cell-padding'>
+                    <div class='container'>
+                        <div class='row'>
+                            <div class = 'col-md'>
+                            </div>
+                            <div class = 'col-md'>
+                                <a class = 'btn btn-primary cell-button' href = "{{group.id_group}}">Изменить</a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {%endfor%}
+        </tbody>
+        </table>
+    {%else%}
+    Нет созданных групп
+    {%endif%}
+{%else%}
+Сервис недоступен (Недостаточно прав)
+{%endif%}
+<div class='card-header non-padding'>
+    <div class='container-fluid'>
+        <div class = 'row'>
+            <div class = 'col'>
+                <a class = 'mt-2 mb-3 btn btn-secondary' href="{% url 'manage'%}">Назад</a>
+            </div<
+        </div>
+    </div>
+</div>
+{%endblock%}

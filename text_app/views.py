@@ -1,7 +1,7 @@
 # from django.views import generic
 # from .models import TblText
 
-from .models import TblLanguage, TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from .models import TblLanguage, TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
 from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,6 +10,7 @@ from django.db.models import F, Q
 from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text
 from user_app.models import TblTeacher, TblUser, TblStudent
 import datetime
+from log_app.views import log_text
 
 
 # Test
@@ -20,6 +21,7 @@ import datetime
 
 def show_files(request, language = None, text_type = None):
     # Для выбора языка
+    
     if not request.user.is_authenticated:
         return redirect('home')
     elif request.user.is_teacher:
@@ -141,7 +143,7 @@ def new_text(request, language = None, text_type = None):
 
     
     if request.method == 'POST':
-        from nltk.tokenize import sent_tokenize, word_tokenize
+        # from nltk.tokenize import sent_tokenize, word_tokenize
         form_text = TextCreationForm(request.user, language_object[0], text_type_objects[0], data=request.POST)
         
         if form_text.is_valid():
@@ -168,6 +170,8 @@ def new_text(request, language = None, text_type = None):
                     token_object.save()
                     
                     count_token += 1
+                    
+            log_text('create', request.user, text.header, text.user_id, language, text_type)
 
             return redirect('/corpus/' + language + '/' + text_type)
         else:
@@ -225,9 +229,16 @@ def _get_text_info(text_id:int):
         'error_tag_check_user_id__last_name'
     ).all()[0]
 
-    group_number = TblStudent.objects.filter(user_id = raw_info['user_id'])\
-        .values('group_number')\
-            .all()[0]['group_number']
+    group_number = TblTextGroup.objects.filter(text_id = text_id)
+    
+    if group_number.exists():
+        group_number = group_number.values('group_id__group_name', 'group_id__enrollement_date')[0]
+        group_number = group_number['group_id__group_name']+' ('\
+            +str(group_number[ 'group_id__enrollement_date'].year)+' / '+\
+            str(group_number[ 'group_id__enrollement_date'].year+1)+')'
+    
+    else:
+        group_number = 'Отсутствует'
 
     raw_info = _drop_none(raw_info,['assessment','pos_check','error_tag_check'])
     raw_info['assessment'] = False if not raw_info['assessment']\
@@ -328,7 +339,6 @@ def assessment_form(request, text_id = 1, **kwargs):
         
     else:
         return(render(request, 'assessment_form.html', {'right':False}))
-
 
 #Form for meta modify
 def meta_form(request, text_id = 1, **kwargs):

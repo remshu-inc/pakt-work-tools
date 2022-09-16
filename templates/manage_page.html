@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if teacher%}
+        <div class="card non-round">
+            <div class="card-header non-padding non-border">
+                <div class = "section-head-text">
+                    <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#student" role="button" aria-expanded="false" aria-controls="student">
+                    Студенты
+                    </a>
+                </div>
+            </div>
+        <div class ='collapse' id = 'student'>
+            <div class="card-body non-padding">
+                <ul class="list-group">
+                    <li class="list-group-item section-row">
+                        <a href="{% url 'signup' %}" class = 'btn btn-primary section-row-button' >
+                            Регистрация студента
+                        </a>
+                        </li>
+                </ul>
+            </div>
+        </div>
+        </div>
+
+
+        <div class="card non-round">
+            <div class="card-header non-padding non-border">
+                <div class = "section-head-text">
+                    <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#group" role="button" aria-expanded="false" aria-controls="group">
+                        Группы
+                      </a>
+                </div>
+            </div>
+            <div class = 'collapse' id='group'>
+                <div class="card-body non-padding">
+                    <ul class="list-group">
+                        <a href = "{% url 'group_creation'%}" class = 'btn btn-primary section-row-button' >
+                            Создание группы
+                        </a>
+                        <a href ="{%url 'group_selection' %}" class = 'btn btn-primary section-row-button' >
+                            Управление группами
+                        </a>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card non-round">
+            <div class="card-header non-padding non-border">
+                <div class = "section-head-text">
+                    <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#analysis" role="button" aria-expanded="false" aria-controls="analysis">
+                    Анализ
+                    <a>
+                </div>
+            </div>
+            <div class='collapse' id='analysis'>
+            <div class="card-body non-padding">
+                <ul class="list-group">
+                    <a href="" class = 'btn btn-primary disabled section-row-button' >
+                        Экспорт статистики (В данный момент не активно)
+                    </a>
+                </ul>
+            </div>
+        </div>
+        </div>
+
+{%else%}
+<h1>Отказано в доступе<h1>
+{%endif%}
+
+{%endblock%}

@@ -67,10 +67,43 @@ class TblStudent(models.Model):
     
     birthdate = models.DateField(blank=True, null=True)
     gender = models.BooleanField(blank=True, null=True, choices=GENDER)
-    group_number = models.IntegerField()
+    # group_number = models.IntegerField()
     course_number = models.IntegerField()
     deduction = models.DateField(blank=True, null=True)
     
     # TODO: исправить
     def __str__(self):
-        return self.user.last_name + ' ' + self.user.name + ' ' + str(self.group_number)
+        return self.user.last_name + ' ' + self.user.name
+    
+    def save(self, *args, **kwargs):
+        super(TblStudent, self).save(*args, **kwargs) 
+        return self
+
+
+class TblGroup(models.Model):
+    
+    class Meta:
+        db_table = 'TblGroup'
+
+    id_group =  models.AutoField(primary_key=True)
+    group_name = models.CharField(max_length=256)
+    enrollement_date = models.DateField(blank=True, null=True)
+    
+    def __str__(self):
+        return self.group_name + ' - ' + str(self.enrollement_date)
+    
+    
+
+
+class TblStudentGroup(models.Model):
+
+    class Meta:
+        db_table = 'TblStudentGroup'
+
+    id_studentgroup = models.AutoField(primary_key=True)
+    student = models.ForeignKey(TblStudent, on_delete=models.CASCADE)
+    group = models.ForeignKey(TblGroup, on_delete=models.CASCADE)
+    current = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.group.group_name + ' ' + self.student.user.last_name + ' ' + self.student.user.name

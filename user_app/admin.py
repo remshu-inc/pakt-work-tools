@@ -33,24 +33,20 @@ class TblStudentAdmin(admin.ModelAdmin):
         "id_student",
         "birthdate",
         "gender",
-        "group_number",
         "course_number",
         "user_id",
     )
     list_filter = (
         "id_student",
-        "group_number",
     )
     list_editable = (
         "birthdate",
         "gender",
-        "group_number",
         "course_number",
     )
     search_fields = (
         "birthdate",
         "gender",
-        "group_number",
         "course_number",
     )
 

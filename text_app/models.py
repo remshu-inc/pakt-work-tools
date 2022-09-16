@@ -1,6 +1,6 @@
 from django.db import models
 
-from user_app.models import TblTeacher, TblUser
+from user_app.models import TblTeacher, TblUser, TblGroup
 
 class TblLanguage(models.Model):
     class Meta:
@@ -116,6 +116,14 @@ class TblText(models.Model):
     def __str__(self):
         return self.header
     
+class TblTextGroup(models.Model):
+    class Meta:
+        db_table = 'tblTextGroup'
+
+    id_textgroup = models.AutoField(primary_key=True)
+    text = models.ForeignKey(TblText, on_delete=models.CASCADE, db_column='text_id')
+    group = models.ForeignKey(TblGroup, on_delete=models.CASCADE, db_column='group_id')
+
 class TblSentence(models.Model):
     class Meta:
         db_table = "TblSentence"
@@ -167,6 +175,7 @@ class TblTag(models.Model):
 
     tag_text = models.TextField()
     tag_text_russian = models.TextField()
+    tag_text_abbrev = models.TextField(max_length=56)
     tag_color = models.CharField(max_length=7, default="#cfcfcf")
     
     def __str__(self):

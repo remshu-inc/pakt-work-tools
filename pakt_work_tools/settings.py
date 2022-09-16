@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'user_app',
     'right_app',
     'search_app',
+    'log_app'
 ]
 
 AUTH_USER_MODEL = 'user_app.TblUser'

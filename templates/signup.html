@@ -12,6 +12,7 @@
                     {% csrf_token %}
                     {{ form_user.non_field_errors }}
                     {{ form_student.non_field_errors }}
+                    {{ form_student_group.non_field_errors }}
 
                     <div class="row mb-3 justify-content-between">
                         <div class="col-12 custom-input mt-3">
@@ -101,11 +102,11 @@
                         </div>
 
                         <div class="col-12 custom-input">
-                            <label for="{{ form_student.group_number.id_for_label }}" class="form-label">Номер группы</label>
-                            {% if not form_student.group_number.errors %}
-                            {{ form_student.group_number }}
+                            <label for="{{ form_student_group.group.id_for_label }}" class="form-label">Номер группы</label>
+                            {% if not form_student_group.group.errors %}
+                            {{ form_student_group.group }}
                             {% else %}
-                            {{ form_student.group_number|addclass:'is-invalid' }}
+                            {{ form_student_group.group|addclass:'is-invalid' }}
                             <div class="invalid-feedback">
                                 Необходимо заполнить поле
                             </div>

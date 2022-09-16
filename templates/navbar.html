@@ -29,19 +29,20 @@
 
     {% if user.is_authenticated %}
     <ul class="nav">
+
+      {% if user.is_teacher %}
+      {% comment %} <li class="nav-item">
+        <a class="nav-link" href="{% url 'signup' %}">Регистрация студента</a>
+      </li> {% endcomment %}
+      {% comment %} <li class="nav-item">
+        <a class="nav-link" href="{% url 'statistic' %}">Статистика</a>
+      </li>  {% endcomment %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'manage' %}">Управление</a>
+      {% endif %}
       <li class="nav-item">
         <a class="nav-link" href="{% url 'logout' %}">Выход({{ user }})</a>
       </li>
-      {% if user.is_teacher %}
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'signup' %}">Регистрация студента</a>
-      </li>
-      {% endif %}
-      {% if user.is_teacher %}
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'statistic' %}">Статистика</a>
-      </li>
-      {% endif %}
     </ul>
     {% else %}
     <ul class="nav">
