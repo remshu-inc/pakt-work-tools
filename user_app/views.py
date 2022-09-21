@@ -22,17 +22,17 @@ def signup(request):
         form_student = StudentCreationForm(request.POST)
         form_student_group = StudentGroupCreationForm(request.POST)
         
-        
+        # Проверка заполнености полей
         if request.POST['login'] == '' and request.POST['password'] == '':
             form_user.add_error('login', 'Необходимо заполнить поле')
             form_user.add_error('password', 'Необходимо заполнить поле')
-            return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student})
+            return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
         elif request.POST['login'] == '':
             form_user.add_error('login', 'Необходимо заполнить поле')
-            return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student})
+            return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
         elif request.POST['password'] == '':
             form_user.add_error('password', 'Необходимо заполнить поле')
-            return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student})
+            return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
         
         # Дописать валидацию для form_student_group.is_valid()
         if form_user.is_valid() and form_student.is_valid():     
@@ -43,14 +43,12 @@ def signup(request):
             # Save Student
             student = form_student.save(commit=False)
             student.user_id = user.id_user
-            print(student)
             student = student.save()
             
             # Save StudentGroup
             student_group = form_student_group.save(commit=False)
             
             student_group.student_id = student.id_student
-            print(student_group.group_id)
             student_group.save()
                 
             return redirect('corpus')
@@ -64,21 +62,42 @@ def signup(request):
 
 def log_in(request):
     
+    # Проверка на авторизованность
     if request.user.is_authenticated:
         return redirect('corpus')
     
     if request.method == "POST":
         form_login = LoginForm(request.POST)
-        # print(form_login)
+
+        # Проверка заполнености полей
+        if request.POST['login'] == '' and request.POST['password'] == '':
+            form_login.add_error('login', 'Необходимо заполнить поле')
+            form_login.add_error('password', 'Необходимо заполнить поле')
+            return render(request, 'login.html', {'form_login': form_login})
+        
+        elif request.POST['login'] == '':
+            form_login.add_error('login', 'Необходимо заполнить поле')
+            return render(request, 'login.html', {'form_login': form_login})
+        
+        elif request.POST['password'] == '':
+            form_login.add_error('password', 'Необходимо заполнить поле')
+            return render(request, 'login.html', {'form_login': form_login})
+        
         if form_login.is_valid():
             username = form_login.cleaned_data["login"]
             password = form_login.cleaned_data["password"]
 
             user = MyBackend.authenticate(login=username, password=password)
             
+            # Если пользваотель существует
             if user:
                 login(request, user)
                 return redirect('corpus')
+            
+            # Иначе выдать ошибку
+            else:
+                form_login.add_error(None, 'Введен неверный логин или пароль')
+            
     else:
         form_login = LoginForm()
         

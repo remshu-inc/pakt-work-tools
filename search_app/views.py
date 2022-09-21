@@ -30,7 +30,7 @@ def _filter_shaping(cql):
     """
     
     # Получение аттрибута запроса
-    word = re.search(r'[\'\"].*[\'\"]', cql).group(0)[1:-1]
+    word = re.search(r'[\'\"\”].*[\'\"\”]', cql).group(0)[1:-1]
     
     # Удаление всех пробелов
     cql = cql.replace(" ", "")
@@ -85,7 +85,6 @@ def _parse_cql(user_query = None):
     filters = Q()
     
     for token_cql in cql:
-        
         # TODO: парсить word не из tblmarkup
         # Парсинг нескольких параметров
         if "&" in token_cql:
