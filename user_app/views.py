@@ -12,7 +12,7 @@ from datetime import datetime
 
 def signup(request):
     try:
-        if not request.user.is_teacher:
+        if not request.user.is_teacher():
             return redirect('home')
     except:
         return redirect('home')
@@ -111,7 +111,7 @@ def log_out(request):
 
 #* Teacher managment page
 def manage(request):
-    if  request.user.is_teacher:
+    if  request.user.is_teacher():
         return(render(request, 'manage_page.html', {'teacher': True}))
     else:
         return(render(request, 'manage_page.html', {'teacher': False}))
@@ -135,7 +135,7 @@ def _symbol_check(name:str)->bool:
 
 
 def group_creation(request):
-    if request.user.is_teacher:
+    if request.user.is_teacher():
         if request.method != 'POST':
             return(render(request, 'group_creation_form.html', 
             {
@@ -215,7 +215,7 @@ def group_creation(request):
 
 #* Group selection page
 def group_selection(request):
-    if request.user.is_teacher:
+    if request.user.is_teacher():
         groups = TblGroup.objects.all().order_by('-enrollement_date')
         if groups.exists():
             groups = groups.values()
@@ -274,7 +274,7 @@ def _get_group_students(group_id:int, in_:bool)->list:
 
 
 def group_modify(request, group_id):
-    if request.user.is_teacher:
+    if request.user.is_teacher():
         groups = TblGroup.objects.filter(id_group = group_id).values('enrollement_date', 'group_name')
         if groups.exists():
             year = groups[0]['enrollement_date'].year

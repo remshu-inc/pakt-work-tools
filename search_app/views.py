@@ -173,7 +173,7 @@ def search(request):
 
 
 def get_stat(request):
-    if request.user.is_teacher:
+    if request.user.is_teacher():
         if request.method != 'POST':
             return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(), 'no_data':False}))
         else:
