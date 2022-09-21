@@ -27,7 +27,7 @@ def show_files(request, language = None, text_type = None):
     
     if not request.user.is_authenticated:
         return redirect('home')
-    elif request.user.is_teacher:
+    elif request.user.is_teacher():
         form_search = SearchTextForm()
         
     # if request.POST['corpus_search']:
@@ -310,7 +310,7 @@ def assessment_form(request, text_id = 1, **kwargs):
         if request.method == "POST":
                 # instance = get_object_or_404(TblText, id_text = text_id)
                 instance = TblText.objects.get(id_text = text_id)
-                form = AssessmentModify(initial_values, request.user.is_teacher,
+                form = AssessmentModify(initial_values, request.user.is_teacher(),
                                 request.POST or None, 
                                 instance=instance)
 
@@ -319,7 +319,7 @@ def assessment_form(request, text_id = 1, **kwargs):
                     pos_check = form.cleaned_data['pos_check']
                     error_tag_check = form.cleaned_data['error_tag_check']
         
-                    if assessment != initial_values['assessment'] and request.user.is_teacher:
+                    if assessment != initial_values['assessment'] and request.user.is_teacher():
                         teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
                         print(teacher_id)
                         form.instance.teacher = teacher_id
@@ -338,7 +338,7 @@ def assessment_form(request, text_id = 1, **kwargs):
                     form.save()
                 return(redirect(request.path[:request.path.rfind('/')+1]))
         else:
-            form = AssessmentModify(initial_values, request.user.is_teacher)
+            form = AssessmentModify(initial_values, request.user.is_teacher())
             return(render(request, 'assessment_form.html', {
                 'right':True,
                 'form':form
@@ -418,7 +418,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
         return render(request, "work_area.html", context= {
             'founded':True,
             'ann_right':ann_right,
-            'teacher': request.user.is_teacher,
+            'teacher': request.user.is_teacher(),
             'text_owner':text_owner,
             'user_id':request.user.id_user,
             'annotation_form':annotation_form, 
@@ -440,8 +440,7 @@ def author_form(request, text_id = 1, **kwargs):
 
     creator = TblText.objects.filter(id_text = text_id).all()
 
-    if request.user.is_teacher:
-        print('Ну ты и лох')
+    if request.user.is_teacher():
         labels = TblStudentGroup.objects.all()\
             .order_by(
                 'student_id__user_id__last_name',
@@ -503,7 +502,7 @@ def author_form(request, text_id = 1, **kwargs):
             labels = TblStudentGroup.objects.\
                 filter(student_id = student_id.values('id_student')[0]['id_student']).\
                 order_by('group_id__group_name', '-group_id__enrollement_date').\
-                    values('group_id', 'group_id__group_name', '-group_id__enrollement_date')
+                    values('group_id', 'group_id__group_name', 'group_id__enrollement_date')
             
             if labels.exists():
                 for label in labels:
@@ -535,15 +534,16 @@ def author_form(request, text_id = 1, **kwargs):
             'right':right,
             'no_error':no_error,
             'is_student': is_student,
+            'is_teacher':request.user.is_teacher(),
             'form': AuthorModify(options, initial)
         }))
 
     else:
+        form = AuthorModify(options, initial, request.POST or None)
         if form.is_valid():
             value = form.cleaned_data['user'] 
         
-            if request.user.is_teacher:
-                form = AuthorModify(options, initial, request.POST or None)
+            if request.user.is_teacher():
                 if value and  ' ' in value\
                     and value.split(' ')[0].isnumeric()\
                     and value.split(' ')[1].isnumeric():
@@ -555,9 +555,10 @@ def author_form(request, text_id = 1, **kwargs):
                     text.user_id = user_id
                     text.save()
 
-                    group = TblTextGroup.objects.get(text_id = text_id)
+                    group = TblTextGroup.objects.filter(text_id = text_id)
                     
                     if group.exists():
+                        group = TblTextGroup.objects.get(text_id = text_id)
                         group.group_id = group_id
                         group.save()
                     
@@ -571,8 +572,9 @@ def author_form(request, text_id = 1, **kwargs):
                 if value.isnumeric():
                     group_id = int(value)
 
-                    group = TblTextGroup.objects.get(text_id = text_id)
+                    group = TblTextGroup.objects.filter(text_id = text_id)
                     if group.exists():
+                        group = TblTextGroup.objects.get(text_id = text_id)
                         group.group_id = group_id
                         group.save()
                     else: 
@@ -589,6 +591,7 @@ def author_form(request, text_id = 1, **kwargs):
             'right':right,
             'no_error':no_error,
             'is_student': is_student,
+            'is_teacher':request.user.is_teacher(),
             'form': AuthorModify(options,initial)
         }))
 

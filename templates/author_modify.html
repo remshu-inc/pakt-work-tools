@@ -7,10 +7,14 @@
                 <main class="d-flex justify-content-center align-items-center">
                     <div class="row">
                         <div class="col-12">
+                            {% if is_teacher%}
+                            <h3 class="mt-3 text-center">Выберите студента</h3>
+                            {%else%}
+                            <h3 class="mt-3 text-center">Выберите группу</h3>
+                            {%endif%}
                         <form method="POST" novalidate>
                                     <div class = 'mb-3'>
                                         {% csrf_token %}
-                                        <label>Изменение авторства</label>
 
                                         <div>{{form.user}}</div>
                                     </div>
