@@ -11,9 +11,9 @@
         <form action="{% url 'search' %}" method="post">
             {% csrf_token %}
             <div class="input-group">
-                <input type="text" name="corpus_search" class="form-control" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
+                <input type="text" name="corpus_search" class="form-control non-round" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
 
-                <button type="submit" class="btn btn-outline-secondary" id="button-addon2">Поиск</button>
+                <button type="submit" class="btn btn-outline-secondary non-round" id="button-addon2">Поиск</button>
             </div>
         </form>
 

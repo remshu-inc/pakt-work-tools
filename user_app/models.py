@@ -17,6 +17,7 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
     is_superuser = None
     groups = None
     
+    # TODO: Логин и Пароль blank=False и null=False
     login = models.CharField(max_length=100, unique=True, blank=True, null=True)
     password = models.CharField(max_length=128, blank=True, null=True)
     last_name = models.CharField(max_length=100)
@@ -65,6 +66,7 @@ class TblStudent(models.Model):
     
     user = models.ForeignKey(TblUser, on_delete=models.CASCADE)
     
+    # ???: поле birthdate пустое?
     birthdate = models.DateField(blank=True, null=True)
     gender = models.BooleanField(blank=True, null=True, choices=GENDER)
     # group_number = models.IntegerField()
