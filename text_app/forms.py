@@ -1,7 +1,8 @@
+from email.policy import default
 from faulthandler import disable
 from django import forms
-from .models import TblLanguage, TblText, TblTextType
-from user_app.models import TblUser, TblStudent
+from .models import TblLanguage, TblText, TblTextType, TblTextGroup
+from user_app.models import TblUser, TblStudent, TblStudentGroup
 import datetime
 from right_app.views import check_permissions_new_text, check_permissions_work_with_annotations
 
@@ -188,5 +189,17 @@ class MetaModify(forms.ModelForm):
         
         for key in initial:
             self.fields[key].initial = initial[key]
+
+class  AuthorModify(forms.Form):
+    fields = ['user']
+    
+    def __init__(self, options:list, init:tuple, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['user'] = forms.ChoiceField(widget=forms.Select,
+                                        choices=options, initial=init)
+        
+
+                    
+
             
             

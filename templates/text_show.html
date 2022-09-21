@@ -432,12 +432,14 @@ td{
         <div id="display-author-info-label", class = "over-text-labels">Информация об авторе</div>
         <div id = 'author-info-menu' class = 'over-text-menu'>
             <ul class = 'meta-list'>
-                <li class = 'meta-row'>Имя автора: 
+                <li class = 'meta-row'>Автор: 
                     <font class = 'normal-meta-field'>{{text_info.author_name}}</font></li>
                 <li class = 'meta-row'>Группа: 
                     <font class = 'normal-meta-field'>{{text_info.group_number}}</font></li>
             </ul>
-            <!-- <button class = 'update-button'>Изменить</button> -->
+            {%if text_owner or teacher%}
+            <a class = 'update-button' href = 'author_edit'>Изменить</a>
+            {%endif%} 
         </div>
     </div>
 

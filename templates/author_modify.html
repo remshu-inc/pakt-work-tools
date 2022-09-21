@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if right%}
+    {%if no_error and is_student%}
+            <div class="container">
+                <main class="d-flex justify-content-center align-items-center">
+                    <div class="row">
+                        <div class="col-12">
+                        <form method="POST" novalidate>
+                                    <div class = 'mb-3'>
+                                        {% csrf_token %}
+                                        <label>Изменение авторства</label>
+
+                                        <div>{{form.user}}</div>
+                                    </div>
+                                    
+                                    <input type="submit" value="Сохранить" class = 'mt-2 btn btn-success'>
+                        </form>
+                    </div>
+                </div>
+                </main>
+            </div>
+    {%else%}
+    <div class='card-header non-padding'>
+        <b>Ошибка формы</b>
+    </div>
+    {%endif%}
+{%else%}
+<div class='card-header non-padding'>
+    <b>Сервис недоступен (недостаточно прав)</b>
+</div>
+
+{%endif%}
+<div class='card-header non-padding'>
+    <div class='container-fluid'>
+        <div class = 'row'>
+            <div class = 'col'>
+                <button class = 'mt-2 mb-3 btn btn-secondary' onclick="history.back()">Назад</button>
+            </div<
+        </div>
+    </div>
+</div>
+{%endblock%}
