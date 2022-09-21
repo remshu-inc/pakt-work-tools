@@ -2,13 +2,16 @@
 # from .models import TblText
 
 from .models import TblLanguage, TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify
+from user_app.models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
+from text_app.models import TblTextGroup
+from django.db.models import F, Q
+
+
+from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify, AuthorModify
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from copy import deepcopy
-from django.db.models import F, Q
 from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text
-from user_app.models import TblTeacher, TblUser, TblStudent
 import datetime
 from log_app.views import log_text
 
@@ -206,6 +209,7 @@ def _get_text_info(text_id:int):
         'user_id',
         'user_id__name',
         'user_id__last_name',
+        'user_id__login',
         'creation_course',
         'create_date',
         'text_type_id__text_type_name',
@@ -263,7 +267,10 @@ def _get_text_info(text_id:int):
         
         #Информация об авторе
 
-        'author_name':str(raw_info['user_id__name']) + '  ' + str(raw_info['user_id__last_name']),
+        'author_name':
+            str(raw_info['user_id__name']) + '  ' 
+            + str(raw_info['user_id__last_name'])
+            +' ('+str(raw_info['user_id__login'])+')',
         'group_number':group_number,
 
         #Мета. информация
@@ -408,6 +415,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
         return render(request, "work_area.html", context= {
             'founded':True,
             'ann_right':ann_right,
+            'teacher': request.user.is_teacher,
             'text_owner':text_owner,
             'user_id':request.user.id_user,
             'annotation_form':annotation_form, 
@@ -417,3 +425,170 @@ def show_text(request, text_id = 1, language = None, text_type = None):
             })
     else:
         return render(request, 'work_area.html', context={'founded':False})
+
+def author_form(request, text_id = 1, **kwargs):
+    no_error = True
+    is_student = True
+    right = True
+
+    options = []
+    initial = ()
+    current_group = TblTextGroup.objects.filter(text_id = text_id)
+
+    creator = TblText.objects.filter(id_text = text_id).all()
+
+    if request.user.is_teacher:
+        print('Ну ты и лох')
+        labels = TblStudentGroup.objects.all()\
+            .order_by(
+                'student_id__user_id__last_name',
+                'student_id__user_id__name',
+                'student_id__user_id__patronymic',
+                'group_id__group_name',
+                '-group_id__enrollement_date'
+                )\
+            .values(
+            'student_id__user_id',
+            'group_id',
+            'student_id__user_id__login',
+            'student_id__user_id__last_name',
+            'student_id__user_id__name',
+            'student_id__user_id__patronymic',
+            'group_id__group_name',
+            'group_id__enrollement_date'
+            )
+        if labels.exists():
+            for label in labels:
+                options.append(
+                    (str(label['student_id__user_id'])+' '+str(label['group_id']),
+                    str(label['student_id__user_id__last_name'])+' '+\
+                    str(label['student_id__user_id__name'])+' '+\
+                    str(label['student_id__user_id__patronymic'])+' Логин: '+\
+                    str(label['student_id__user_id__login'])+' Группа: '+\
+                    str(label['group_id__group_name']) + ' ('+\
+                    str(label['group_id__enrollement_date'].year)+')')
+                )
+        else:
+            no_error = False
+        
+        if creator.exists() and current_group.exists():
+            student_id = TblStudent.objects.filter(user_id = creator.values('user_id')[0]['user_id'])
+
+            if student_id.exists():
+                student_id = student_id.values('user_id','user_id__login','user_id__last_name', 'user_id__name', 'user_id__patronymic')[0]
+                current_group = current_group.values('group_id','group_id__group_name', 'group_id__enrollement_date')[0]
+
+                initial = (str(student_id['user_id'])+' '\
+                                +str(current_group['group_id']),
+                                str(student_id['user_id__last_name'])+' '+\
+                                str(student_id['user_id__name'])+' '+\
+                                str(student_id['user_id__patronymic'])+' Логин: '+\
+                                str(student_id['user_id__login'])+' Группа: '+\
+                                str(current_group['group_id__group_name']) + ' ('+\
+                                str(current_group['group_id__enrollement_date'].year)+')'
+                 )
+            else:
+                initial = ('   ', 'Отсутствует')
+        else:
+            initial = ('   ', 'Отсутствует')
+
+    elif creator.exists() and creator.values('user_id')[0]['user_id'] == request.user.id_user:
+        student_id = TblStudent.objects.filter(user_id = creator.values('user_id')[0]['user_id'])
+        print('Гыг лошара')
+        
+        if student_id.exists():
+            labels = TblStudentGroup.objects.\
+                filter(student_id = student_id.values('id_student')[0]['id_student']).\
+                order_by('group_id__group_name', '-group_id__enrollement_date').\
+                    values('group_id', 'group_id__group_name', '-group_id__enrollement_date')
+            
+            if labels.exists():
+                for label in labels:
+                    options.append((
+                        label['group_id'],
+                        str(label['group_id__group_name'])+' '\
+                        +str(label['group_id__enrollement_date'].year)
+                    ))
+            else:
+                no_error = False
+            
+            if current_group.exists():
+                current_group =  current_group.values('group_id','group_id__group_name', 'group_id__enrollement_date')[0]
+                initial = (str(current_group['group_id']),
+                        str(current_group['group_id__group_name'])+' '\
+                        +str(current_group['group_id__enrollement_date'].year ))
+            else:
+                initial = (' ', 'Отсутствует')
+
+
+        else:
+            is_student = False
+    else:
+        right = False
+        
+
+    if request.method != 'POST':
+        return(render(request, 'author_modify.html',context={
+            'right':right,
+            'no_error':no_error,
+            'is_student': is_student,
+            'form': AuthorModify(options, initial)
+        }))
+
+    else:
+        if form.is_valid():
+            value = form.cleaned_data['user'] 
+        
+            if request.user.is_teacher:
+                form = AuthorModify(options, initial, request.POST or None)
+                if value and  ' ' in value\
+                    and value.split(' ')[0].isnumeric()\
+                    and value.split(' ')[1].isnumeric():
+                    
+                    user_id = int(value.split(' ')[0].isnumeric())
+                    group_id = int(value.split(' ')[1].isnumeric())
+
+                    text =  TblText.objects.get(id_text = text_id)
+                    text.user_id = user_id
+                    text.save()
+
+                    group = TblTextGroup.objects.get(text_id = text_id)
+                    
+                    if group.exists():
+                        group.group_id = group_id
+                        group.save()
+                    
+                    else: 
+                        group = TblTextGroup(text_id = text_id, group_id = group_id)
+                        group.save()
+                else:
+                    no_error = False
+
+            elif creator.exists() and creator.values('user_id')[0]['user_id'] == request.user.id_user:
+                if value.isnumeric():
+                    group_id = int(value)
+
+                    group = TblTextGroup.objects.get(text_id = text_id)
+                    if group.exists():
+                        group.group_id = group_id
+                        group.save()
+                    else: 
+                        group = TblTextGroup(text_id = text_id, group_id = group_id)
+                        group.save()
+                else:
+                    no_error = False
+            else:
+                right = False
+        else:
+            no_error = False
+        
+        return(render(request,'author_modify.html',context={
+            'right':right,
+            'no_error':no_error,
+            'is_student': is_student,
+            'form': AuthorModify(options,initial)
+        }))
+
+
+
+

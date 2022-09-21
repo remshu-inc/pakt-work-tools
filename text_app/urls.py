@@ -19,4 +19,6 @@ urlpatterns = [
         name = 'asses_edit'),
     path('corpus/<str:language>/<str:text_type>/<int:text_id>/meta_edit', views.meta_form, 
         name = 'meta_edit'),
+    path('corpus/<str:language>/<str:text_type>/<int:text_id>/author_edit', views.author_form, 
+        name = 'author_edit'),
 ]
