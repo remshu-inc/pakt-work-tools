@@ -33,14 +33,15 @@
                 <form action="{% url 'corpus_search' %}" method="post" novalidate>
                     {% csrf_token %}
                     <div class="input-group mb-1">
-                        {{ form_search.header }}
+                        {% load filters %}
+                        {{ form_search.header|addclass:'non-round' }}
                         <button class="btn btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
                                 <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
                             </svg>
                             Фильтр
                         </button>
-                        <button name="corpus_search" class="btn btn-outline-secondary" type="submit" id="button-addon">Поиск</button>
+                        <button name="corpus_search" class="btn btn-outline-secondary non-round" type="submit" id="button-addon">Поиск</button>
                     </div>
 
                     <div class="filter" id="list-filter">
@@ -239,6 +240,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 
 <script>
+    document.getElementById("list-filter").style.display = "none"
     var text_types = {
         1: [{'text_type_name': '---------', 'id_text_type': ''}], 
         2: [{'text_type_name': '---------', 'id_text_type': ''}]

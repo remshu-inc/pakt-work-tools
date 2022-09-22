@@ -43,7 +43,7 @@ class TextCreationForm(forms.ModelForm):
         
         widgets = {
             'header': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 12}),
+            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 11}),
             'emotional': forms.Select(attrs={'class': 'form-control'}),
             'write_tool': forms.Select(attrs={'class': 'form-control'}),
             'write_place': forms.Select(attrs={'class': 'form-control'}),

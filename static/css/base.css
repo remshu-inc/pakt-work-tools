@@ -5,13 +5,10 @@
     --warning-select-color:#ff00009d;
 }
 
+/* Общие стили */
+
 * {
     font-family: 'Montserrat', sans-serif !important;
-}
-
-
-a {
-    /* color: #0dcaf0; */
 }
 
 .corpus-tr {
@@ -51,6 +48,8 @@ input:focus {
     box-shadow: none !important;
 }
 
+/* Кастомные стили */
+
 .head-text {
     text-align: center;
     margin-top: 70px;
@@ -73,34 +72,31 @@ input:focus {
     /* color: white; */
 }
 
-.auth-page {
-    margin-top: 150px;
-    max-width: 500px;
-    padding: 0px 40px;
-}
-
-.signup-page {
-    margin-top: 100px;
-    max-width: 500px;
-    padding: 0px 40px;
-}
-
 .pakt-btn {
     background-color: #0d6efd;
     color: white;
     float: right;
+    border-radius: 0;
+}
+
+select[readonly] {
+    background-color: white !important;
 }
 
 .custom-input {
     position: relative;
     padding: 5px 0;
     border: 1px solid grey;
-    border-radius: 0.25em;
+    /* border-radius: 0.25em; */
     margin-top: 20px;
 }
 
 .custom-input:focus-within {
     border-color: #0d6efd;
+}
+
+.custom-input:has(.is-invalid) {
+    border-color: red;
 }
 
 .custom-input > label {
@@ -193,6 +189,7 @@ input:focus {
 .card-header-wbtn{
     padding: 0;
 }
+
 .list-option-btn{
     height: 100% !important;
     background-color: var(--active-text-color);

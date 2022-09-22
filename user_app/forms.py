@@ -4,10 +4,14 @@ from .models import TblGroup, TblStudentGroup, TblUser, TblStudent
 from hashlib import sha512
 import datetime
 
+custom_default_errors = {
+    'blank': 'Необходимо заполнить поле',
+}
+
 class DateInput(forms.DateInput):
     input_type = 'date'
 
-class UserCreationForm(forms.ModelForm):
+class UserCreationForm(forms.ModelForm): 
     class Meta:
         model = TblUser
         fields = ('login', 'password', 'last_name', 'name', 'patronymic')
@@ -18,6 +22,26 @@ class UserCreationForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        
+        # TODO: Переписать ошибки под общие поля
+        error_messages = {
+            'login': {
+                'required': 'Необходимо заполнить поле',
+                'unique': 'Такой логин уже существует',
+            },
+            
+            'password': {
+                'required': 'Необходимо заполнить поле',
+            },
+            
+            'last_name': {
+                'required': 'Необходимо заполнить поле',
+            },
+            
+            'name': {
+                'required': 'Необходимо заполнить поле',
+            },
         }
         
     def save(self, commit=True):
@@ -35,21 +59,28 @@ class UserCreationForm(forms.ModelForm):
     
         
 class StudentCreationForm(forms.ModelForm):
-    birthdate = forms.DateField(widget=DateInput(attrs={'class': 'form-control'}))
-    
     class Meta:
         model = TblStudent
         fields = ('birthdate', 'gender', 'course_number')
         
         widgets = {
+            'birthdate': DateInput(attrs={'class': 'form-control', 'required': 'required'}),
             'gender': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
-            # 'group_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
             'course_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
         }  
         
-        # Выдать список из существующих групп
-        # self.fields['group_number'] = forms.ModelChoiceField(queryset=TblGroup.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
+        # TODO: Переписать ошибки под общие поля
+        error_messages = {
+            'birthdate': {
+                'required': 'Необходимо заполнить поле',
+            },
+            
+            'course_number': {
+                'required': 'Необходимо заполнить поле',
+            },
+        }
         
+    # Чтобы после сохранения выдать id для сохранения в TblStudentGroup
     def save(self, commit=True):
         student = super().save(commit=False)
         
@@ -67,6 +98,13 @@ class StudentGroupCreationForm(forms.ModelForm):
             'group': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
         }
         
+        # TODO: Переписать ошибки под общие поля
+        error_messages = {
+            'group': {
+                'required': 'Необходимо заполнить поле',
+            },
+        }
+        
     def save(self, commit=True):
         student_group = super().save(commit=False)
         
@@ -80,6 +118,11 @@ class StudentGroupCreationForm(forms.ModelForm):
 class LoginForm(forms.Form):
     login = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+        super(LoginForm, self).__init__(*args, **kwargs)
+        self.fields['login'].required = False
+        self.fields['password'].required = False
 
 
 #* Group creation form

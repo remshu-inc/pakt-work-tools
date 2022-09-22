@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% block link %}
+{% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/corpus.css' %}">
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
@@ -17,89 +22,75 @@
                     <div class="row">
 
                         <div class="col-8">
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.header.id_for_label }}" class="form-label">Название текста</label>
                                 {% if not form_text.header.errors %}
                                 {{ form_text.header }}
                                 {% else %}
                                 {{ form_text.header|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.text.id_for_label }}" class="form-label">Текст</label>
                                 {% if not form_text.text.errors %}
                                 {{ form_text.text }}
                                 {% else %}
                                 {{ form_text.text|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
                         </div>
 
                         <div class="col-4">
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.user.id_for_label }}" class="form-label">Автор</label>
                                 {% if not form_text.user.errors %}
                                 {{ form_text.user }}
                                 {% else %}
                                 {{ form_text.user|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.creation_course.id_for_label }}" class="form-label">На каком курсе создан текст</label>
                                 {% if not form_text.creation_course.errors %}
                                 {{ form_text.creation_course }}
                                 {% else %}
                                 {{ form_text.creation_course|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.create_date.id_for_label }}" class="form-label">Дата создание текста</label>
                                 {% if not form_text.create_date.errors %}
                                 {{ form_text.create_date }}
                                 {% else %}
                                 {{ form_text.create_date|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
                             
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.language.id_for_label }}" class="form-label">Язык текста</label>
                                 {% if not form_text.language.errors %}
                                 {{ form_text.language }}
                                 {% else %}
                                 {{ form_text.language|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.text_type.id_for_label }}" class="form-label">Тип текста</label>
                                 {% if not form_text.text_type.errors %}
                                 {{ form_text.text_type }}
                                 {% else %}
                                 {{ form_text.text_type|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
                         </div>
@@ -110,77 +101,65 @@
 
                     <div class="row">
                         <div class="col-6">
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.write_place.id_for_label }}" class="form-label">Где написан текст</label>
                                 {% if not form_text.write_place.errors %}
                                 {{ form_text.write_place }}
                                 {% else %}
                                 {{ form_text.write_place|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.emotional.id_for_label }}" class="form-label">Эмоциональное состояние написания текста</label>
                                 {% if not form_text.emotional.errors %}
                                 {{ form_text.emotional }}
                                 {% else %}
                                 {{ form_text.emotional|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.self_rating.id_for_label }}" class="form-label">Самооценивание(1-5)</label>
                                 {% if not form_text.self_rating.errors %}
                                 {{ form_text.self_rating }}
                                 {% else %}
                                 {{ form_text.self_rating|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
                         </div>
 
                         <div class="col-6">
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.write_tool.id_for_label }}" class="form-label">Как написан текст</label>
                                 {% if not form_text.write_tool.errors %}
                                 {{ form_text.write_tool }}
                                 {% else %}
                                 {{ form_text.write_tool|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.education_level.id_for_label }}" class="form-label">Уровень знания языка(в годах)</label>
                                 {% if not form_text.education_level.errors %}
                                 {{ form_text.education_level }}
                                 {% else %}
                                 {{ form_text.education_level|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4 custom-input">
                                 <label for="{{ form_text.student_assesment.id_for_label }}" class="form-label">Student Assesment</label>
                                 {% if not form_text.student_assesment.errors %}
                                 {{ form_text.student_assesment }}
                                 {% else %}
                                 {{ form_text.student_assesment|addclass:'is-invalid' }}
-                                <div class="invalid-feedback">
-                                    Необходимо заполнить поле
-                                </div>
+                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
                                 {% endif %}
                             </div>
                         </div>
@@ -189,7 +168,7 @@
 
                     <input type="hidden" name="modified_date" value="2022-03-21" id="id_modified_date">
 
-                    <button type="submit" class="mt-2 btn btn-success">Загрузить</button>
+                    <button type="submit" class="mt-2 btn pakt-btn">Загрузить</button>
                 </form>
             </div>
 

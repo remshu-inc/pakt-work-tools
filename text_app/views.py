@@ -99,7 +99,6 @@ def show_files(request, language = None, text_type = None):
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
   
 def corpus_search(request):
-    print('------------666----------------')
     if request.POST:
         form_search = SearchTextForm(request.POST)
         # Entry.objects.all().filter(pub_date__year=2006)
@@ -118,10 +117,8 @@ def corpus_search(request):
             filters &= Q(modified_date = form_search.data['modified_date'])
         
         list_text = TblText.objects.filter(filters)
-        print('------------1----------------')
         
     else:
-        print('------------2----------------')
         form_search = SearchTextForm()
         return(render(request, "corpus_search.html", context= {'form_search': form_search}))
         
