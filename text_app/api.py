@@ -210,19 +210,19 @@ def annotation_edit(query):
                     grade = TblGrade.objects.get(id_grade = int(data['grade']))
                 else:
                     grade = None
-                    new_row = TblMarkup(
-                    token = start_token,
-                    tag = tag,
-                    sentence = sentence,
-                    user = user,
-                    # start_token = start_token,
-                    # end_token = end_token,
-                    comment = data['comment'],
-                    correct = data['correct'],
-                    change_date = time,
-                    grade = grade,
-                    reason = reason
-                )
+                new_row = TblMarkup(
+                token = start_token,
+                tag = tag,
+                sentence = sentence,
+                user = user,
+                # start_token = start_token,
+                # end_token = end_token,
+                comment = data['comment'],
+                correct = data['correct'],
+                change_date = time,
+                grade = grade,
+                reason = reason
+                 )
                 new_row.save()
                 for index, token in enumerate(tokens_info):
                     new_token_markup = TblTokenMarkup(
