@@ -17,7 +17,15 @@
                         <a href="{% url 'signup' %}" class = 'btn btn-primary section-row-button' >
                             Регистрация студента
                         </a>
-                        </li>
+                    </li>
+
+                    {% if superuser %}
+                    <li class="list-group-item section-row">
+                        <a href="{% url 'signup_teacher' %}" class = 'btn btn-primary section-row-button' >
+                            Регистрация преподавателя
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

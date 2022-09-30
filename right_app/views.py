@@ -67,3 +67,14 @@ def check_permissions_work_with_annotations(user_id, text_id = None):
     else:
         return True
     
+    
+def check_is_superuser(user_id):
+    
+    permission = TblUserRights.objects.filter(
+        right_id = 6, user_id = user_id,
+        )
+    
+    if len(permission) == 0:
+        return False
+    else:
+        return True
