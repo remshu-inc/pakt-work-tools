@@ -8,6 +8,7 @@
     <main>
         <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
 
+        <div><a href="{% url 'cql_faq' %}">FAQ по SQL</a></div>
         <form action="{% url 'search' %}" method="post">
             {% csrf_token %}
             <div class="input-group">
@@ -22,6 +23,10 @@
             <div class="search_result mt-3">
                 <h1 style="color: red;">{{ error_search }}</h1>
             </div>
+            {% endif %}
+
+            {% if count_search %}
+            <div>Всего результатов: {{ count_search }}</div>
             {% endif %}
 
             {% if list_search %}
@@ -54,6 +59,10 @@
             </div>
             {% endfor %}
             {% endif %}
+        </div>
+
+        <div>
+
         </div>
 
     </main>
