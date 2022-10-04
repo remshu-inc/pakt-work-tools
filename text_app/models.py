@@ -68,7 +68,16 @@ class TblText(models.Model):
         (5, '5'),
     )
     
-    RATES = [(1,'1'),
+    RATES = (
+        (0, '0'),
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+        (4, '4'),
+        (5, '5'),
+    )
+
+    TASK_RATES = ((1,'1'),
 		 (2,'2-'),
 		 (3,'2'),
 		 (4,'2+'),
@@ -80,8 +89,7 @@ class TblText(models.Model):
 		 (10,'4+'),
 		 (11,'5-'),
 		 (12,'5')		 
-]
-
+   )
     
     class Meta:
         db_table = "TblText"
@@ -109,7 +117,7 @@ class TblText(models.Model):
     student_assesment = models.IntegerField(blank=True, null=True, choices=RATES)
     creation_course = models.IntegerField(choices=YEARS)
     
-    assessment = models.IntegerField(blank=True, null=True)
+    assessment = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
     teacher = models.ForeignKey(TblTeacher, blank=True, null=True, on_delete=models.SET_NULL)
     
     pos_check = models.BooleanField(blank=True, null=True, default=0)
