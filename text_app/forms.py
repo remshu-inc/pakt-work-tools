@@ -141,7 +141,7 @@ class AssessmentModify(forms.ModelForm):
                 'pos_check_date',
                 'error_tag_check_date'
                 )
-        rates = [(1,'1'),
+        rates = ((1,'1'),
             (2,'2-'),
             (3,'2'),
             (4,'2+'),
@@ -153,7 +153,7 @@ class AssessmentModify(forms.ModelForm):
             (10,'4+'),
             (11,'5-'),
             (12,'5')		 
-    ]
+        )
 
         widgets = {
             'assessment': forms.Select(attrs={'class': 'form-control'}, choices = rates),
