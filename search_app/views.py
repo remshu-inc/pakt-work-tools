@@ -20,6 +20,17 @@ def index(request):
     
     return render(request, "index.html")
 
+def cql_faq(request):
+    """ Рендер FAQ по CQL
+
+    Args:
+        request: http-запрос с пользовательской информацией
+
+    Returns:
+        HttpResponse: html FQL по CQL
+    """
+    
+    return render(request, "cql_faq.html")
 
 def _filter_shaping(cql):
     """Формирование фильтра на основе cql
@@ -136,11 +147,16 @@ def search(request):
         # Получение строк по заданным условиям
         sentence_objects = TblMarkup.objects.filter(filters).values(
             'token_id', 'token_id__sentence_id', 'token_id__sentence_id__text_id__header', 'token_id__sentence_id__text_id__create_date'
-        )[:100]
+        )
         
         # TODO: пропписать исключение
         if len(sentence_objects) == 0:
             return render(request, "search.html", context={'error_search': 'Text not Found', 'search_value': request.POST['corpus_search']})
+        
+        # Количество найденных предложений
+        count_search = len(sentence_objects)
+        
+        sentence_objects = sentence_objects[:100]
         
         list_search = []
         for sentence in sentence_objects:
@@ -166,7 +182,7 @@ def search(request):
         # Для неточного поиска
         # MyClass.objects.filter(name__iexact=my_parameter)
 
-        return render(request, "search.html", context={'search_value': request.POST['corpus_search'],'list_search': list_search})
+        return render(request, "search.html", context={'search_value': request.POST['corpus_search'],'list_search': list_search, 'count_search': count_search})
 
     else:
         return redirect(request, 'home')

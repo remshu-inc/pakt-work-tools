@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block link %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <main class="justify-content-center form-signup d-flex">
+        
+        <div class="signup-page col-4">
+            <h3 class="text-center">Регистрация преподавателя</h3>
+            {% load filters %}
+            <div class="form-group mt-4"></div>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="main-invalid-feedback text-center">
+                        {% for error in form_user.non_field_errors %}
+                            {{ error | striptags }}
+                        {% endfor %}
+                    </div>
+
+                    <div class="row mb-3 justify-content-between">
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.login.id_for_label }}" class="form-label">Логин</label>
+                            {% if not form_user.login.errors %}
+                            {{ form_user.login }}
+                            {% else %}
+                            {{ form_user.login|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.login.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.password.id_for_label }}" class="form-label">Пароль</label>
+                            {% if not form_user.password.errors %}
+                            {{ form_user.password }}
+                            {% else %}
+                            {{ form_user.password|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.password.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.last_name.id_for_label }}" class="form-label">Фамилия</label>
+                            {% if not form_user.last_name.errors %}
+                            {{ form_user.last_name }}
+                            {% else %}
+                            {{ form_user.last_name|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.last_name.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.name.id_for_label }}" class="form-label">Имя</label>
+                            {% if not form_user.name.errors %}
+                            {{ form_user.name }}
+                            {% else %}
+                            {{ form_user.name|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.name.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.patronymic.id_for_label }}" class="form-label">Отчество</label>
+                            {% if not form_user.patronymic.errors %}
+                            {{ form_user.patronymic }}
+                            {% else %}
+                            {{ form_user.patronymic|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.patronymic.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                    </div>
+
+                    <button type="submit" class="mt-2 btn pakt-btn">Зарегистрировать преподавателя</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+{%endblock%}

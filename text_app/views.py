@@ -29,6 +29,8 @@ def show_files(request, language = None, text_type = None):
         return redirect('home')
     elif request.user.is_teacher():
         form_search = SearchTextForm()
+    else:
+        form_search = False
         
     # if request.POST['corpus_search']:
         # return redirect(request) 

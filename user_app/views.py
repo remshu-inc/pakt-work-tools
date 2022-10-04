@@ -4,8 +4,11 @@ from .login import MyBackend
 # from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.db.models import Q
-from .models import TblUser, TblStudent, TblGroup, TblStudentGroup
+from .models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
 from .forms import UserCreationForm, StudentCreationForm, LoginForm,  GroupCreationForm, GroupModifyForm, GroupModifyStudent, StudentGroupCreationForm
+
+from right_app.models import TblUserRights
+from right_app.views import check_is_superuser
 
 from string import punctuation
 from datetime import datetime
@@ -60,6 +63,56 @@ def signup(request):
         
     return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
 
+def signup_teacher(request):
+    try:
+        if not request.user.is_teacher():
+            return redirect('home')
+    except:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form_user = UserCreationForm(request.POST)
+        
+        # Проверка заполнености полей
+        if request.POST['login'] == '' and request.POST['password'] == '':
+            form_user.add_error('login', 'Необходимо заполнить поле')
+            form_user.add_error('password', 'Необходимо заполнить поле')
+            return render(request, 'signup_teacher.html', {'form_user': form_user})
+        elif request.POST['login'] == '':
+            form_user.add_error('login', 'Необходимо заполнить поле')
+            return render(request, 'signup_teacher.html', {'form_user': form_user})
+        elif request.POST['password'] == '':
+            form_user.add_error('password', 'Необходимо заполнить поле')
+            return render(request, 'signup_teacher.html', {'form_user': form_user})
+
+        if form_user.is_valid():     
+            
+            # Save User       
+            user = form_user.save()
+            
+            # Save Teacher
+            teacher = TblTeacher(user_id = user.id_user)
+            teacher.save()
+            
+            # Save Teacher's Right
+            right_one = TblUserRights(user_id = user.id_user, right_id = 1)
+            right_one.save()
+            right_two = TblUserRights(user_id = user.id_user, right_id = 2)
+            right_two.save()
+            right_three = TblUserRights(user_id = user.id_user, right_id = 3)
+            right_three.save()
+            right_four = TblUserRights(user_id = user.id_user, right_id = 4)
+            right_four.save()
+            right_five = TblUserRights(user_id = user.id_user, right_id = 5)
+            right_five.save()
+                
+            return redirect('corpus')
+            
+    else:
+        form_user = UserCreationForm()
+        
+    return render(request, 'signup_teacher.html', {'form_user': form_user})
+
 def log_in(request):
     
     # Проверка на авторизованность
@@ -112,9 +165,9 @@ def log_out(request):
 #* Teacher managment page
 def manage(request):
     if  request.user.is_teacher():
-        return(render(request, 'manage_page.html', {'teacher': True}))
+        return(render(request, 'manage_page.html', {'teacher': True, 'superuser': check_is_superuser(request.user.id_user)}))
     else:
-        return(render(request, 'manage_page.html', {'teacher': False}))
+        return(render(request, 'manage_page.html', {'teacher': False, 'superuser': check_is_superuser(request.user.id_user)}))
 
 #* Group creation page
 def _symbol_check(name:str)->bool:
