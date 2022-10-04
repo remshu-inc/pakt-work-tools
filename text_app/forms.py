@@ -141,7 +141,20 @@ class AssessmentModify(forms.ModelForm):
                 'pos_check_date',
                 'error_tag_check_date'
                 )
-        rates = [(i,str(i)) for i in range(6)]
+        rates = [(1,'1'),
+            (2,'2-'),
+            (3,'2'),
+            (4,'2+'),
+            (5,'3-'),
+            (6,'3'),
+            (7,'3+'),
+            (8,'4-'),
+            (9,'4'),
+            (10,'4+'),
+            (11,'5-'),
+            (12,'5')		 
+    ]
+
         widgets = {
             'assessment': forms.Select(attrs={'class': 'form-control'}, choices = rates),
             'pos_check': forms.Select(attrs={'class': 'form-control'}, choices = [(True,'Проверенно'),\
