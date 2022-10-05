@@ -130,6 +130,10 @@ class TblText(models.Model):
     def __str__(self):
         return self.header
     
+    def save(self, *args, **kwargs):
+        super(TblText, self).save(*args, **kwargs) 
+        return self
+    
 class TblTextGroup(models.Model):
     class Meta:
         db_table = 'tblTextGroup'

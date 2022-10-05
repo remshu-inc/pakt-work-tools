@@ -81,7 +81,6 @@ class TblStudent(models.Model):
         super(TblStudent, self).save(*args, **kwargs) 
         return self
 
-
 class TblGroup(models.Model):
     
     class Meta:
