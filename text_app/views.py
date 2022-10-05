@@ -429,6 +429,9 @@ def show_text(request, text_id = 1, language = None, text_type = None):
         return render(request, 'work_area.html', context={'founded':False})
 
 def author_form(request, text_id = 1, **kwargs):
+    url = request.get_full_path()
+    go_back_url = url[:url.rfind('/')]
+
     no_error = True
     is_student = True
     right = True
@@ -495,7 +498,6 @@ def author_form(request, text_id = 1, **kwargs):
 
     elif creator.exists() and creator.values('user_id')[0]['user_id'] == request.user.id_user:
         student_id = TblStudent.objects.filter(user_id = creator.values('user_id')[0]['user_id'])
-        print('Гыг лошара')
         
         if student_id.exists():
             labels = TblStudentGroup.objects.\
@@ -534,21 +536,22 @@ def author_form(request, text_id = 1, **kwargs):
             'no_error':no_error,
             'is_student': is_student,
             'is_teacher':request.user.is_teacher(),
-            'form': AuthorModify(options, initial)
+            'form': AuthorModify(options, initial),
+            'go_back':go_back_url,
         }))
 
     else:
         form = AuthorModify(options, initial, request.POST or None)
         if form.is_valid():
             value = form.cleaned_data['user'] 
-        
+
             if request.user.is_teacher():
                 if value and  ' ' in value\
                     and value.split(' ')[0].isnumeric()\
                     and value.split(' ')[1].isnumeric():
                     
-                    user_id = int(value.split(' ')[0].isnumeric())
-                    group_id = int(value.split(' ')[1].isnumeric())
+                    user_id = int(value.split(' ')[0])
+                    group_id = int(value.split(' ')[1])
 
                     text =  TblText.objects.get(id_text = text_id)
                     text.user_id = user_id
@@ -591,7 +594,8 @@ def author_form(request, text_id = 1, **kwargs):
             'no_error':no_error,
             'is_student': is_student,
             'is_teacher':request.user.is_teacher(),
-            'form': AuthorModify(options,initial)
+            'form': AuthorModify(options,initial),
+            'go_back':go_back_url,
         }))
 
 
