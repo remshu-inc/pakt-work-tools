@@ -6,7 +6,6 @@ from user_app.models import TblTeacher, TblUser, TblStudent, TblGroup, TblStuden
 from text_app.models import TblTextGroup
 from django.db.models import F, Q
 
-
 from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify, AuthorModify
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -29,8 +28,24 @@ def show_files(request, language = None, text_type = None):
         return redirect('home')
     elif request.user.is_teacher():
         form_search = SearchTextForm()
+
     else:
         form_search = False
+
+    students = TblStudent.objects.all()
+    
+    all_students = []
+    count = 1
+    for student in students:
+        try:
+            user = TblUser.objects.filter(id_user = student.user_id).first()
+            all_students.append([user.id_user, user.last_name + ' ' + user.name])
+        except:
+            count += 1
+            
+    print(count)
+    
+    
         
     # if request.POST['corpus_search']:
         # return redirect(request) 
@@ -39,7 +54,7 @@ def show_files(request, language = None, text_type = None):
         try:
             list_language = TblLanguage.objects.all()
             print(list_language)
-            return render(request, "corpus.html", context= {'list_language': list_language, 'form_search': form_search})
+            return render(request, "corpus.html", context= {'list_language': list_language, 'form_search': form_search, 'all_students': all_students})
             
         # except TblLanguage.DoesNotExist:
         # TODO: прописать исключение для каждой ошибки?
@@ -58,7 +73,7 @@ def show_files(request, language = None, text_type = None):
         if len(list_text_type) == 0:
             return(render(request, "corpus.html", context = {'error': True, 'text_html':'Text type not found'}))
         else:
-            return(render(request, "corpus.html", context= {'list_text_type': list_text_type, 'form_search': form_search}))
+            return(render(request, "corpus.html", context= {'list_text_type': list_text_type, 'form_search': form_search, 'all_students': all_students}))
         
     # Для выбора текста
     else:
@@ -96,7 +111,7 @@ def show_files(request, language = None, text_type = None):
             else:
                 list_text_and_user.append([text, user.last_name + ' ' + user.name])
             
-        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search}))
+        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search, 'all_students': all_students}))
     
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
   
@@ -146,10 +161,36 @@ def new_text(request, language = None, text_type = None):
     
     if request.method == 'POST':
         from nltk.tokenize import sent_tokenize, word_tokenize
-        form_text = TextCreationForm(request.user, language_object[0], text_type_objects[0], data=request.POST)
+        if not request.user.is_authenticated:
+            return redirect('home')
+        elif request.user.is_teacher():
+            custom_user = TblUser.objects.filter(id_user = request.POST['student']).first()
+        else:
+            custom_user = request.user
+      
+        student = TblStudent.objects.filter(user_id = custom_user.id_user).first()
+        groups = TblStudentGroup.objects.filter(student_id = student.id_student).values_list('group_id', flat=True) 
+        
+        student_groups = TblGroup.objects.filter(id_group__in = groups)
+            
+        form_text = TextCreationForm(custom_user, language_object[0], text_type_objects[0], data=request.POST)
         
         if form_text.is_valid():
-            text = form_text.save()
+            text = form_text.save(commit=False)
+            print(text)
+            text.modified_date = text.create_date
+            text = text.save()
+            print(text)
+            
+
+            
+            textgroup = TblTextGroup(
+                group_id = request.POST['student_group'],
+                text_id = text.id_text
+            )
+            textgroup.save()
+            
+            
             count_sent = 0
             for sent in sent_tokenize(text.text):
                 sent_object = TblSentence(
@@ -157,9 +198,7 @@ def new_text(request, language = None, text_type = None):
                     text = sent,
                     order_number = count_sent
                 )
-                print(sent_object)
                 sent_object.save()
-                print(sent_object)
                 count_sent += 1
                 
                 count_token = 0
@@ -181,9 +220,16 @@ def new_text(request, language = None, text_type = None):
             pass
             
     else:
-        form_text = TextCreationForm(request.user, language_object[0], text_type_objects[0])
+        custom_user = request.user
+        student = TblStudent.objects.filter(user_id = custom_user.id_user).first()
+        groups = TblStudentGroup.objects.filter(student_id = student.id_student).values_list('group_id', flat=True) 
+        student_groups = TblGroup.objects.filter(id_group__in = groups)
         
-    return render(request, 'new_text.html', {'form_text': form_text})
+        form_text = TextCreationForm(custom_user, language_object[0], text_type_objects[0])
+        return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': student})
+        
+        
+    return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': request.POST['student']})
 
 def _drop_none(info_dict:dict, ignore:list):
     result = {}
