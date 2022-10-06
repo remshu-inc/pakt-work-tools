@@ -38,7 +38,12 @@ def signup(request):
             return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
         
         # Дописать валидацию для form_student_group.is_valid()
-        if form_user.is_valid() and form_student.is_valid():     
+        if form_user.is_valid() and form_student.is_valid():
+            # Save StudentGroup
+            try:
+                student_group = form_student_group.save(commit=False)
+            except:
+                return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
             
             # Save User       
             user = form_user.save()
@@ -47,9 +52,6 @@ def signup(request):
             student = form_student.save(commit=False)
             student.user_id = user.id_user
             student = student.save()
-            
-            # Save StudentGroup
-            student_group = form_student_group.save(commit=False)
             
             student_group.student_id = student.id_student
             student_group.save()
