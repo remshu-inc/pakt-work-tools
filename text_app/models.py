@@ -136,7 +136,7 @@ class TblText(models.Model):
     
 class TblTextGroup(models.Model):
     class Meta:
-        db_table = 'tblTextGroup'
+        db_table = 'TblTextGroup'
 
     id_textgroup = models.AutoField(primary_key=True)
     text = models.ForeignKey(TblText, on_delete=models.CASCADE, db_column='text_id')
