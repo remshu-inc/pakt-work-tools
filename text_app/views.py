@@ -15,6 +15,9 @@ import datetime
 from log_app.views import log_text
 
 
+ASSESSMENT_CHOICES = {TblText.TASK_RATES[i][0]:TblText.TASK_RATES[i][1]\
+    for i in range(len(TblText.TASK_RATES))}
+
 # Test
 
 # class TextList(generic.ListView):
@@ -177,10 +180,10 @@ def new_text(request, language = None, text_type = None):
         
         if form_text.is_valid():
             text = form_text.save(commit=False)
-            print(text)
+            # print(text)
             text.modified_date = text.create_date
             text = text.save()
-            print(text)
+            # print(text)
             
 
             
@@ -290,8 +293,9 @@ def _get_text_info(text_id:int):
         group_number = 'Отсутствует'
 
     raw_info = _drop_none(raw_info,['assessment','pos_check','error_tag_check'])
+    
     raw_info['assessment'] = False if not raw_info['assessment']\
-         or raw_info['assessment'] < 0 else raw_info['assessment']
+         or raw_info['assessment'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['assessment']]
 
     assessment_name = str(raw_info['teacher_id__user_id__name']) + ' ' +\
              str(raw_info['teacher_id__user_id__last_name'])
