@@ -1,8 +1,8 @@
 # from django.views import generic
 # from .models import TblText
 
-from .models import TblLanguage, TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from user_app.models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
+from .models import TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from user_app.models import TblLanguage, TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
 from text_app.models import TblTextGroup
 from django.db.models import F, Q
 

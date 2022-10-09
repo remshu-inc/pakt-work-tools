@@ -1,10 +1,21 @@
+from email.policy import default
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
 from .managers import CustomUserManager
+
+class TblLanguage(models.Model):
+    class Meta:
+        db_table = "TblLanguage"
+    
+    id_language = models.AutoField(primary_key=True)
+    
+    language_name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.language_name
 
 class TblUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
@@ -23,6 +34,8 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     patronymic = models.CharField(max_length=100, blank=True, null=True)
+    language = models.ForeignKey(TblLanguage, on_delete=models.PROTECT, default = 1)
+    active =  models.BooleanField(default=True)
     
     # For admin
     # is_staff = models.BooleanField(default=False)
@@ -89,6 +102,8 @@ class TblGroup(models.Model):
     id_group =  models.AutoField(primary_key=True)
     group_name = models.CharField(max_length=256)
     enrollement_date = models.DateField(blank=True, null=True)
+    language = models.ForeignKey(TblLanguage, on_delete=models.PROTECT, default = 1)
+    active =  models.BooleanField(default=True)
     
     def __str__(self):
         return self.group_name + ' - ' + str(self.enrollement_date)

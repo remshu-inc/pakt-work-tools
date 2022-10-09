@@ -1,17 +1,7 @@
 from django.db import models
 
-from user_app.models import TblTeacher, TblUser, TblGroup
+from user_app.models import TblTeacher, TblUser, TblGroup, TblLanguage
 
-class TblLanguage(models.Model):
-    class Meta:
-        db_table = "TblLanguage"
-    
-    id_language = models.AutoField(primary_key=True)
-    
-    language_name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.language_name
     
 class TblTextType(models.Model):
     class Meta:

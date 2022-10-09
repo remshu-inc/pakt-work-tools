@@ -1,8 +1,8 @@
 from datetime import datetime
 from faulthandler import disable
 from django import forms
-from text_app.models import TblLanguage, TblText, TblTextType
-from user_app.models import TblUser, TblStudent, TblGroup
+from text_app.models import  TblText, TblTextType
+from user_app.models import TblUser, TblStudent, TblGroup, TblLanguage
 
 
 class StatisticForm(forms.Form):

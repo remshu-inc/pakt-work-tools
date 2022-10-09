@@ -1,8 +1,8 @@
 from email.policy import default
 from faulthandler import disable
 from django import forms
-from .models import TblLanguage, TblText, TblTextType, TblTextGroup
-from user_app.models import TblUser, TblStudent, TblStudentGroup
+from .models import TblText, TblTextType, TblTextGroup
+from user_app.models import TblUser, TblStudent, TblStudentGroup, TblLanguage
 import datetime
 from right_app.views import check_permissions_new_text, check_permissions_work_with_annotations
 

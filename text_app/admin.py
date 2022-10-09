@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from text_app.models import TblEmotional, TblLanguage, TblTextType, TblWritePlace, TblWriteTool, TblText
+from user_app.models import TblLanguage
+from text_app.models import TblEmotional, TblTextType, TblWritePlace, TblWriteTool, TblText
 
 @admin.register(TblLanguage)
 class TblLanguageAdmin(admin.ModelAdmin):
