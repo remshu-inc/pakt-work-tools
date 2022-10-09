@@ -493,7 +493,7 @@ def author_form(request, text_id = 1, **kwargs):
     creator = TblText.objects.filter(id_text = text_id).all()
 
     if request.user.is_teacher():
-        labels = TblStudentGroup.objects.all()\
+        labels = TblStudentGroup.objects.all().filter(student_id__user_id__language_id = request.user.language_id)\
             .order_by(
                 'student_id__user_id__last_name',
                 'student_id__user_id__name',
@@ -530,7 +530,10 @@ def author_form(request, text_id = 1, **kwargs):
 
             if student_id.exists():
                 student_id = student_id.values('user_id','user_id__login','user_id__last_name', 'user_id__name', 'user_id__patronymic')[0]
-                current_group = current_group.values('group_id','group_id__group_name', 'group_id__enrollement_date')[0]
+                current_group = current_group.values(
+                    'group_id',
+                    'group_id__group_name',
+                    'group_id__enrollement_date')[0]
 
                 initial = (str(student_id['user_id'])+' '\
                                 +str(current_group['group_id']),

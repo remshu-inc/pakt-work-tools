@@ -215,7 +215,10 @@ def group_creation(request):
                              & Q(enrollement_date = enrollement_date)).values('id_group').all()
                         
                         if not valid_sample.exists():
-                            new_row = TblGroup(group_name = group_name, enrollement_date = enrollement_date)
+                            new_row = TblGroup(
+                                group_name = group_name,
+                                enrollement_date = enrollement_date,
+                                language_id = request.user.language_id)
                             new_row.save()
 
                             return(render(request, 'group_creation_form.html', 
@@ -271,7 +274,7 @@ def group_creation(request):
 #* Group selection page
 def group_selection(request):
     if request.user.is_teacher():
-        groups = TblGroup.objects.all().order_by('-enrollement_date')
+        groups = TblGroup.objects.filter(language_id = request.user.language_id).order_by('-enrollement_date')
         if groups.exists():
             groups = groups.values()
             for index in range(len(groups)):
@@ -299,11 +302,15 @@ def group_selection(request):
 
 #* Group modify
 def _get_group_students(group_id:int, in_:bool)->list:
-    students_in_group =  TblStudentGroup.objects.filter(group_id = group_id).values('student_id') 
+    language_id = TblGroup.objects.filter(id_group = group_id).values('language_id')[0]['language_id']
+    students_in_group =  TblStudentGroup.objects.filter(
+        Q(group_id = group_id)&
+        Q(student_id__user_id__language_id = language_id)
+        ).values('student_id') 
     if in_:
         query = Q(id_student__in = students_in_group)
     else:
-        query = ~Q(id_student__in = students_in_group)
+        query = ~Q(id_student__in = students_in_group) & Q(user_id__language_id = language_id)
     
     students = TblStudent.objects.filter(query).values(
     'id_student',
