@@ -8,7 +8,7 @@
             <div class="col-12">
             <form method="POST" novalidate>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <label>Эмоциональное состояние</label>
                             {{form.emotional}}
                         </div>

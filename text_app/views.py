@@ -14,6 +14,8 @@ from right_app.views import check_permissions_work_with_annotations, check_permi
 import datetime
 from log_app.views import log_text
 
+import os
+os.environ['NLTK_DATA'] = '/var/www/lingo/nltk_data'
 
 ASSESSMENT_CHOICES = {TblText.TASK_RATES[i][0]:TblText.TASK_RATES[i][1]\
     for i in range(len(TblText.TASK_RATES))}
@@ -200,7 +202,7 @@ def new_text(request, language = None, text_type = None):
                     text_id = text,
                     text = sent,
                     order_number = count_sent
-                )
+                )   
                 sent_object.save()
                 count_sent += 1
                 
@@ -215,7 +217,7 @@ def new_text(request, language = None, text_type = None):
                     
                     count_token += 1
                     
-            log_text('create', request.user, text.header, text.user_id, language, text_type)
+            # log_text('create', request.user, text.header, text.user_id, language, text_type)
 
             return redirect('/corpus/' + language + '/' + text_type)
         else:

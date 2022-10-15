@@ -31,7 +31,7 @@
         <div class="d-flex justify-content-center mt-5">
             <div class="col-6">
                 <form method="post" novalidate>
-                    {% csrf_token %}
+                    {% comment %} {% csrf_token %} {% endcomment %}
                     <div class="input-group mb-1">
                         {{ form_search.header }}
                         <button class="btn btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">

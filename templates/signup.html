@@ -14,7 +14,7 @@
             {% load filters %}
             <div class="form-group mt-4"></div>
                 <form method="post" novalidate>
-                    {% csrf_token %}
+                    {% comment %} {% csrf_token %} {% endcomment %}
 
                     <div class="main-invalid-feedback text-center">
                         {% for error in form_user.non_field_errors %}
