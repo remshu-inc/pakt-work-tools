@@ -15,7 +15,7 @@ import datetime
 from log_app.views import log_text
 
 import os
-os.environ['NLTK_DATA'] = '/var/www/lingo/nltk_data'
+# os.environ['NLTK_DATA'] = '/var/www/lingo/nltk_data'
 
 ASSESSMENT_CHOICES = {TblText.TASK_RATES[i][0]:TblText.TASK_RATES[i][1]\
     for i in range(len(TblText.TASK_RATES))}

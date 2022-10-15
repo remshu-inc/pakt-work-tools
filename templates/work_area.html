@@ -933,7 +933,7 @@ textarea::-webkit-scrollbar-thumb {
 {#Получение классификации#}
 function get_classification(){
     axios({
-        url: 'https://pact.ai.petrsu.ru/app/show_text/api/get_classification',
+        url: 'http://127.0.0.1:8000/show_text/api/get_classification',
         method: 'POST',
         data: {'text_id': text_id},
         headers: {"X-CSRFToken": "{{csrf_token}}"},
@@ -950,7 +950,7 @@ function get_classification(){
 {%block get_text%}
 function get_text(){
     axios({
-            url: 'https://pact.ai.petrsu.ru/app/show_text/api/get_text',
+            url: 'http://127.0.0.1:8000/show_text/api/get_text',
             method: 'POST',
             data: {'text_id': text_id},
             headers: {"X-CSRFToken": "{{csrf_token}}"},
