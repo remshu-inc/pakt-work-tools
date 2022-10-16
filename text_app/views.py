@@ -5,7 +5,7 @@ from .models import TblReason, TblGrade, TblTextGroup, TblTextType, TblText, Tbl
 from user_app.models import TblLanguage, TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
 from text_app.models import TblTextGroup
 from django.db.models import F, Q
-
+from django.db import connection
 from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify, AuthorModify
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -370,7 +370,6 @@ def assessment_form(request, text_id = 1, **kwargs):
         
                     if assessment != initial_values['assessment'] and request.user.is_teacher():
                         teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
-                        print(teacher_id)
                         form.instance.teacher = teacher_id
                     
                     if pos_check != initial_values['pos_check']:
@@ -430,6 +429,7 @@ def meta_form(request, text_id = 1, **kwargs):
 
 
 def show_text(request, text_id = 1, language = None, text_type = None):
+
     text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name', 'user_id').all()
     if text_info.exists() and check_permissions_show_text(request.user.id_user, text_id):
         header = text_info[0]['header']
@@ -455,6 +455,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
                     'parent_id':parent_id,
                     'tag_color':element['tag_color']
                 })
+
         reasons = TblReason.objects.filter(reason_language_id = text_language).values('id_reason','reason_name')
         grades = TblGrade.objects.filter(grade_language_id = text_language).values('id_grade','grade_name')
         annotation_form = get_annotation_form(grades,reasons)
@@ -464,17 +465,48 @@ def show_text(request, text_id = 1, language = None, text_type = None):
 
         text_meta_info = _get_text_info(text_id)
 
-        return render(request, "work_area.html", context= {
-            'founded':True,
-            'ann_right':ann_right,
-            'teacher': request.user.is_teacher(),
-            'text_owner':text_owner,
-            'user_id':request.user.id_user,
-            'annotation_form':annotation_form, 
-            'text_id':text_id,
-            'lang_name':text_language_name,
-            'text_info':text_meta_info
-            })
+
+        if request.user.is_teacher() and text_language == 1:
+            cursor = connection.cursor()
+            cursor.execute(f'CALL getMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp);')
+            cursor.execute("SELECT @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp;")
+            auto_degree = cursor.fetchone()
+            grammatik = auto_degree[0:4]
+            lexik  =    auto_degree[4:8]
+            orth = auto_degree[8:]
+            cursor.close()
+            print(grammatik)
+
+        if request.user.is_teacher() and text_language == 1:
+            return render(request, "work_area.html", context= {
+                'founded':True,
+                'ann_right':ann_right,
+                'teacher': request.user.is_teacher(),
+                'text_owner':text_owner,
+                'user_id':request.user.id_user,
+                'annotation_form':annotation_form, 
+                'text_id':text_id,
+                'lang_name':text_language_name,
+                'text_info':text_meta_info,
+                'auto_degree':True,
+                'auto_grammatik': grammatik,
+                'auto_lexik':lexik,
+                'auto_orth':orth,
+                })
+            
+        else:
+            return render(request, "work_area.html", context= {
+                'founded':True,
+                'ann_right':ann_right,
+                'teacher': request.user.is_teacher(),
+                'text_owner':text_owner,
+                'user_id':request.user.id_user,
+                'annotation_form':annotation_form, 
+                'text_id':text_id,
+                'lang_name':text_language_name,
+                'text_info':text_meta_info,
+                'auto_degree':False,
+                })
     else:
         return render(request, 'work_area.html', context={'founded':False})
 

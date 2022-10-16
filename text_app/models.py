@@ -1,3 +1,4 @@
+from email.policy import default
 from django.db import models
 
 from user_app.models import TblTeacher, TblUser, TblGroup, TblLanguage
@@ -256,4 +257,17 @@ class TblTokenMarkup(models.Model):
     
     def __str__(self):
         return self.id_token_markup
+    
+class TblMarkError(models.Model):
+    class Meta:
+        db_table = 'TblMarkError'
+    
+    idrecord = models.AutoField(primary_key=True)
+
+    typeerror = models.CharField(max_length=25, null = True, default= None)
+    mark = models.CharField(max_length=2, null = True, default= None)
+    
+    grade3 = models.IntegerField(default = None)
+    grade2 = models.IntegerField(default = None)
+    grade1 = models.IntegerField(default = None)
     
