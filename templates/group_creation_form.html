@@ -12,12 +12,12 @@
                 </div>
             <form method="POST" novalidate>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <label title = 'Не более 256 символов'>Название группы</label>
                             <div>{{form.group_name}}</div>
                         </div>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <label title = 'Год формирования группы'>Год обучения</label>
                             <div class='container-fluid non-padding'>
                                 <div class = 'row'>
