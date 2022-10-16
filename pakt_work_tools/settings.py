@@ -92,7 +92,7 @@ WSGI_APPLICATION = 'pakt_work_tools.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'pakt',
+        'NAME': 'lingo',
         'USER': 'root',
         'PASSWORD': 'Vh7PPkk7HvuzEmK9',
         'HOST': '127.0.0.1',
