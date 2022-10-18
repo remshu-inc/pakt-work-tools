@@ -7,6 +7,7 @@ urlpatterns = [
     path('corpus_search/', views.corpus_search, name='corpus_search'),
     path('corpus/<str:language>/', views.show_files, name='language'),
     path('corpus/<str:language>/<str:text_type>/', views.show_files, name='text_type'),
+    path('corpus/delete_text', views.delete_text, name='delete_text'),
 
     path('corpus/<str:language>/<str:text_type>/new_text', views.new_text, name='new_text'),
     path('corpus/<str:language>/<str:text_type>/<int:text_id>/', views.show_text),

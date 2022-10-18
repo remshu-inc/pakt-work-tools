@@ -12,6 +12,7 @@ from right_app.views import check_is_superuser
 
 from string import punctuation
 from datetime import datetime
+from hashlib import sha512
 
 def signup(request):
     try:
@@ -64,6 +65,43 @@ def signup(request):
         form_student_group = StudentGroupCreationForm()
         
     return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
+
+def change_password(request):
+    try:
+        if not request.user.is_teacher():
+            return redirect('home')
+    except:
+        return redirect('home')
+    
+    if request.POST:
+        user_id = request.POST['student']
+        password = request.POST['password']
+        
+        salt = 'DsaVfeqsJw00XvgZnFxlOFkqaURzLbyI'
+        hash = sha512((password+salt).encode('utf-8'))
+        hash = hash.hexdigest()
+        
+        TblUser.objects.filter(id_user = user_id).update(password = hash)
+        
+        return redirect('manage')
+        
+    else:
+        students = TblStudent.objects.all()
+        
+        all_students = []
+        count = 1
+        for student in students:
+            try:
+                user = TblUser.objects.filter(id_user = student.user_id).first()
+                all_students.append([user.id_user, user.last_name + ' ' + user.name])
+            except:
+                count += 1
+            
+        return render(request, 'change_password.html', {'all_students': all_students})
+
+    
+    
+
 
 def signup_teacher(request):
     try:
