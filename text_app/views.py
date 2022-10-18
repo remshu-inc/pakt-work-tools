@@ -10,7 +10,7 @@ from .forms import TextCreationForm, get_annotation_form, SearchTextForm, Assess
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from copy import deepcopy
-from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text
+from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text, check_is_superuser
 import datetime
 from log_app.views import log_text
 
@@ -26,7 +26,7 @@ ASSESSMENT_CHOICES = {TblText.TASK_RATES[i][0]:TblText.TASK_RATES[i][1]\
 #     queryset = TblText.objects
 #     template_name = 'corpus.html'
 
-def show_files(request, language = None, text_type = None):
+def show_files(request, language = None, text_type = None):    
     # Для выбора языка
     
     if not request.user.is_authenticated:
@@ -230,10 +230,18 @@ def new_text(request, language = None, text_type = None):
     return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': request.POST['student']})
 
 def delete_text(request):
+    """Function for delete student's text
+
+    Args:
+        request (_type_): _description_
+
+    Returns:
+        html: redirect to back page
+    """    
     
     if not request.user.is_authenticated:
         return redirect('home')
-    elif not request.user.is_teacher():
+    elif not check_is_superuser(request.user.id_user):
         return redirect('home')
 
     if request.method == 'POST':
@@ -484,7 +492,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
 
         if request.user.is_teacher() and text_language == 1:
             cursor = connection.cursor()
-            cursor.execute(f'CALL getMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp);')
+            # cursor.execute(f'CALL getMarks(27, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp);')
             cursor.execute("SELECT @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp;")
             auto_degree = cursor.fetchone()
             grammatik = auto_degree[0:4]
@@ -498,6 +506,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
                 'founded':True,
                 'ann_right':ann_right,
                 'teacher': request.user.is_teacher(),
+                'superuser': check_is_superuser(request.user.id_user),
                 'text_owner':text_owner,
                 'user_id':request.user.id_user,
                 'annotation_form':annotation_form, 
@@ -517,6 +526,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
                 'founded':True,
                 'ann_right':ann_right,
                 'teacher': request.user.is_teacher(),
+                'superuser': check_is_superuser(request.user.id_user),
                 'text_owner':text_owner,
                 'user_id':request.user.id_user,
                 'annotation_form':annotation_form, 
