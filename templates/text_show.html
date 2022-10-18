@@ -564,7 +564,17 @@ td{
             </ul>
         </div>
     </div>
+    
     {%endif%}
+    {%if teacher%}
+    <div id="delete-text-field" class="over-text-fields">
+        <form method="post" novalidate action={% url 'delete_text' %} >
+            <input type="hidden" name="language" value="{{ language }}">
+            <input type="hidden" name="text_type" value="{{ text_type }}">
+            <input type="hidden" name="text_id" value="{{ text_id }}">
+            <button type="submit" class="over-text-labels" style="background-color: #dc3545; border: none; color:white">Удалить текст</button>
+        </form>
+    {%endif%} 
     </div>
 </div>
 <div class = "text-place">

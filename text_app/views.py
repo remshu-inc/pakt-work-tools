@@ -47,13 +47,6 @@ def show_files(request, language = None, text_type = None):
             all_students.append([user.id_user, user.last_name + ' ' + user.name])
         except:
             count += 1
-            
-    print(count)
-    
-    
-        
-    # if request.POST['corpus_search']:
-        # return redirect(request) 
     
     if language == None:
         try:
@@ -235,6 +228,28 @@ def new_text(request, language = None, text_type = None):
         
         
     return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': request.POST['student']})
+
+def delete_text(request):
+    
+    if not request.user.is_authenticated:
+        return redirect('home')
+    elif not request.user.is_teacher():
+        return redirect('home')
+
+    if request.method == 'POST':
+        language = request.POST['language']
+        text_type = request.POST['text_type']
+        text_id = request.POST['text_id']
+        
+        TblTokenMarkup.objects.filter(token_id__sentence_id__text_id = text_id).delete()
+        TblMarkup.objects.filter(token_id__sentence_id__text_id = text_id).delete()
+        TblToken.objects.filter(sentence_id__text_id = text_id).delete()
+        TblSentence.objects.filter(text_id = text_id).delete()
+        TblTextGroup.objects.filter(text_id = text_id).delete()
+        TblText.objects.filter(id_text = text_id).delete()
+        
+    return(redirect('/corpus/' + language + '/' + text_type))    
+
 
 def _drop_none(info_dict:dict, ignore:list):
     result = {}
@@ -467,7 +482,6 @@ def show_text(request, text_id = 1, language = None, text_type = None):
 
         text_meta_info = _get_text_info(text_id)
 
-
         if request.user.is_teacher() and text_language == 1:
             cursor = connection.cursor()
             cursor.execute(f'CALL getMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp);')
@@ -494,6 +508,8 @@ def show_text(request, text_id = 1, language = None, text_type = None):
                 'auto_grammatik': grammatik,
                 'auto_lexik':lexik,
                 'auto_orth':orth,
+                'language': language,
+                'text_type': text_type,
                 })
             
         else:
@@ -508,6 +524,8 @@ def show_text(request, text_id = 1, language = None, text_type = None):
                 'lang_name':text_language_name,
                 'text_info':text_meta_info,
                 'auto_degree':False,
+                'language': language,
+                'text_type': text_type,
                 })
     else:
         return render(request, 'work_area.html', context={'founded':False})

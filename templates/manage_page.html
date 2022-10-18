@@ -19,6 +19,12 @@
                         </a>
                     </li>
 
+                    <li class="list-group-item section-row">
+                        <a href="{% url 'change_password' %}" class = 'btn btn-primary section-row-button' >
+                            Смена пароля студента
+                        </a>
+                    </li>
+
                     {% if superuser %}
                     <li class="list-group-item section-row">
                         <a href="{% url 'signup_teacher' %}" class = 'btn btn-primary section-row-button' >
