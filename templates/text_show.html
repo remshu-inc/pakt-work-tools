@@ -306,7 +306,12 @@ td{
     display: block;
 }
 
-#assessment-info-menu:hover, 
+#auto-degree-field>#display-auto-degree-label:active + #auto-degree-menu{
+    display: block;
+}
+
+#assessment-info-menu:hover,
+#auto-degree-menu:hover, 
 #meta-info-menu:hover,
 #author-info-menu:hover,
 #text-info-menu:hover,
@@ -505,8 +510,62 @@ td{
             <a class = 'update-button' href = 'asses_edit'>Изменить</a>
             {%endif%}
         </div>
-    </div>
+        </div>
+        {% if auto_degree%}
+    <div id="auto-degree-field" class="over-text-fields">
+        <div id="display-auto-degree-label", class = "over-text-labels">Автоматическая оценка</div>
+        <div id = 'auto-degree-menu' class = 'over-text-menu'>
+            <label>Грамматика</label>
+            <ul class = 'meta-list'>
+                <li class = 'meta-row'>Степень 1: 
+                    <font class = 'normal-meta-field'>{{auto_grammatik.0}}</font>
+                </li>
+                <li class = 'meta-row'>Степень 2: 
+                    <font class = 'normal-meta-field'>{{auto_grammatik.1}}</font>
+                </li>
+                <li class = 'meta-row'>Степень 3: 
+                    <font class = 'normal-meta-field'>{{auto_grammatik.2}}</font>
+                </li>
+                <li class = 'meta-row'><b>Оценка</b> 
+                    <font class = 'normal-meta-field'>{{auto_grammatik.3}}</font>
+                </li>
+            </ul>
 
+            <label>Лексика</label>
+            <ul class = 'meta-list'>
+                <li class = 'meta-row'>Степень 1: 
+                    <font class = 'normal-meta-field'>{{auto_lexik.0}}</font>
+                </li>
+                <li class = 'meta-row'>Степень 2: 
+                    <font class = 'normal-meta-field'>{{auto_lexik.1}}</font>
+                </li>
+                <li class = 'meta-row'>Степень 3: 
+                    <font class = 'normal-meta-field'>{{auto_lexik.2}}</font>
+                </li>
+                <li class = 'meta-row'><b>Оценка</b> 
+                    <font class = 'normal-meta-field'>{{auto_lexik.3}}</font>
+                </li>
+            </ul>
+
+            <label>Орфография и пунктуация</label>
+            <ul class = 'meta-list'>
+                <li class = 'meta-row'>Степень 1: 
+                    <font class = 'normal-meta-field'>{{auto_orth.0}}</font>
+                </li>
+                <li class = 'meta-row'>Степень 2: 
+                    <font class = 'normal-meta-field'>{{auto_orth.1}}</font>
+                </li>
+                <li class = 'meta-row'>Степень 3: 
+                    <font class = 'normal-meta-field'>{{auto_orth.2}}</font>
+                </li>
+                <li class = 'meta-row'><b>Оценка</b> 
+                    <font class = 'normal-meta-field'>{{auto_orth.3}}</font>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    {%endif%}
     {%if teacher%}
     <div id="delete-text-field" class="over-text-fields">
         <form method="post" novalidate action={% url 'delete_text' %} >
@@ -516,7 +575,6 @@ td{
             <button type="submit" class="over-text-labels" style="background-color: #dc3545; border: none; color:white">Удалить текст</button>
         </form>
     {%endif%} 
-
     </div>
 </div>
 <div class = "text-place">
