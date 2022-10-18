@@ -6,8 +6,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .managers import CustomUserManager
 
-# from right_app.models import TblUserRights
-
 class TblLanguage(models.Model):
     class Meta:
         db_table = "TblLanguage"
@@ -57,19 +55,6 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
         
         teacher = TblTeacher.objects.filter(user_id = self.id_user)
         if len(teacher) != 0:
-            return True
-        else:
-            return False
-        
-    def is_superuser(self):
-        """Superuser's right check
-
-        Returns:
-            boolean: true or false superuser
-        """        
-        
-        right = TblUserRights.objects.filter(user_id = self.id_user, right_id = 6)
-        if len(right) != 0:
             return True
         else:
             return False
