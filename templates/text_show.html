@@ -566,7 +566,7 @@ td{
     </div>
     
     {%endif%}
-    {%if teacher%}
+    {%if superuser%}
     <div id="delete-text-field" class="over-text-fields">
         <form method="post" novalidate action={% url 'delete_text' %} >
             <input type="hidden" name="language" value="{{ language }}">

@@ -6,6 +6,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .managers import CustomUserManager
 
+# from right_app.models import TblUserRights
+
 class TblLanguage(models.Model):
     class Meta:
         db_table = "TblLanguage"
@@ -47,12 +49,30 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
         return self.last_name + ' ' + self.name
     
     def is_teacher(self):
+        """Checking for a teacher
+
+        Returns:
+            boolean: true or false teacher
+        """  
+        
         teacher = TblTeacher.objects.filter(user_id = self.id_user)
         if len(teacher) != 0:
             return True
         else:
             return False
         
+    def is_superuser(self):
+        """Superuser's right check
+
+        Returns:
+            boolean: true or false superuser
+        """        
+        
+        right = TblUserRights.objects.filter(user_id = self.id_user, right_id = 6)
+        if len(right) != 0:
+            return True
+        else:
+            return False
     
 class TblTeacher(models.Model):
     class Meta:
@@ -66,7 +86,7 @@ class TblTeacher(models.Model):
     def __str__(self):
         return self.user.last_name + ' ' + self.user.name
     
-class TblStudent(models.Model):
+class TblStudent(models.Model):    
     GENDER = (
         (0, 'Мужчина'),
         (1, 'Женщина'),
