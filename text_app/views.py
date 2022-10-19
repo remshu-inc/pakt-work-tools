@@ -492,7 +492,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
 
         if request.user.is_teacher() and text_language == 1:
             cursor = connection.cursor()
-            cursor.execute(f'CALL getMarks(27, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp);')
+            cursor.execute(f'CALL getMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp);')
             cursor.execute("SELECT @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp;")
             auto_degree = cursor.fetchone()
             grammatik = auto_degree[0:4]
