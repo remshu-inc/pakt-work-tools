@@ -525,14 +525,16 @@ def show_text(request, text_id = 1, language = None, text_type = None):
 
         if request.user.is_teacher() and text_language == 1:
             cursor = connection.cursor()
-            cursor.execute(f'CALL getMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp);')
-            cursor.execute("SELECT @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp;")
+            cursor.execute(f'CALL getallMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp, @dis, @skip, @extra);')
+            cursor.execute("SELECT @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp, @dis, @skip, @extra;")
             auto_degree = cursor.fetchone()
             grammatik = auto_degree[0:4]
             lexik  =    auto_degree[4:8]
-            orth = auto_degree[8:]
+            orth = auto_degree[8:12]
+            dis = auto_degree[12]
+            skip = auto_degree[13]
+            extra = auto_degree[14]
             cursor.close()
-            print(grammatik)
 
         if request.user.is_teacher() and text_language == 1:
             return render(request, "work_area.html", context= {
@@ -549,6 +551,9 @@ def show_text(request, text_id = 1, language = None, text_type = None):
                 'auto_degree':True,
                 'auto_grammatik': grammatik,
                 'auto_lexik':lexik,
+                'count_dis':dis,
+                'count_skip':skip,
+                'count_extra':extra,
                 'auto_orth':orth,
                 'language': language,
                 'text_type': text_type,
