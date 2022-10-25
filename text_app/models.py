@@ -109,6 +109,9 @@ class TblText(models.Model):
     creation_course = models.IntegerField(choices=YEARS)
     
     assessment = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
+    completeness = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
+    structure = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
+    coherence = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
     teacher = models.ForeignKey(TblTeacher, blank=True, null=True, on_delete=models.SET_NULL)
     
     pos_check = models.BooleanField(blank=True, null=True, default=0)

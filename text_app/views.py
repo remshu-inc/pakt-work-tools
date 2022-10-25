@@ -288,6 +288,9 @@ def _get_text_info(text_id:int):
         'self_rating',
         'student_assesment',
         'assessment',
+        'completeness',
+        'structure',
+        'coherence',
         'teacher_id__user_id__name',
         'teacher_id__user_id__last_name',
         'pos_check',
@@ -313,6 +316,15 @@ def _get_text_info(text_id:int):
     
     raw_info['assessment'] = False if not raw_info['assessment']\
          or raw_info['assessment'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['assessment']]
+
+    raw_info['completeness'] = 'Не указано' if not raw_info['completeness']\
+         or raw_info['completeness'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['completeness']]
+
+    raw_info['structure'] = 'Не указано' if not raw_info['structure']\
+         or raw_info['structure'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['structure']]
+
+    raw_info['coherence'] = 'Не указано' if not raw_info['coherence']\
+         or raw_info['coherence'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['coherence']]
 
     assessment_name = str(raw_info['teacher_id__user_id__name']) + ' ' +\
              str(raw_info['teacher_id__user_id__last_name'])
@@ -352,7 +364,9 @@ def _get_text_info(text_id:int):
 
         #Оценка работы
         'assessment': raw_info['assessment'],
-
+        'completeness': raw_info['completeness'],
+        'structure': raw_info['structure'],
+        'coherence': raw_info['coherence'],
         'teacher_name': assessment_name,
 
         'pos_check':raw_info['pos_check'],
@@ -370,6 +384,9 @@ def assessment_form(request, text_id = 1, **kwargs):
     
         initial_values = TblText.objects.filter(id_text = text_id).values(
                 'assessment',
+                'completeness',
+                'structure',
+                'coherence',
                 'pos_check',
                 'error_tag_check').all()[0]
 
@@ -382,13 +399,29 @@ def assessment_form(request, text_id = 1, **kwargs):
 
                 if form.is_valid():
                     assessment = form.cleaned_data['assessment']
+                    completeness = form.cleaned_data['completeness']
+                    structure = form.cleaned_data['structure']
+                    coherence = form.cleaned_data['coherence']
+
                     pos_check = form.cleaned_data['pos_check']
                     error_tag_check = form.cleaned_data['error_tag_check']
         
                     if assessment != initial_values['assessment'] and request.user.is_teacher():
                         teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
                         form.instance.teacher = teacher_id
-                    
+
+                    if completeness != initial_values['completeness'] and request.user.is_teacher():
+                        teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
+                        form.instance.teacher = teacher_id
+
+                    if structure != initial_values['structure'] and request.user.is_teacher():
+                        teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
+                        form.instance.teacher = teacher_id
+
+                    if coherence != initial_values['coherence'] and request.user.is_teacher():
+                        teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
+                        form.instance.teacher = teacher_id
+
                     if pos_check != initial_values['pos_check']:
                         form.instance.pos_check_user = TblUser.objects.get(id_user =\
                              request.user.id_user)
@@ -418,7 +451,7 @@ def meta_form(request, text_id = 1, **kwargs):
         .filter(id_text = text_id).values('user_id')[0]['user_id']:
         
         initial_values = TblText.objects.filter(id_text = text_id).values(
-                            'emotional',
+            'emotional',
             'write_tool',
             'write_place',
             'education_level',

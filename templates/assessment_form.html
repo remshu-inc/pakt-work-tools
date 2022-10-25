@@ -14,6 +14,24 @@
                             {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
                         </div>
                         <div class = 'mb-3'>
+                            {% comment %} {% csrf_token %} {% endcomment %}
+                            <label>Полнота раскрытия:</label>
+                            {{form.completeness}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
+                            {% comment %} {% csrf_token %} {% endcomment %}
+                            <label>Структура:</label>
+                            {{form.structure}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
+                            {% comment %} {% csrf_token %} {% endcomment %}
+                            <label>Связность:</label>
+                            {{form.coherence}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
                             <label>Проверка частеречной разметки</label>
                             {{form.pos_check}}
                             {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}

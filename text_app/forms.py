@@ -136,7 +136,10 @@ class AssessmentModify(forms.ModelForm):
     class Meta:
         model = TblText
         fields = (
-                'assessment', 
+                'assessment',
+                'completeness',
+                'structure',
+                'coherence', 
                 'pos_check',
                 'error_tag_check', 
                 'teacher',
@@ -161,6 +164,10 @@ class AssessmentModify(forms.ModelForm):
 
         widgets = {
             'assessment': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+            'completeness': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+            'structure': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+            'coherence': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+
             'pos_check': forms.Select(attrs={'class': 'form-control'}, choices = [(True,'Проверенно'),\
                 (False,'Не указано')]),
             'error_tag_check': forms.Select(attrs={'class': 'form-control'}, choices = [(True,\
@@ -179,6 +186,9 @@ class AssessmentModify(forms.ModelForm):
 
         if not is_teacher:
             self.fields['assessment'].widget.attrs['readonly'] = "readonly"
+            self.fields['completeness'].widget.attrs['readonly'] = "readonly"
+            self.fields['structure'].widget.attrs['readonly'] = "readonly"
+            self.fields['coherence'].widget.attrs['readonly'] = "readonly"
 
 class MetaModify(forms.ModelForm):
     class Meta:

@@ -478,6 +478,12 @@ td{
                 {%if text_info.assessment%}
                 <li class = 'meta-row'>Оценка: 
                     <font class = 'normal-meta-field'>{{text_info.assessment}}</font></li>
+                <li class = 'meta-row'>Полнота: 
+                    <font class = 'normal-meta-field'>{{text_info.completeness}}</font></li>
+                <li class = 'meta-row'>Структура: 
+                    <font class = 'normal-meta-field'>{{text_info.structure}}</font></li>
+                <li class = 'meta-row'>Связность:
+                    <font class = 'normal-meta-field'>{{text_info.coherence}}</font></li>
                 <li class = 'meta-row'>Проверяющий: 
                     <font class = 'normal-meta-field'>{{text_info.teacher_name}}</font></li>
                 {%else%}
@@ -598,15 +604,15 @@ if (eventData.button === 0) {
 {%if ann_right%}
 {#режим редактирование аннотации (1-создание, 2-обновление)#} 
 var selected_tag = 0 //Удалить
-var get_classification_url = "http://127.0.0.1:8000/show_text/api/get_classification"
-var add_empty_token_url = 'http://127.0.0.1:8000/show_text/api/add_empty_token'
+var get_classification_url = "{% url 'get_classification' %}"
+var add_empty_token_url = "{% url 'add_empty_token' %}"
 var selected_tokens = []
 {%endif%}
 var markups_info = new Map()
 var text_id = {{text_id}}
 var language = 0
-var get_text_url = "http://127.0.0.1:8000/show_text/api/get_text"
-var edit_ann_url = "http://127.0.0.1:8000/show_text/api/annotation_edit"
+var get_text_url = "{%url 'get_text' %}"
+var edit_ann_url = "{%url 'annotation_edit' %}"
 
 var key_down = false
 var text_response = null
