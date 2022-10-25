@@ -47,12 +47,17 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
         return self.last_name + ' ' + self.name
     
     def is_teacher(self):
+        """Checking for a teacher
+
+        Returns:
+            boolean: true or false teacher
+        """  
+        
         teacher = TblTeacher.objects.filter(user_id = self.id_user)
         if len(teacher) != 0:
             return True
         else:
             return False
-        
     
 class TblTeacher(models.Model):
     class Meta:
@@ -66,7 +71,7 @@ class TblTeacher(models.Model):
     def __str__(self):
         return self.user.last_name + ' ' + self.user.name
     
-class TblStudent(models.Model):
+class TblStudent(models.Model):    
     GENDER = (
         (0, 'Мужчина'),
         (1, 'Женщина'),
