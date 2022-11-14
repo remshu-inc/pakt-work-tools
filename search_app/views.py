@@ -191,19 +191,13 @@ def search(request):
 def get_stat(request):
     if request.user.is_teacher():
         if request.method != 'POST':
-            return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(), 'no_data':False}))
+            return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(request.user.language_id), 'no_data':False}))
         else:
-            form = StatisticForm(request.POST or None)
+            form = StatisticForm(request.user.language_id, request.POST or None)
             if form.is_valid():
-
-                value = [int(element) for element in form.cleaned_data['group']]
-                course_number = int(form.cleaned_data['course_number'])
-                detalization = int(form.cleaned_data['output_type'])
-                stat_by = int(form.cleaned_data['stat_by'])
-                start_date = form.cleaned_data['start_date']
-                end_date = form.cleaned_data['end_date']
-
-                stat_res = built_group_stat(value, course_number,detalization, stat_by, request.user.id_user, start_date, end_date)
+                group_id = int(form.cleaned_data['group'][0])
+            
+                stat_res = built_group_stat(group_id, request.user.id_user)
                 if stat_res['state']:
 
                     response = HttpResponse(FileWrapper(open(stat_res['folder_link'],'rb')), content_type='application/zip')
@@ -214,6 +208,6 @@ def get_stat(request):
                     remove(stat_res['folder_link'])
                     return(response)
                 else:
-                    return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(), 'no_data':True}))
+                    return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(request.user.language_id), 'no_data':True}))
     else:
         return(render(request, 'stat_form.html', {'right':False, 'no_data':False}))
