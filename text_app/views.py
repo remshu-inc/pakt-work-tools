@@ -52,9 +52,21 @@ def show_files(request, language = None, text_type = None):
     
     if language == None:
         try:
-            list_language = TblLanguage.objects.all()
-            print(list_language)
-            return render(request, "corpus.html", context= {'list_language': list_language, 'form_search': form_search, 'all_students': all_students})
+            # Определение сортировки
+            order_by = 'language_name'
+            reverse = False
+            if request.GET:
+                order_by = request.GET.get('order_by', 'defaultOrderField')
+                # Covert reverse str to bool
+                reverse = (request.GET.get('reverse', 'defaultOrderField') == 'True')
+                
+                if reverse:
+                    order_by = '-' + order_by
+                
+            list_language = TblLanguage.objects.all().order_by(order_by)
+
+            return render(request, "corpus.html", context= {'list_language': list_language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students})
+
             
         # except TblLanguage.DoesNotExist:
         # TODO: прописать исключение для каждой ошибки?
@@ -63,20 +75,40 @@ def show_files(request, language = None, text_type = None):
 
     # Для выбора типа текста
     elif text_type == None:
+        order_by = 'text_type_name'
+        reverse = False
+        if request.GET:
+            order_by = request.GET.get('order_by', 'defaultOrderField')
+            # Covert reverse str to bool
+            reverse = (request.GET.get('reverse', 'defaultOrderField') == 'True')
+            
+            if reverse:
+                order_by = '-' + order_by
+        
         language_object = TblLanguage.objects.filter(language_name=language)
         if len(language_object) == 0:
             return(render(request, "corpus.html", context = {'error': True, 'text_html':'Language not found'}))
         else:
             language_id = language_object.first().id_language
         
-        list_text_type = TblTextType.objects.filter(language_id=language_id)
+        list_text_type = TblTextType.objects.filter(language_id=language_id).order_by(order_by)
         if len(list_text_type) == 0:
             return(render(request, "corpus.html", context = {'error': True, 'text_html':'Text type not found'}))
         else:
-            return(render(request, "corpus.html", context= {'list_text_type': list_text_type, 'form_search': form_search, 'all_students': all_students}))
+            return(render(request, "corpus.html", context= {'list_text_type': list_text_type, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students}))
         
     # Для выбора текста
     else:
+        order_by = 'modified_date'
+        reverse = False
+        if request.GET:
+            order_by = request.GET.get('order_by', 'defaultOrderField')
+            # Covert reverse str to bool
+            reverse = (request.GET.get('reverse', 'defaultOrderField') == 'True')
+            
+            if reverse:
+                order_by = '-' + order_by
+        
         language_object = TblLanguage.objects.filter(language_name=language)
         if len(language_object) == 0:
             return(render(request, "corpus.html", context = {'error': True, 'text_html':'Language not found'}))
@@ -89,19 +121,10 @@ def show_files(request, language = None, text_type = None):
         else:
             text_type_id = text_type_object.first().id_text_type
         
-        order_by = ''
-        if request.GET:
-            order_by = request.GET.get('order_by', 'defaultOrderField')
         if check_permissions_show_text(request.user.id_user):
-            if order_by == '':
-                list_text = TblText.objects.filter(language_id=language_id, text_type_id=text_type_id)
-            else:
-                list_text = TblText.objects.filter(language_id=language_id, text_type_id=text_type_id).order_by(order_by)
+            list_text = TblText.objects.filter(language_id=language_id, text_type_id=text_type_id).order_by(order_by)
         else:
-            if order_by == '':
-                list_text = TblText.objects.filter(language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user)
-            else:
-                list_text = TblText.objects.filter(language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user).order_by(order_by)
+            list_text = TblText.objects.filter(language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user).order_by(order_by)
             
         list_text_and_user = []
         for text in list_text:
@@ -110,15 +133,28 @@ def show_files(request, language = None, text_type = None):
                 list_text_and_user.append([text, ''])
             else:
                 list_text_and_user.append([text, user.last_name + ' ' + user.name])
-            
-        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search, 'all_students': all_students}))
+        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students}))
     
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
   
 def corpus_search(request):
-    if request.POST:
-        form_search = SearchTextForm(request.POST)
+    print(1, request.GET)
+    try:
+        order_by = request.GET['order_by']
+        # Covert reverse str to bool
+        reverse = (request.GET['reverse'] == 'True')
+        
+        if reverse:
+            order_by = '-' + order_by
+    except:
+        order_by = 'header'
+        reverse = False
+        
+                
+    if request.GET:
+        form_search = SearchTextForm(request.GET)
         # Entry.objects.all().filter(pub_date__year=2006)
+        print(2, form_search.data['header'])
         filters = Q()
         if form_search.data['header']:
             filters &= Q(header = form_search.data['header'])
@@ -133,13 +169,13 @@ def corpus_search(request):
         if form_search.data['modified_date']:
             filters &= Q(modified_date = form_search.data['modified_date'])
         
-        list_text = TblText.objects.filter(filters)
+        list_text = TblText.objects.filter(filters).order_by(order_by)
         
     else:
         form_search = SearchTextForm()
         return(render(request, "corpus_search.html", context= {'form_search': form_search}))
         
-    return(render(request, "corpus_search.html", context= {'form_search': form_search, 'list_text': list_text}))
+    return(render(request, "corpus_search.html", context= {'form_search': form_search, 'list_text': list_text, 'order_by': order_by, 'reverse': not reverse}))
   
 def new_text(request, language = None, text_type = None):
     

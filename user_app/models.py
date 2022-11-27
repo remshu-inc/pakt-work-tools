@@ -42,6 +42,7 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'login'
     
     objects = CustomUserManager()
+    ordering = ["last_name"]
 
     def __str__(self):
         return self.last_name + ' ' + self.name
