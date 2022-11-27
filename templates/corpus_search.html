@@ -28,10 +28,10 @@
         {# Search for teachers #}
         {% if user.is_teacher %}
 
-        <form action='' method="get" novalidate>
         <div class="d-flex justify-content-center mt-5">
             <div class="col-6">
-                <form method="get" novalidate>
+                <form method="post" novalidate>
+                    {% comment %} {% csrf_token %} {% endcomment %}
                     <div class="input-group mb-1">
                         {{ form_search.header }}
                         <button class="btn btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">
@@ -88,7 +88,7 @@
             </div>
         </div>
             
-        <div class="col-md-12 mt-3">
+        <div class="col-md-10 mt-3">
             <!-- TODO: ССЫЛКА ВСЯ СТРОКА -->
             
             {# For Text #}
@@ -98,90 +98,45 @@
                 <thead class="thead-dark">
                     <tr class='corpus-tr'>
                         <th class="text-center">#</th>
-                        <th><a href="?{{ request.GET.urlencode }}&order_by=header&reverse={{ reverse }}">
-
-                            {% if order_by == 'header' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-header' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                        {% comment %} TODO: Добавить сортировку {% endcomment %}
+                        {% comment %} <th><a href="?order_by=header"> {% endcomment %}
+                        <th>
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
+                            </svg> {% endcomment %}
                             Название текста
-                        </a></th>
-                        <th class="text-center"><a href="?order_by=language_id__language_name&reverse={{ reverse }}">
-
-                            {% if order_by == 'language_id__language_name' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-language_id__language_name' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                        {% comment %} </a></th> {% endcomment %}
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
+                            </svg> {% endcomment %}
                             Язык
-                        </a></th>
-                        <th class="text-center"><a href="?order_by=text_type_id__text_type_name&reverse={{ reverse }}">
-
-                            {% if order_by == 'text_type_id__text_type_name' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-text_type_id__text_type_name' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
+                            </svg> {% endcomment %}
                             Тип текста
-                        </a></th>
-                        <th class="text-center"><a href="?order_by=user_id__last_name&reverse={{ reverse }}">
-
-                            {% if order_by == 'user_id__last_name' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-user_id__last_name' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
+                            </svg> {% endcomment %}
                             Пользователь
-                        </a></th>
-                        <th class="text-center"><a href="?order_by=create_date&reverse={{ reverse }}">
-
-                            {% if order_by == 'create_date' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-create_date' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
+                            </svg> {% endcomment %}
                             Дата создания
-                        </a></th>
-                        <th class="text-center"><a href="?order_by=modified_date&reverse={{ reverse }}">
-
-                            {% if order_by == 'modified_date' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-modified_date' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
+                            </svg> {% endcomment %}
                             Дата модификации
-                        </a></th>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
