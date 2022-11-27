@@ -91,10 +91,6 @@
 
         <!-- {{ search_form.as_table }} -->
 
-
-
-
-
         {% endif %}
             
         <div class="col-md-10 mt-3 left">
@@ -107,20 +103,33 @@
                 <thead>
                     <tr class='corpus-tr'>
                         <!-- <th scope="col">#</th> -->
-                        <th scope="col">Язык</th>
+                        <th class="col-5"><a href="?order_by=language_name&reverse={{ reverse }}">
+
+                            {% if order_by == 'language_name' and reverse %}                            
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
+                            </svg>
+                            {% elif order_by == '-language_name' and not reverse %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            {% endif %}
+
+                            Язык
+                        </a></th>
                     </tr>
                 </thead>
                 <tbody>
                     
-                    {% for lanuage in list_language  %}
+                    {% for language in list_language  %}
                     <tr class='corpus-tr'>
                         <!-- <td scope="col">#</td> -->
                         <td>
-                            <a href="{{ lanuage.language_name }}">
+                            <a href="{{ language.language_name }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
                                     <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
                                 </svg>
-                                {{ lanuage.language_name }}
+                                {{ language.language_name }}
                             </a>
                         </td>
                     </tr>
@@ -136,8 +145,20 @@
             <table class="table table-hover table-sm">
                 <thead>
                     <tr class='corpus-tr'>
-                        <!-- <th scope="col">#</th> -->
-                        <th scope="col">Тип текста</th>
+                        <th class="col-5"><a href="?order_by=text_type_name&reverse={{ reverse }}">
+
+                            {% if order_by == 'text_type_name' and reverse %}                            
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
+                            </svg>
+                            {% elif order_by == '-text_type_name' and not reverse %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            {% endif %}
+
+                            Тип текста
+                        </a></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -170,24 +191,48 @@
                 <thead class="thead-dark">
                     <tr class='corpus-tr d-flex'>
                         <th scope="row"class="col-1 text-center">#</th>
-                        <th class="col-5"><a href="?order_by=header">
+                        <th class="col-5"><a href="?order_by=header&reverse={{ reverse }}">
+
+                            {% if order_by == 'header' and reverse %}                            
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
+                            </svg>
+                            {% elif order_by == '-header' and not reverse %}
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
                             </svg>
+                            {% endif %}
+
                             Название текста
                         </a></th>
-                        <th class="col-3">
+                        <th class="col-3"><a href="?order_by=user_id__last_name&reverse={{ reverse }}">
+
+                            {% if order_by == 'user_id__last_name' and reverse %}                            
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
+                            </svg>
+                            {% elif order_by == '-user_id__last_name' and not reverse %}
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
                             </svg>
+                            {% endif %}
+
                             Пользователь
-                        </th>
-                        <th class="col-3">
+                        </a></th>
+                        <th class="col-3"><a href="?order_by=modified_date&reverse={{ reverse }}">
+
+                            {% if order_by == 'modified_date' and reverse %}                            
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
+                            </svg>
+                            {% elif order_by == '-modified_date' and not reverse %}
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
                                 <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
                             </svg>
+                            {% endif %}
+
                             Дата модификации
-                        </th>
+                        </a></th>
                     </tr>
                 </thead>
                 <tbody>

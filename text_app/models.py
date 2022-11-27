@@ -69,7 +69,7 @@ class TblText(models.Model):
     )
     
     RATES = (
-        (0, '0'),
+        (0, '-1'),
         (1, '1'),
         (2, '2'),
         (3, '3'),
@@ -103,7 +103,7 @@ class TblText(models.Model):
     student_assesment = models.IntegerField(blank=True, null=True, choices=RATES)
     creation_course = models.IntegerField(choices=YEARS)
     
-    assessment = models.IntegerField(blank=True, null=True)
+    assessment = models.IntegerField(blank=True, null=True, choices=RATES)
     teacher = models.ForeignKey(TblTeacher, blank=True, null=True, on_delete=models.SET_NULL)
     
     pos_check = models.BooleanField(blank=True, null=True, default=0)
