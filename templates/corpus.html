@@ -3,6 +3,40 @@
 
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/corpus.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/modal.css' %}">    
+<script type="text/x-template" id="modal-template">
+    <transition name="modal">
+      <div class="modal-mask">
+        <div class="modal-wrapper">
+          <div class="modal-container">
+                <h2>Выбор студента</h2>
+
+                <form method="post" novalidate action="new_text">
+                    {% csrf_token %}
+                    <div class="mb-4 custom-input">
+                        <label for="student" class="form-label">Студент</label>
+                        <select class="form-control" id="student" name='student'>
+                            {% for student in all_students %}
+                            <option value="{{student.0}}">{{ student.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                <button class="button btn pakt-btn" style="float: right;"">
+                    Новый текст
+                </button>
+
+                </form>
+
+                <button class="button btn pakt-btn" style="float: left;" @click="$emit('close')">
+                    Закрыть
+                </button>
+
+          </div>
+        </div>
+      </div>
+    </transition>
+  </script>
 
 <div class="container">
     <div class="row">
@@ -268,8 +302,15 @@
 
         
         {% if work_with_file %}
-        <div class="col-md-2 mt-5">
+        <div id="new_text_btn" class="col-md-2 mt-5">
+            {% if user.is_teacher %}
+            <button id="show-modal" class="button btn pakt-btn" @click="showModal = true">Новый текст</button>
+            <!-- use the modal component, pass in the prop -->
+            <modal v-if="showModal" @close="showModal = false">
+            </modal>
+            {% else %}
             <a href='new_text' class="button btn pakt-btn">Новый текст</a>
+            {% endif %}
             <!-- <button type="button" class="btn btn-danger">Danger</button> -->
         </div>
         {% endif %}
@@ -285,6 +326,26 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 
 <script>
+    {% comment %} Модальное окно {% endcomment %}
+
+    Vue.component("modal", {
+        template: "#modal-template"
+    });
+
+    // start app
+    new Vue({
+        el: "#new_text_btn",
+        data: {
+            showModal: false
+        }
+    });
+
+
+
+
+
+
+
     document.getElementById("list-filter").style.display = "none"
     var text_types = {
         1: [{'text_type_name': '---------', 'id_text_type': ''}], 
@@ -329,7 +390,7 @@
         el: "#button-filter",
         methods:{
             ShowDiv: function(event){
-                // document.getElementById("list-filter").style.display = "block"}}})
+        ц        // document.getElementById("list-filter").style.display = "block"}}})
                 if(document.getElementById("list-filter").style.display == "none")
                 {
                     document.getElementById("list-filter").style.display = "block"

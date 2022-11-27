@@ -8,9 +8,27 @@
             <div class="col-12">
             <form method="POST" novalidate>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <label>Оценка</label>
                             {{form.assessment}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
+                            {% comment %} {% csrf_token %} {% endcomment %}
+                            <label>Полнота раскрытия:</label>
+                            {{form.completeness}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
+                            {% comment %} {% csrf_token %} {% endcomment %}
+                            <label>Структура:</label>
+                            {{form.structure}}
+                            {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
+                        </div>
+                        <div class = 'mb-3'>
+                            {% comment %} {% csrf_token %} {% endcomment %}
+                            <label>Связность:</label>
+                            {{form.coherence}}
                             {% comment %} <input type="hidden" name="next" value="{{request.path}}"> {% endcomment %}
                         </div>
                         <div class = 'mb-3'>

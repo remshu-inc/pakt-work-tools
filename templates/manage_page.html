@@ -19,6 +19,12 @@
                         </a>
                     </li>
 
+                    <li class="list-group-item section-row">
+                        <a href="{% url 'change_password' %}" class = 'btn btn-primary section-row-button' >
+                            Смена пароля студента
+                        </a>
+                    </li>
+
                     {% if superuser %}
                     <li class="list-group-item section-row">
                         <a href="{% url 'signup_teacher' %}" class = 'btn btn-primary section-row-button' >
@@ -65,8 +71,8 @@
             <div class='collapse' id='analysis'>
             <div class="card-body non-padding">
                 <ul class="list-group">
-                    <a href="" class = 'btn btn-primary disabled section-row-button' >
-                        Экспорт статистики (В данный момент не активно)
+                    <a href = "{% url 'statistic'%}" class = 'btn btn-primary section-row-button' >
+                        Статистика по ошибкам
                     </a>
                 </ul>
             </div>

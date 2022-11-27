@@ -12,6 +12,7 @@ from right_app.views import check_is_superuser
 
 from string import punctuation
 from datetime import datetime
+from hashlib import sha512
 
 def signup(request):
     try:
@@ -38,7 +39,12 @@ def signup(request):
             return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
         
         # Дописать валидацию для form_student_group.is_valid()
-        if form_user.is_valid() and form_student.is_valid():     
+        if form_user.is_valid() and form_student.is_valid():
+            # Save StudentGroup
+            try:
+                student_group = form_student_group.save(commit=False)
+            except:
+                return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
             
             # Save User       
             user = form_user.save()
@@ -47,9 +53,6 @@ def signup(request):
             student = form_student.save(commit=False)
             student.user_id = user.id_user
             student = student.save()
-            
-            # Save StudentGroup
-            student_group = form_student_group.save(commit=False)
             
             student_group.student_id = student.id_student
             student_group.save()
@@ -62,6 +65,43 @@ def signup(request):
         form_student_group = StudentGroupCreationForm()
         
     return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
+
+def change_password(request):
+    try:
+        if not request.user.is_teacher():
+            return redirect('home')
+    except:
+        return redirect('home')
+    
+    if request.POST:
+        user_id = request.POST['student']
+        password = request.POST['password']
+        
+        salt = 'DsaVfeqsJw00XvgZnFxlOFkqaURzLbyI'
+        hash = sha512((password+salt).encode('utf-8'))
+        hash = hash.hexdigest()
+        
+        TblUser.objects.filter(id_user = user_id).update(password = hash)
+        
+        return redirect('manage')
+        
+    else:
+        students = TblStudent.objects.all()
+        
+        all_students = []
+        count = 1
+        for student in students:
+            try:
+                user = TblUser.objects.filter(id_user = student.user_id).first()
+                all_students.append([user.id_user, user.last_name + ' ' + user.name])
+            except:
+                count += 1
+            
+        return render(request, 'change_password.html', {'all_students': all_students})
+
+    
+    
+
 
 def signup_teacher(request):
     try:
@@ -213,7 +253,10 @@ def group_creation(request):
                              & Q(enrollement_date = enrollement_date)).values('id_group').all()
                         
                         if not valid_sample.exists():
-                            new_row = TblGroup(group_name = group_name, enrollement_date = enrollement_date)
+                            new_row = TblGroup(
+                                group_name = group_name,
+                                enrollement_date = enrollement_date,
+                                language_id = request.user.language_id)
                             new_row.save()
 
                             return(render(request, 'group_creation_form.html', 
@@ -269,7 +312,7 @@ def group_creation(request):
 #* Group selection page
 def group_selection(request):
     if request.user.is_teacher():
-        groups = TblGroup.objects.all().order_by('-enrollement_date')
+        groups = TblGroup.objects.filter(language_id = request.user.language_id).order_by('-enrollement_date')
         if groups.exists():
             groups = groups.values()
             for index in range(len(groups)):
@@ -297,11 +340,15 @@ def group_selection(request):
 
 #* Group modify
 def _get_group_students(group_id:int, in_:bool)->list:
-    students_in_group =  TblStudentGroup.objects.filter(group_id = group_id).values('student_id') 
+    language_id = TblGroup.objects.filter(id_group = group_id).values('language_id')[0]['language_id']
+    students_in_group =  TblStudentGroup.objects.filter(
+        Q(group_id = group_id)&
+        Q(student_id__user_id__language_id = language_id)
+        ).values('student_id') 
     if in_:
         query = Q(id_student__in = students_in_group)
     else:
-        query = ~Q(id_student__in = students_in_group)
+        query = ~Q(id_student__in = students_in_group) & Q(user_id__language_id = language_id)
     
     students = TblStudent.objects.filter(query).values(
     'id_student',

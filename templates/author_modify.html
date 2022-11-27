@@ -14,7 +14,7 @@
                             {%endif%}
                         <form method="POST" novalidate>
                                     <div class = 'mb-3'>
-                                        {% csrf_token %}
+                                        {% comment %} {% csrf_token %} {% endcomment %}
 
                                         <div>{{form.user}}</div>
                                     </div>
@@ -40,8 +40,8 @@
     <div class='container-fluid'>
         <div class = 'row'>
             <div class = 'col'>
-                <button class = 'mt-2 mb-3 btn btn-secondary' onclick="history.back()">Назад</button>
-            </div<
+                <a class = 'mt-2 mb-3 btn btn-secondary' href="{{go_back}}">Назад</a>            
+	    </div>
         </div>
     </div>
 </div>

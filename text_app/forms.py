@@ -1,8 +1,8 @@
 from email.policy import default
 from faulthandler import disable
 from django import forms
-from .models import TblLanguage, TblText, TblTextType, TblTextGroup
-from user_app.models import TblUser, TblStudent, TblStudentGroup
+from .models import TblText, TblTextType, TblTextGroup
+from user_app.models import TblUser, TblStudent, TblStudentGroup, TblLanguage
 import datetime
 from right_app.views import check_permissions_new_text, check_permissions_work_with_annotations
 
@@ -14,7 +14,7 @@ class TextTypeChoiceField(forms.ModelChoiceField):
         
 class DateInput(forms.DateInput):
     input_type = 'date'
-    
+
 
 class TextCreationForm(forms.ModelForm):
     
@@ -43,7 +43,7 @@ class TextCreationForm(forms.ModelForm):
         
         widgets = {
             'header': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 11}),
+            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 14}),
             'emotional': forms.Select(attrs={'class': 'form-control'}),
             'write_tool': forms.Select(attrs={'class': 'form-control'}),
             'write_place': forms.Select(attrs={'class': 'form-control'}),
@@ -58,14 +58,10 @@ class TextCreationForm(forms.ModelForm):
         if user != None and language != None and text_type != None:
             
             # Если у пользователя нет прав загружать текст от чужого лица
-            if not check_permissions_new_text(user.id_user):
-                user_object = TblUser.objects.filter(id_user = user.id_user)
-                self.fields['user'] = forms.ModelChoiceField(queryset=user_object, widget=forms.Select(attrs={'class': 'form-control'}))
-                self.fields['user'].initial = user_object[0]
-                self.fields['user'].widget.attrs['readonly'] = "readonly" 
-                
-            else:
-                self.fields['user'] = forms.ModelChoiceField(queryset=TblUser.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
+            user_object = TblUser.objects.filter(id_user = user.id_user)
+            self.fields['user'] = forms.ModelChoiceField(queryset=user_object, widget=forms.Select(attrs={'class': 'form-control'}))
+            self.fields['user'].initial = user_object[0]
+            self.fields['user'].widget.attrs['readonly'] = "readonly" 
                 
             language_object = TblLanguage.objects.filter(language_name = language)
             self.fields['language'] = forms.ModelChoiceField(queryset=language_object, widget=forms.Select(attrs={'class': 'form-control'}))
@@ -76,6 +72,14 @@ class TextCreationForm(forms.ModelForm):
             self.fields['text_type'] = forms.ModelChoiceField(queryset=text_type_object, widget=forms.Select(attrs={'class': 'form-control'}))
             self.fields['text_type'].initial = text_type_object[0]
             self.fields['text_type'].widget.attrs['readonly'] = "readonly" 
+            
+    def save(self, commit=True):
+        text = super().save(commit=False)
+        
+        if commit:
+            text.save()
+            
+        return text
             
             
 def get_annotation_form(Grades, Reasons):
@@ -132,7 +136,10 @@ class AssessmentModify(forms.ModelForm):
     class Meta:
         model = TblText
         fields = (
-                'assessment', 
+                'assessment',
+                'completeness',
+                'structure',
+                'coherence', 
                 'pos_check',
                 'error_tag_check', 
                 'teacher',
@@ -141,9 +148,26 @@ class AssessmentModify(forms.ModelForm):
                 'pos_check_date',
                 'error_tag_check_date'
                 )
-        rates = [(i,str(i)) for i in range(6)]
+        rates = ((1,'1'),
+            (2,'2-'),
+            (3,'2'),
+            (4,'2+'),
+            (5,'3-'),
+            (6,'3'),
+            (7,'3+'),
+            (8,'4-'),
+            (9,'4'),
+            (10,'4+'),
+            (11,'5-'),
+            (12,'5')		 
+        )
+
         widgets = {
             'assessment': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+            'completeness': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+            'structure': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+            'coherence': forms.Select(attrs={'class': 'form-control'}, choices = rates),
+
             'pos_check': forms.Select(attrs={'class': 'form-control'}, choices = [(True,'Проверенно'),\
                 (False,'Не указано')]),
             'error_tag_check': forms.Select(attrs={'class': 'form-control'}, choices = [(True,\
@@ -162,6 +186,9 @@ class AssessmentModify(forms.ModelForm):
 
         if not is_teacher:
             self.fields['assessment'].widget.attrs['readonly'] = "readonly"
+            self.fields['completeness'].widget.attrs['readonly'] = "readonly"
+            self.fields['structure'].widget.attrs['readonly'] = "readonly"
+            self.fields['coherence'].widget.attrs['readonly'] = "readonly"
 
 class MetaModify(forms.ModelForm):
     class Meta:

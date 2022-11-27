@@ -22,6 +22,9 @@
                     <div class="row">
 
                         <div class="col-8">
+
+                            <input type="hidden" name="student" value="{{student}}">
+
                             <div class="mb-4 custom-input">
                                 <label for="{{ form_text.header.id_for_label }}" class="form-label">Название текста</label>
                                 {% if not form_text.header.errors %}
@@ -55,7 +58,16 @@
                             </div>
 
                             <div class="mb-4 custom-input">
-                                <label for="{{ form_text.creation_course.id_for_label }}" class="form-label">На каком курсе создан текст</label>
+                                <label for="student_group" class="form-label">Группа</label>
+                                <select class="form-control" id="student_group" name='student_group'>
+                                    {% for group in student_groups %}
+                                    <option value="{{group.id_group}}">{{ group.group_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-4 custom-input">
+                                <label for="{{ form_text.creation_course.id_for_label }}" class="form-label">Номер курса обучения</label>
                                 {% if not form_text.creation_course.errors %}
                                 {{ form_text.creation_course }}
                                 {% else %}
@@ -154,7 +166,7 @@
                             </div>
 
                             <div class="mb-4 custom-input">
-                                <label for="{{ form_text.student_assesment.id_for_label }}" class="form-label">Student Assesment</label>
+                                <label for="{{ form_text.student_assesment.id_for_label }}" class="form-label">Оценка задания</label>
                                 {% if not form_text.student_assesment.errors %}
                                 {{ form_text.student_assesment }}
                                 {% else %}

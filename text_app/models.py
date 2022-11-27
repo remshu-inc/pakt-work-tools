@@ -1,17 +1,8 @@
+from email.policy import default
 from django.db import models
 
-from user_app.models import TblTeacher, TblUser, TblGroup
+from user_app.models import TblTeacher, TblUser, TblGroup, TblLanguage
 
-class TblLanguage(models.Model):
-    class Meta:
-        db_table = "TblLanguage"
-    
-    id_language = models.AutoField(primary_key=True)
-    
-    language_name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.language_name
     
 class TblTextType(models.Model):
     class Meta:
@@ -76,6 +67,20 @@ class TblText(models.Model):
         (4, '4'),
         (5, '5'),
     )
+
+    TASK_RATES = ((1,'1'),
+		 (2,'2-'),
+		 (3,'2'),
+		 (4,'2+'),
+		 (5,'3-'),
+		 (6,'3'),
+		 (7,'3+'),
+		 (8,'4-'),
+		 (9,'4'),
+		 (10,'4+'),
+		 (11,'5-'),
+		 (12,'5')		 
+   )
     
     class Meta:
         db_table = "TblText"
@@ -103,7 +108,10 @@ class TblText(models.Model):
     student_assesment = models.IntegerField(blank=True, null=True, choices=RATES)
     creation_course = models.IntegerField(choices=YEARS)
     
-    assessment = models.IntegerField(blank=True, null=True, choices=RATES)
+    assessment = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
+    completeness = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
+    structure = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
+    coherence = models.IntegerField(blank=True, null=True, choices = TASK_RATES)
     teacher = models.ForeignKey(TblTeacher, blank=True, null=True, on_delete=models.SET_NULL)
     
     pos_check = models.BooleanField(blank=True, null=True, default=0)
@@ -116,9 +124,13 @@ class TblText(models.Model):
     def __str__(self):
         return self.header
     
+    def save(self, *args, **kwargs):
+        super(TblText, self).save(*args, **kwargs) 
+        return self
+    
 class TblTextGroup(models.Model):
     class Meta:
-        db_table = 'tblTextGroup'
+        db_table = 'TblTextGroup'
 
     id_textgroup = models.AutoField(primary_key=True)
     text = models.ForeignKey(TblText, on_delete=models.CASCADE, db_column='text_id')
@@ -248,4 +260,17 @@ class TblTokenMarkup(models.Model):
     
     def __str__(self):
         return self.id_token_markup
+    
+class TblMarkError(models.Model):
+    class Meta:
+        db_table = 'TblMarkError'
+    
+    idrecord = models.AutoField(primary_key=True)
+
+    typeerror = models.CharField(max_length=25, null = True, default= None)
+    mark = models.CharField(max_length=2, null = True, default= None)
+    
+    grade3 = models.IntegerField(default = None)
+    grade2 = models.IntegerField(default = None)
+    grade1 = models.IntegerField(default = None)
     

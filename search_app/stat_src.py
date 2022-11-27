@@ -35,7 +35,11 @@ def _fill_nonstr(list_):
 
 def _get_errors(main_frame:pd.DataFrame, frame_name:str):
     error_frame = main_frame.groupby('tag_text').agg('count').iloc[:,[0]]
-    error_frame.columns = ['Частота']
+    error_frame['Тег Ошибки'] = error_frame.index
+    error_frame = error_frame.reset_index(drop=True)
+    error_frame.columns = ['Частота','Тег Ошибки']
+    
+    error_frame = error_frame.loc[:,['Тег Ошибки','Частота']]
 
     return({frame_name:error_frame})
 
@@ -43,7 +47,7 @@ def _get_meta(main_frame:pd.DataFrame, frame_name:str):
     meta_dict = []
     for column in main_frame.columns[1:]:
         
-        new_column = main_frame.groupby(column).count().iloc[:,[0]].reset_index()
+        new_column = main_frame.groupby(column).count().iloc[:,[0]].reset_index(drop=True)
         new_column.columns = ['Название','Частота']
         meta_dict += [{'Название':column,'Частота':''}]+new_column.to_dict('records')+[{'Название':'','Частота':''}]
 
@@ -55,35 +59,25 @@ def _check_frames(dict_of_frames:dict):
             return(True)
     return(False)
 
-def built_group_stat(group_ids:int, course_number:int,detalization:int, search_by:int,
-        requester_id:int, start_date, end_date):
-
-    #*Create query for dates
-    markup_dates_limits = Q(token_id__sentence_id__text_id__create_date__gte = start_date)\
-     & Q(token_id__sentence_id__text_id__create_date__lte = end_date)
-    dates_limits = Q(create_date__gte = start_date) & Q(create_date__lte = end_date)
-
-    #* Transform course number
-    if course_number != -2:
-        course_number = [course_number]
-    else:
-        course_number = [i for i in range(-1,6)]
+def built_group_stat(group_id:int,requester_id:int):
 
     #* Get all users id from current group
     students_info =  _queryset_to_list(TblStudentGroup.objects.order_by('group_id')\
-        .filter(Q(group_id__in = group_ids)).values(
+        .filter(Q(group_id = group_id)).values(
             'group_id',
             'student_id__user_id',
             'group_id__group_name',
             'group_id__enrollement_date').all())
         # TblStudent.objects.order_by('group_number').filter(Q(group_number__in = group_numbers)).values('user_id', 'group_number').all())
 
-    group_users = students_info['user_id']
-    group_names = students_info['group_id__group_name']+' ('\
-        +str(students_info['group_id__enrollement_date'].year)+'/'\
-        +str(students_info['group_id__enrollement_date'].year+1)
-    group_id = students_info['group_id']
-    works = TblTextGroup.objects.filter(group_id__in = group_id).values('text_id')
+    group_users = students_info['student_id__user_id']
+    
+    group_name =\
+        students_info['group_id__group_name'][0]+' ('\
+        +str(students_info['group_id__enrollement_date'][0].year)+') '
+
+    group_id = students_info['group_id'][0]
+    works = TblTextGroup.objects.filter(group_id = group_id).values('text_id')
 
     del students_info
     #* Get users names 
@@ -112,34 +106,18 @@ def built_group_stat(group_ids:int, course_number:int,detalization:int, search_b
         users_info['patronymic'])]
 
     #* DataFrame for user's info
-    users_frame = pd.DataFrame(data = {'user_id':users_id,'user_name':users_names, 'group': group_names})
+    users_frame = pd.DataFrame(data = {'user_id':users_id,'user_name':users_names, 'group': group_name})
     
     del users_names, users_info
     #* List for QuerySets
-    queries = [None, None]
+    queries = [None]
 
     #* Queries for errors and meta
-    if search_by == 1 or search_by == 3:
-        queries[0] = list(TblMarkup.objects.filter(
+    queries[0] = list(TblMarkup.objects.filter(
             Q(token_id__sentence_id__text_id__user_id__in = users_id) &
             Q(tag_id__markup_type_id__markup_type_name ='error') & 
-            Q(token_id__sentence_id__text_id__in = works) &
-            Q(token_id__sentence_id__text_id__creation_course__in = course_number) & markup_dates_limits
+            Q(token_id__sentence_id__text_id__in = works)
             ).values('token_id__sentence_id__text_id__user_id','tag_id__tag_text'))
-    
-    if search_by == 2 or search_by == 3:
-        queries[1] = list(TblText.objects.filter(
-            Q(user_id__in = users_id) &
-            Q(text_id__in = works) &
-            Q(creation_course__in = course_number) & dates_limits
-            ).values(
-                'user_id',
-                'emotional__emotional_name',
-                'write_tool__write_tool_name',
-                'write_place__write_place_name', 
-                'self_rating',
-                'student_assesment',
-                'assessment'))
     
     #* Disct of DataFrames for errors and meta queries result
     frames = {}
@@ -147,58 +125,28 @@ def built_group_stat(group_ids:int, course_number:int,detalization:int, search_b
 
     for index, query in enumerate(queries):
         if query:
-
             frames[frames_names[index]] = pd.DataFrame(query)  
             #* Rename 'ugly' names of columns
-            if index == 0:
-                frames[frames_names[index]].columns = ['user_id', 'tag_text']
-
-            elif index == 1:
-                frames[frames_names[index]].columns = [
-                    'user_id',
-                    'Эмоциональное состояние',
-                    'Средство написания',
-                    'Место написания',
-                    'Самооценка',
-                    'Оценка задания студентом',
-                    'Оценка работы преподавателем']
+            frames[frames_names[index]].columns = ['user_id', 'tag_text']
 
     if not _check_frames(frames):
         return({'state':False, 'folder_link':''})
 
-    results = {'error':[], 'meta':[]}
-
-    if detalization == 1:
-
-        for frame_name in frames.keys():
-            if frame_name == 'error':
-                results[frame_name].append(_get_errors(frames[frame_name], 'Ошибки общие показатели'))
-
-            elif frame_name == 'meta':
-                results[frame_name].append(_get_meta(frames[frame_name], 'Метаданные общие показатели'))
+    results = {'error':[]}
     
-    else:
-        for frame_name in frames.keys():
-            
-            if frame_name == 'error':
-                df = frames[frame_name].merge(users_frame, left_on = 'user_id', right_on = 'user_id', suffixes = ('',''))
-                users = df['user_id'].unique()
-                for user in users:
-                    query_frame = df.query('user_id == @user')
-                    user_name = query_frame['user_name'].unique()[0]
-                    user_group = query_frame['group'].unique()[0]
-                    results[frame_name].append(_get_errors(query_frame, f'Ошибки, гр.{user_group}, {user_name}'[:31]))
-            
-            elif frame_name == 'meta':
-                df = frames[frame_name].merge(users_frame, left_on = 'user_id', right_on = 'user_id', suffixes = ('',''))
-                users = df['user_id'].unique()
-                for user in users:
-                    query_frame = df.query('user_id == @user')
-                    user_name = query_frame['user_name'].unique()[0]
-                    user_group = query_frame['group'].unique()[0]
-                    results[frame_name].append(_get_meta(query_frame, f'Метаданные, гр.{user_group}, {user_name}'[:31]))
+    for frame_name in frames.keys():
+        
+        if frame_name == 'error':
+            df = frames[frame_name].merge(users_frame, left_on = 'user_id', right_on = 'user_id', suffixes = ('',''))
+            users = df['user_id'].unique()
+            for user in users:
+                query_frame = df.query('user_id == @user')
+                user_name = query_frame['user_name'].unique()[0]
+                user_group = query_frame['group'].unique()[0]
+                results[frame_name].append(_get_errors(query_frame, f'{user_name}'[:31]))
+        
 
-    query_type = 'Summary_' if detalization == 1 else 'By_Students_'
+    query_type =  'By_Students_'
     user_dir_name = query_type + str(requester_id) +'_'+ datetime.now().strftime("%m_%d_%H_%M")
     
     total_folder = TMP_FOLDER.format(user_dir_name)
@@ -206,18 +154,18 @@ def built_group_stat(group_ids:int, course_number:int,detalization:int, search_b
 
     for key in results.keys():
         if results[key]:
-            if key == 'meta':
-                include_index = False
-            else:
-                include_index = True
-
-            file_path = total_folder+f'/{key}.xlsx'
+            file_path = total_folder+f'/{group_name+key}.xlsx'
             writer = pd.ExcelWriter(file_path, engine = 'xlsxwriter')
             for frame_dict in results[key]:
                 sheet_name = list(frame_dict.keys())[0]
                 frame = frame_dict[sheet_name]
 
-                frame.to_excel(writer, sheet_name = sheet_name, index = include_index)
+                frame.to_excel(writer, sheet_name = sheet_name, index=False)
+                for column in frame:
+                    column_width = max(frame[column].astype(str).map(len).max(), len(column))
+                    col_idx = frame.columns.get_loc(column)
+                    writer.sheets[sheet_name].set_column(col_idx, col_idx, column_width)
+
             writer.save()
             writer.close()
     

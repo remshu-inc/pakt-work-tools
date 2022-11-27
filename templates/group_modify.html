@@ -26,12 +26,12 @@
                 <ul class="list-group">
                     <form method="POST" novalidate>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <label title = 'Не более 256 символов'>Название группы</label>
                             <div>{{data_form.group_name}}</div>
                         </div>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <label title = 'Год формирования группы'>Год обучения</label>
                             <div class='container-fluid non-padding'>
                                 <div class = 'row'>
@@ -105,7 +105,7 @@
                 <ul class="list-group">
                     <form method="POST" novalidate>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <p title = 'Выберите студентов для удаления (CTRL+ЛКМ)'>Выбор студентов:</p>
                             <div>{{add_std_form.studs}}</div>
                         </div>
@@ -129,7 +129,7 @@
                 <ul class="list-group">
                     <form method="POST" novalidate>
                         <div class = 'mb-3'>
-                            {% csrf_token %}
+                            {% comment %} {% csrf_token %} {% endcomment %}
                             <p title = 'Выберите студентов для удаления (CTRL+ЛКМ)'>Выбор студентов:</p>
                             <div>{{del_std_form.studs}}</div>
                         </div>
@@ -152,7 +152,7 @@
             <div class="card-body">
                 <ul class="list-group">
                     <form method="POST" novalidate onSubmit="return confirm('Удалить группу?');">
-                        {% csrf_token %}
+                        {% comment %} {% csrf_token %} {% endcomment %}
                         <input type="submit" value="Удалить группу" class = 'mt-2 btn btn-danger save_button', name = 'del_group' hre>
                     </form>
                 </ul>

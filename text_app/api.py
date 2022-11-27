@@ -1,8 +1,8 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 import json
 
-from .models import TblGrade, TblLanguage, TblReason, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from user_app.models import TblUser
+from .models import TblGrade, TblReason, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from user_app.models import TblUser, TblLanguage
 from .api_src import past_in_template
 from datetime import datetime
 

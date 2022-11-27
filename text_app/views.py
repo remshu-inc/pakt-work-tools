@@ -1,20 +1,24 @@
 # from django.views import generic
 # from .models import TblText
 
-from .models import TblLanguage, TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from user_app.models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
+from .models import TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
+from user_app.models import TblLanguage, TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
 from text_app.models import TblTextGroup
 from django.db.models import F, Q
-
-
+from django.db import connection
 from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify, AuthorModify
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from copy import deepcopy
-from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text
+from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text, check_is_superuser
 import datetime
 from log_app.views import log_text
 
+import os
+# os.environ['NLTK_DATA'] = '/var/www/lingo/nltk_data'
+
+ASSESSMENT_CHOICES = {TblText.TASK_RATES[i][0]:TblText.TASK_RATES[i][1]\
+    for i in range(len(TblText.TASK_RATES))}
 
 # Test
 
@@ -22,18 +26,29 @@ from log_app.views import log_text
 #     queryset = TblText.objects
 #     template_name = 'corpus.html'
 
-def show_files(request, language = None, text_type = None):
+def show_files(request, language = None, text_type = None):    
     # Для выбора языка
     
     if not request.user.is_authenticated:
         return redirect('home')
     elif request.user.is_teacher():
         form_search = SearchTextForm()
+
     else:
         form_search = False
         
-    # if request.POST['corpus_search']:
-        # return redirect(request) 
+    print(form_search)
+
+    students = TblStudent.objects.all()
+    
+    all_students = []
+    count = 1
+    for student in students:
+        try:
+            user = TblUser.objects.filter(id_user = student.user_id).first()
+            all_students.append([user.id_user, user.last_name + ' ' + user.name])
+        except:
+            count += 1
     
     if language == None:
         try:
@@ -50,7 +65,8 @@ def show_files(request, language = None, text_type = None):
                 
             list_language = TblLanguage.objects.all().order_by(order_by)
 
-            return render(request, "corpus.html", context= {'list_language': list_language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse})
+            return render(request, "corpus.html", context= {'list_language': list_language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students})
+
             
         # except TblLanguage.DoesNotExist:
         # TODO: прописать исключение для каждой ошибки?
@@ -79,7 +95,7 @@ def show_files(request, language = None, text_type = None):
         if len(list_text_type) == 0:
             return(render(request, "corpus.html", context = {'error': True, 'text_html':'Text type not found'}))
         else:
-            return(render(request, "corpus.html", context= {'list_text_type': list_text_type, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse}))
+            return(render(request, "corpus.html", context= {'list_text_type': list_text_type, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students}))
         
     # Для выбора текста
     else:
@@ -117,8 +133,7 @@ def show_files(request, language = None, text_type = None):
                 list_text_and_user.append([text, ''])
             else:
                 list_text_and_user.append([text, user.last_name + ' ' + user.name])
-            
-        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse}))
+        return(render(request, "corpus.html", context= {'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students}))
     
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
   
@@ -182,20 +197,44 @@ def new_text(request, language = None, text_type = None):
     
     if request.method == 'POST':
         from nltk.tokenize import sent_tokenize, word_tokenize
-        form_text = TextCreationForm(request.user, language_object[0], text_type_objects[0], data=request.POST)
+        if not request.user.is_authenticated:
+            return redirect('home')
+        elif request.user.is_teacher():
+            custom_user = TblUser.objects.filter(id_user = request.POST['student']).first()
+        else:
+            custom_user = request.user
+      
+        student = TblStudent.objects.filter(user_id = custom_user.id_user).first()
+        groups = TblStudentGroup.objects.filter(student_id = student.id_student).values_list('group_id', flat=True) 
+        
+        student_groups = TblGroup.objects.filter(id_group__in = groups)
+            
+        form_text = TextCreationForm(custom_user, language_object[0], text_type_objects[0], data=request.POST)
         
         if form_text.is_valid():
-            text = form_text.save()
+            text = form_text.save(commit=False)
+            # print(text)
+            text.modified_date = text.create_date
+            text = text.save()
+            # print(text)
+            
+
+            
+            textgroup = TblTextGroup(
+                group_id = request.POST['student_group'],
+                text_id = text.id_text
+            )
+            textgroup.save()
+            
+            
             count_sent = 0
             for sent in sent_tokenize(text.text):
                 sent_object = TblSentence(
                     text_id = text,
                     text = sent,
                     order_number = count_sent
-                )
-                print(sent_object)
+                )   
                 sent_object.save()
-                print(sent_object)
                 count_sent += 1
                 
                 count_token = 0
@@ -209,7 +248,7 @@ def new_text(request, language = None, text_type = None):
                     
                     count_token += 1
                     
-            log_text('create', request.user, text.header, text.user_id, language, text_type)
+            # log_text('create', request.user, text.header, text.user_id, language, text_type)
 
             return redirect('/corpus/' + language + '/' + text_type)
         else:
@@ -217,9 +256,46 @@ def new_text(request, language = None, text_type = None):
             pass
             
     else:
-        form_text = TextCreationForm(request.user, language_object[0], text_type_objects[0])
+        custom_user = request.user
+        student = TblStudent.objects.filter(user_id = custom_user.id_user).first()
+        groups = TblStudentGroup.objects.filter(student_id = student.id_student).values_list('group_id', flat=True) 
+        student_groups = TblGroup.objects.filter(id_group__in = groups)
         
-    return render(request, 'new_text.html', {'form_text': form_text})
+        form_text = TextCreationForm(custom_user, language_object[0], text_type_objects[0])
+        return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': student})
+        
+        
+    return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': request.POST['student']})
+
+def delete_text(request):
+    """Function for delete student's text
+
+    Args:
+        request (_type_): _description_
+
+    Returns:
+        html: redirect to back page
+    """    
+    
+    if not request.user.is_authenticated:
+        return redirect('home')
+    elif not check_is_superuser(request.user.id_user):
+        return redirect('home')
+
+    if request.method == 'POST':
+        language = request.POST['language']
+        text_type = request.POST['text_type']
+        text_id = request.POST['text_id']
+        
+        TblTokenMarkup.objects.filter(token_id__sentence_id__text_id = text_id).delete()
+        TblMarkup.objects.filter(token_id__sentence_id__text_id = text_id).delete()
+        TblToken.objects.filter(sentence_id__text_id = text_id).delete()
+        TblSentence.objects.filter(text_id = text_id).delete()
+        TblTextGroup.objects.filter(text_id = text_id).delete()
+        TblText.objects.filter(id_text = text_id).delete()
+        
+    return(redirect('/corpus/' + language + '/' + text_type))    
+
 
 def _drop_none(info_dict:dict, ignore:list):
     result = {}
@@ -258,6 +334,9 @@ def _get_text_info(text_id:int):
         'self_rating',
         'student_assesment',
         'assessment',
+        'completeness',
+        'structure',
+        'coherence',
         'teacher_id__user_id__name',
         'teacher_id__user_id__last_name',
         'pos_check',
@@ -280,8 +359,18 @@ def _get_text_info(text_id:int):
         group_number = 'Отсутствует'
 
     raw_info = _drop_none(raw_info,['assessment','pos_check','error_tag_check'])
+    
     raw_info['assessment'] = False if not raw_info['assessment']\
-         or raw_info['assessment'] < 0 else raw_info['assessment']
+         or raw_info['assessment'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['assessment']]
+
+    raw_info['completeness'] = 'Не указано' if not raw_info['completeness']\
+         or raw_info['completeness'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['completeness']]
+
+    raw_info['structure'] = 'Не указано' if not raw_info['structure']\
+         or raw_info['structure'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['structure']]
+
+    raw_info['coherence'] = 'Не указано' if not raw_info['coherence']\
+         or raw_info['coherence'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['coherence']]
 
     assessment_name = str(raw_info['teacher_id__user_id__name']) + ' ' +\
              str(raw_info['teacher_id__user_id__last_name'])
@@ -321,7 +410,9 @@ def _get_text_info(text_id:int):
 
         #Оценка работы
         'assessment': raw_info['assessment'],
-
+        'completeness': raw_info['completeness'],
+        'structure': raw_info['structure'],
+        'coherence': raw_info['coherence'],
         'teacher_name': assessment_name,
 
         'pos_check':raw_info['pos_check'],
@@ -339,6 +430,9 @@ def assessment_form(request, text_id = 1, **kwargs):
     
         initial_values = TblText.objects.filter(id_text = text_id).values(
                 'assessment',
+                'completeness',
+                'structure',
+                'coherence',
                 'pos_check',
                 'error_tag_check').all()[0]
 
@@ -351,14 +445,29 @@ def assessment_form(request, text_id = 1, **kwargs):
 
                 if form.is_valid():
                     assessment = form.cleaned_data['assessment']
+                    completeness = form.cleaned_data['completeness']
+                    structure = form.cleaned_data['structure']
+                    coherence = form.cleaned_data['coherence']
+
                     pos_check = form.cleaned_data['pos_check']
                     error_tag_check = form.cleaned_data['error_tag_check']
         
                     if assessment != initial_values['assessment'] and request.user.is_teacher():
                         teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
-                        print(teacher_id)
                         form.instance.teacher = teacher_id
-                    
+
+                    if completeness != initial_values['completeness'] and request.user.is_teacher():
+                        teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
+                        form.instance.teacher = teacher_id
+
+                    if structure != initial_values['structure'] and request.user.is_teacher():
+                        teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
+                        form.instance.teacher = teacher_id
+
+                    if coherence != initial_values['coherence'] and request.user.is_teacher():
+                        teacher_id = TblTeacher.objects.get(user_id = request.user.id_user)
+                        form.instance.teacher = teacher_id
+
                     if pos_check != initial_values['pos_check']:
                         form.instance.pos_check_user = TblUser.objects.get(id_user =\
                              request.user.id_user)
@@ -388,7 +497,7 @@ def meta_form(request, text_id = 1, **kwargs):
         .filter(id_text = text_id).values('user_id')[0]['user_id']:
         
         initial_values = TblText.objects.filter(id_text = text_id).values(
-                            'emotional',
+            'emotional',
             'write_tool',
             'write_place',
             'education_level',
@@ -416,6 +525,7 @@ def meta_form(request, text_id = 1, **kwargs):
 
 
 def show_text(request, text_id = 1, language = None, text_type = None):
+
     text_info  = TblText.objects.filter(id_text = text_id).values('header','language_id', 'language_id__language_name', 'user_id').all()
     if text_info.exists() and check_permissions_show_text(request.user.id_user, text_id):
         header = text_info[0]['header']
@@ -441,6 +551,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
                     'parent_id':parent_id,
                     'tag_color':element['tag_color']
                 })
+
         reasons = TblReason.objects.filter(reason_language_id = text_language).values('id_reason','reason_name')
         grades = TblGrade.objects.filter(grade_language_id = text_language).values('id_grade','grade_name')
         annotation_form = get_annotation_form(grades,reasons)
@@ -450,21 +561,65 @@ def show_text(request, text_id = 1, language = None, text_type = None):
 
         text_meta_info = _get_text_info(text_id)
 
-        return render(request, "work_area.html", context= {
-            'founded':True,
-            'ann_right':ann_right,
-            'teacher': request.user.is_teacher(),
-            'text_owner':text_owner,
-            'user_id':request.user.id_user,
-            'annotation_form':annotation_form, 
-            'text_id':text_id,
-            'lang_name':text_language_name,
-            'text_info':text_meta_info
-            })
+        if request.user.is_teacher() and text_language == 1:
+            cursor = connection.cursor()
+            cursor.execute(f'CALL getallMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp, @dis, @skip, @extra);')
+            cursor.execute("SELECT @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp, @dis, @skip, @extra;")
+            auto_degree = cursor.fetchone()
+            grammatik = auto_degree[0:4]
+            lexik  =    auto_degree[4:8]
+            orth = auto_degree[8:12]
+            dis = auto_degree[12]
+            skip = auto_degree[13]
+            extra = auto_degree[14]
+            cursor.close()
+
+        if request.user.is_teacher() and text_language == 1:
+            return render(request, "work_area.html", context= {
+                'founded':True,
+                'ann_right':ann_right,
+                'teacher': request.user.is_teacher(),
+                'superuser': check_is_superuser(request.user.id_user),
+                'text_owner':text_owner,
+                'user_id':request.user.id_user,
+                'annotation_form':annotation_form, 
+                'text_id':text_id,
+                'lang_name':text_language_name,
+                'text_info':text_meta_info,
+                'auto_degree':True,
+                'auto_grammatik': grammatik,
+                'auto_lexik':lexik,
+                'count_dis':dis,
+                'count_skip':skip,
+                'count_extra':extra,
+                'auto_orth':orth,
+                'language': language,
+                'text_type': text_type,
+                })
+            
+        else:
+            return render(request, "work_area.html", context= {
+                'founded':True,
+                'ann_right':ann_right,
+                'teacher': request.user.is_teacher(),
+                'superuser': check_is_superuser(request.user.id_user),
+                'text_owner':text_owner,
+                'user_id':request.user.id_user,
+                'annotation_form':annotation_form, 
+                'text_id':text_id,
+                'lang_name':text_language_name,
+                'text_info':text_meta_info,
+                'auto_degree':False,
+                'language': language,
+                'text_type': text_type,
+                })
     else:
         return render(request, 'work_area.html', context={'founded':False})
 
 def author_form(request, text_id = 1, **kwargs):
+    url = request.get_full_path()
+    go_back_url = url[:url.rfind('/')]
+
     no_error = True
     is_student = True
     right = True
@@ -476,7 +631,7 @@ def author_form(request, text_id = 1, **kwargs):
     creator = TblText.objects.filter(id_text = text_id).all()
 
     if request.user.is_teacher():
-        labels = TblStudentGroup.objects.all()\
+        labels = TblStudentGroup.objects.all().filter(student_id__user_id__language_id = request.user.language_id)\
             .order_by(
                 'student_id__user_id__last_name',
                 'student_id__user_id__name',
@@ -513,7 +668,10 @@ def author_form(request, text_id = 1, **kwargs):
 
             if student_id.exists():
                 student_id = student_id.values('user_id','user_id__login','user_id__last_name', 'user_id__name', 'user_id__patronymic')[0]
-                current_group = current_group.values('group_id','group_id__group_name', 'group_id__enrollement_date')[0]
+                current_group = current_group.values(
+                    'group_id',
+                    'group_id__group_name',
+                    'group_id__enrollement_date')[0]
 
                 initial = (str(student_id['user_id'])+' '\
                                 +str(current_group['group_id']),
@@ -531,7 +689,6 @@ def author_form(request, text_id = 1, **kwargs):
 
     elif creator.exists() and creator.values('user_id')[0]['user_id'] == request.user.id_user:
         student_id = TblStudent.objects.filter(user_id = creator.values('user_id')[0]['user_id'])
-        print('Гыг лошара')
         
         if student_id.exists():
             labels = TblStudentGroup.objects.\
@@ -570,21 +727,22 @@ def author_form(request, text_id = 1, **kwargs):
             'no_error':no_error,
             'is_student': is_student,
             'is_teacher':request.user.is_teacher(),
-            'form': AuthorModify(options, initial)
+            'form': AuthorModify(options, initial),
+            'go_back':go_back_url,
         }))
 
     else:
         form = AuthorModify(options, initial, request.POST or None)
         if form.is_valid():
             value = form.cleaned_data['user'] 
-        
+
             if request.user.is_teacher():
                 if value and  ' ' in value\
                     and value.split(' ')[0].isnumeric()\
                     and value.split(' ')[1].isnumeric():
                     
-                    user_id = int(value.split(' ')[0].isnumeric())
-                    group_id = int(value.split(' ')[1].isnumeric())
+                    user_id = int(value.split(' ')[0])
+                    group_id = int(value.split(' ')[1])
 
                     text =  TblText.objects.get(id_text = text_id)
                     text.user_id = user_id
@@ -627,7 +785,8 @@ def author_form(request, text_id = 1, **kwargs):
             'no_error':no_error,
             'is_student': is_student,
             'is_teacher':request.user.is_teacher(),
-            'form': AuthorModify(options,initial)
+            'form': AuthorModify(options,initial),
+            'go_back':go_back_url,
         }))
 
 
