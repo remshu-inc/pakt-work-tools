@@ -195,7 +195,8 @@ def get_stat(request):
         else:
             form = StatisticForm(request.user.language_id, request.POST or None)
             if form.is_valid():
-                group_id = int(form.cleaned_data['group'][0])
+                
+                group_id = int(form.cleaned_data['group'])
             
                 stat_res = built_group_stat(group_id, request.user.id_user)
                 if stat_res['state']:
@@ -207,6 +208,7 @@ def get_stat(request):
 
                     remove(stat_res['folder_link'])
                     return(response)
+
                 else:
                     return(render(request, 'stat_form.html', {'right':True, 'form': StatisticForm(request.user.language_id), 'no_data':True}))
     else:

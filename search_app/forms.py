@@ -18,11 +18,13 @@ class StatisticForm(forms.Form):
             options = []        
             for group in groups:
                 options.append(
-                    (group['id_group'],
+                    (
+                    group['id_group'],
                     group['group_name']+\
                         ' ('+str(group['enrollement_date'].year)+' \ '\
                             +str(group['enrollement_date'].year+1)+')'
                     ))
+            print(options)
 
         self.fields['group'] = forms.ChoiceField(choices=options)
 

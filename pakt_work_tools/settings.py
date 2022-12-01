@@ -145,3 +145,7 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SEARCH_TMP_FOLDER_LOCAL = 'search_app/tmp/'
+SEARCH_TMP_FOLDER_SERVER = 'var/www/lingo/pakt-work-tools/search_app/tmp/'
+SEARCH_TMP_FOLDER = SEARCH_TMP_FOLDER_SERVER

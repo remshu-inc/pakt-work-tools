@@ -8,20 +8,25 @@ import numpy as np
 import os
 import shutil
 import xlsxwriter
+
+from pakt_work_tools.settings import SEARCH_TMP_FOLDER
 # def _group_stat_get_data(group_number:int, detalization:int, search_by:int):
 
 
-TMP_FOLDER = 'search_app/tmp/stat_requests/{}'
+TMP_FOLDER = SEARCH_TMP_FOLDER+'stat_requests/{}'
 
 def _queryset_to_list(query_set):
-
-    results = {key:[] for key in query_set[0].keys()}
+    if query_set.exists():
+        query_set = query_set.all()
+        results = {key:[] for key in query_set[0].keys()}
+        
+        for element in query_set:
+            for key in element.keys():
+                results[key].append(element[key])
     
-    for element in query_set:
-        for key in element.keys():
-            results[key].append(element[key])
-    
-    return(results)
+        return(results)
+    else:
+        return({})
 
 def _fill_nonstr(list_):
     result = []
@@ -67,7 +72,9 @@ def built_group_stat(group_id:int,requester_id:int):
             'group_id',
             'student_id__user_id',
             'group_id__group_name',
-            'group_id__enrollement_date').all())
+            'group_id__enrollement_date'))
+    if not students_info:
+        return({'state':False,'folder_link':''})
         # TblStudent.objects.order_by('group_number').filter(Q(group_number__in = group_numbers)).values('user_id', 'group_number').all())
 
     group_users = students_info['student_id__user_id']
