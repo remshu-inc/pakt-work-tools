@@ -187,7 +187,7 @@ class TblTag(models.Model):
 
     tag_text = models.TextField()
     tag_text_russian = models.TextField()
-    tag_text_abbrev = models.TextField(max_length=56)
+    tag_text_abbrev = models.TextField(max_length=56, default = '')
     tag_color = models.CharField(max_length=7, default="#cfcfcf")
     
     def __str__(self):
