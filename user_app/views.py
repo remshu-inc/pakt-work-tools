@@ -47,7 +47,9 @@ def signup(request):
                 return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
             
             # Save User       
-            user = form_user.save()
+            user = form_user.save(commit=False)
+            user.language = request.user.language
+            user = user.save()
             
             # Save Student
             student = form_student.save(commit=False)

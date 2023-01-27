@@ -59,6 +59,11 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
             return True
         else:
             return False
+        
+    def save(self, *args, **kwargs):
+        super(TblUser, self).save(*args, **kwargs) 
+        return self
+
     
 class TblTeacher(models.Model):
     class Meta:
