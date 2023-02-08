@@ -34,7 +34,10 @@ def past_in_template(markups, sent_length:int):
                         'ann_position': position,# отвечает за тип позиции
                         'token_id': markup['token_id'],
                         'ann_id': markup['markup_id'],
-
+                        'reason':markup[ 'markup_id__reason_id__reason_name'],
+                        'grade': markup[ 'markup_id__grade_id__grade_name'],
+                        'correct':markup[ 'markup_id__correct'],
+                        'comment':markup[ 'markup_id__comment'],
                         # 'ann_color': markup['markup_id__tag_id__tag_color'],
                         # 'tag_text': markup['markup_id__tag_id__tag_text'],
                         # 'tag_text_rus': markup['markup_id__tag_id__tag_text_russian'],

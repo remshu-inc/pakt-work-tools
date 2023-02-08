@@ -25,8 +25,9 @@ function re_built_classification(response, lang){
         selector.setAttribute('name-tag-type',`${tags[i].tag_type}`)
         selector.setAttribute('name-tag-color',`${tags[i].tag_color}`)
         selector.setAttribute('style',`background-color: ${tags[i].tag_color};`)
-        selector.setAttribute('v-on:click','SelectorClassificationSelect')
-
+        if (!String(tags[i].tag_text_abbrev).includes('#IGNORE#')){
+            selector.setAttribute('v-on:click','SelectorClassificationSelect');
+        }
         var parent = document.querySelector(`[content-tag-id = "${tags[i].parent_id}"]`)
         if(lang == 0){
             selector.innerHTML = tags[i].tag_text
@@ -145,6 +146,11 @@ function re_built_text(response, lang){
                     }
                     token_markup.setAttribute('class','annotation-subtag')
                     token_markup.setAttribute('annotation-id',mrk_info.ann_id)
+                    token_markup.setAttribute(
+                        'title', 'Причина:  '+String(mrk_info.reason)+'\n'+
+                                     'Грубость:  '+String(mrk_info.grade)+'\n'+
+                                     'Исправление:  '+String(mrk_info.correct)+'\n'+
+                                     'Комментарий:  '+String(mrk_info.comment)+'\n')
                     token_markup.setAttribute('annotation-type',response.data.markup_info[mrk_info.ann_id].markup_type)
                     token_markup.setAttribute('ann-color',response.data.markup_info[mrk_info.ann_id].tag_color)
                     token_markup.setAttribute('token-markup-id', mrk_info.token_markup_id)
@@ -838,7 +844,7 @@ textarea::-webkit-scrollbar-thumb {
     transition: 0.5s;
 }
 #annotation-create-form-close:hover > svg{
-    fill:var(--color-decline)
+    fill:var(--color-warning)
 }
 #annotation-create-form-name{
     user-select: none;

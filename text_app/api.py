@@ -18,13 +18,13 @@ def get_classification(query):
     else:
         text_language = text_info[0]['language_id']
 
-    tags = TblTag.objects.filter(tag_language_id = text_language).values('id_tag','tag_text','tag_text_russian', 'tag_parent','tag_color','markup_type_id').order_by('markup_type_id','tag_parent').all()
+    tags = TblTag.objects.filter(tag_language_id = text_language).values('id_tag','tag_text','tag_text_russian','tag_text_abbrev', 'tag_parent','tag_color','markup_type_id').order_by('markup_type_id','tag_parent').all()
 
     tags_info = []
     if tags.exists():
         for element in tags:
             parent_id = 0
-            if element['tag_parent']>0:
+            if element['tag_parent'] and element['tag_parent']>0:
                 parent_id = element['tag_parent']
             spoiler = False
             for child in tags:
@@ -37,6 +37,7 @@ def get_classification(query):
                 'tag_id':element['id_tag'],
                 'tag_text':element['tag_text'],
                 'tag_text_russian':element['tag_text_russian'],
+                'tag_text_abbrev':element['tag_text_abbrev'],
                 'parent_id':parent_id,
                 'tag_color':element['tag_color']
             })
@@ -105,7 +106,11 @@ def get_text(query):
         'id_token_markup',
         'markup_id__tag_id__markup_type_id__markup_type_name', #Название типа разметки
         'token_id__order_number',
-        'markup_id__change_date' #Номер токена в предложении,
+        'markup_id__change_date',
+        'markup_id__reason_id__reason_name',
+        'markup_id__grade_id__grade_name',
+        'markup_id__correct',
+        'markup_id__comment'
         ).order_by('markup_id__change_date').all())
 
         for i in range(len(tokens_markups)):

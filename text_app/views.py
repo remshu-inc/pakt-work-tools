@@ -536,7 +536,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
         if tags.exists():
             for element in tags:
                 parent_id = 0
-                if element['tag_parent']>0:
+                if element['tag_parent'] and element['tag_parent']>0:
                     parent_id = element['tag_parent']
                 spoiler = False
                 for child in tags:
