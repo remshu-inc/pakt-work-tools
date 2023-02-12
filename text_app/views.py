@@ -138,7 +138,6 @@ def show_files(request, language = None, text_type = None):
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
   
 def corpus_search(request):
-    print(1, request.GET)
     try:
         order_by = request.GET['order_by']
         # Covert reverse str to bool
@@ -149,12 +148,10 @@ def corpus_search(request):
     except:
         order_by = 'header'
         reverse = False
-        
-                
-    if request.GET:
-        form_search = SearchTextForm(request.GET)
+           
+    if request.POST:
+        form_search = SearchTextForm(request.POST)
         # Entry.objects.all().filter(pub_date__year=2006)
-        print(2, form_search.data['header'])
         filters = Q()
         if form_search.data['header']:
             filters &= Q(header = form_search.data['header'])
