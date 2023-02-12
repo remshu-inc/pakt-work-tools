@@ -165,6 +165,14 @@ def corpus_search(request):
             filters &= Q(create_date = form_search.data['create_date'])
         if form_search.data['modified_date']:
             filters &= Q(modified_date = form_search.data['modified_date'])
+        if form_search.data['pos_check']:
+            filters &= Q(pos_check = form_search.data['pos_check'])
+        if form_search.data['error_tag_check']:
+            filters &= Q(error_tag_check = form_search.data['error_tag_check'])
+        if form_search.data['emotional']:
+            filters &= Q(emotional = form_search.data['emotional'])
+        if form_search.data['write_place']:
+            filters &= Q(write_place = form_search.data['write_place'])
         
         list_text = TblText.objects.filter(filters).order_by(order_by)
         
