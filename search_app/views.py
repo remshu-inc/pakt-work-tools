@@ -259,8 +259,8 @@ def get_error_stats(request_data):
             text = TblToken.objects.filter(id_token=degree3[0].token_id).values(
                 'sentence_id__text_id',
                 'sentence_id__text_id__text_type_id__text_type_name'
-            )
-            stat_item["degree3_sample"] = f"/corpus/Deutsche/{text.sentence_id__text_id}/{text.sentence_id__text_id__text_type_id__text_type_name}?token={degree3[0].token_id}"
+            ).all()
+            stat_item["degree3_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id']}/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}?token={degree3[0].token_id}"
 
         stat_item['is_normal'] = "none"
         if stat_item['degree1_count'] != 0 and stat_item['degree2_count'] != 0 and stat_item['degree3_count'] != 0:
