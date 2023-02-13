@@ -193,7 +193,7 @@ class TblTag(models.Model):
     id_tag = models.AutoField(primary_key=True)
 
     markup_type = models.ForeignKey(TblMarkupType, on_delete=models.CASCADE)
-    tag_parent = models.ForeignKey('self', on_delete=models.CASCADE)
+    tag_parent = models.ForeignKey('self', on_delete=models.CASCADE, null = True)
     tag_language = models.ForeignKey(TblLanguage, on_delete=models.CASCADE)
 
     tag_text = models.TextField()
@@ -213,6 +213,7 @@ class TblGrade(models.Model):
 
     grade_name = models.CharField(max_length=255)
     grade_language = models.ForeignKey(TblLanguage, on_delete=models.SET_NULL, blank=True, null=True)
+    grade_abbrev = models.CharField(max_length=30, default= '', null = True)
 
     def __str__(self):
         return self.grade_name
@@ -226,6 +227,7 @@ class TblReason(models.Model):
 
     reason_name = models.CharField(max_length=255)
     reason_language = models.ForeignKey(TblLanguage, blank=True, null=True, on_delete=models.SET_NULL)
+    reason_abbrev = models.CharField(max_length=30, default= '', null = True)
 
     def __str__(self):
         return self.reason_name

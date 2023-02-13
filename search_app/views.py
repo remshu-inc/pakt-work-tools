@@ -64,8 +64,16 @@ def _filter_shaping(cql):
 
     # Обрабокта токенов с указанными тегами ошибок и частеречной разметки
     elif 'error=' in cql or 'pos=' in cql:
-        return Q(Q(tag_id__tag_text=word) | Q(tag_id__tag_text_russian=word))
+        return Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word) | Q(tag_id__tag_text_abbrev = word))
 
+    # Обработка токенов с указанными степенями грубости ошибки
+    elif 'grade=' in cql:
+        return Q(Q(grade_id__grade_name = word) | Q(grade_id__grade_abbrev = word))
+
+    # Обработка токенов с указанными причинами ошибки
+    elif 'reason=' in cql:
+        return Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word))
+        
     # Обработка токенов не соответсвующих словоформе
     if 'word!=' in cql:
         # REGEX
@@ -80,8 +88,16 @@ def _filter_shaping(cql):
 
     # Обрабокта токенов без указанных тегов ошибок и частеречной разметки
     elif 'error!=' in cql or 'pos!=' in cql:
-        return ~Q(Q(tag_id__tag_text=word) | Q(tag_id__tag_text_russian=word))
+        return ~Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word) | Q(tag_id__tag_text_abbrev = word) )
 
+    # Обрабокта токенов без указанных степеней грубости ошибки
+    elif 'grade!=' in cql:
+        return ~Q(Q(grade_id__grade_name = word) | Q(grade_id__grade_abbrev = word))
+
+    # Обрабокта токенов без указанных причин ошибки
+    elif 'reason!=' in cql:
+        return ~Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word))
+    
     return None
 
 

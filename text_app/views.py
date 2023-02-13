@@ -138,7 +138,6 @@ def show_files(request, language = None, text_type = None):
     return(render(request, "corpus.html", context = {'text_html':'<div id = "Text_found_err">404 Not Found<\div>'}))
   
 def corpus_search(request):
-    print(1, request.GET)
     try:
         order_by = request.GET['order_by']
         # Covert reverse str to bool
@@ -149,12 +148,10 @@ def corpus_search(request):
     except:
         order_by = 'header'
         reverse = False
-        
-                
-    if request.GET:
-        form_search = SearchTextForm(request.GET)
+           
+    if request.POST:
+        form_search = SearchTextForm(request.POST)
         # Entry.objects.all().filter(pub_date__year=2006)
-        print(2, form_search.data['header'])
         filters = Q()
         if form_search.data['header']:
             filters &= Q(header = form_search.data['header'])
@@ -168,6 +165,14 @@ def corpus_search(request):
             filters &= Q(create_date = form_search.data['create_date'])
         if form_search.data['modified_date']:
             filters &= Q(modified_date = form_search.data['modified_date'])
+        if form_search.data['pos_check']:
+            filters &= Q(pos_check = form_search.data['pos_check'])
+        if form_search.data['error_tag_check']:
+            filters &= Q(error_tag_check = form_search.data['error_tag_check'])
+        if form_search.data['emotional']:
+            filters &= Q(emotional = form_search.data['emotional'])
+        if form_search.data['write_place']:
+            filters &= Q(write_place = form_search.data['write_place'])
         
         list_text = TblText.objects.filter(filters).order_by(order_by)
         
@@ -536,7 +541,7 @@ def show_text(request, text_id = 1, language = None, text_type = None):
         if tags.exists():
             for element in tags:
                 parent_id = 0
-                if element['tag_parent']>0:
+                if element['tag_parent'] and element['tag_parent']>0:
                     parent_id = element['tag_parent']
                 spoiler = False
                 for child in tags:
