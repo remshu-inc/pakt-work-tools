@@ -116,7 +116,12 @@ class SearchTextForm(forms.ModelForm):
     
     class Meta:
         model = TblText
-        fields = ('header', 'user', 'create_date', 'modified_date', 'creation_course', 'language', 'text_type', 'emotional', 'write_tool', 'write_place', 'education_level', 'self_rating', 'student_assesment')
+        fields = ('header', 'user', 'create_date', 'modified_date', 'creation_course', 'language', 'text_type', 'emotional', 'write_tool', 'write_place', 'education_level', 'self_rating', 'student_assesment', 'creation_course', 'pos_check', 'error_tag_check')
+        
+        CHOICES_CHECK = (
+            ('0', 'Не указано'),
+            ('1', 'Проверенно'),
+        )
         
         widgets = {
             'header': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название текста', 'aria-describedby': 'button-addon'}),
@@ -130,6 +135,8 @@ class SearchTextForm(forms.ModelForm):
             'self_rating': forms.Select(attrs={'class': 'form-control'}),
             'student_assesment': forms.Select(attrs={'class': 'form-control'}),
             'creation_course': forms.Select(attrs={'class': 'form-control'}),
+            'pos_check': forms.Select(attrs={'class': 'form-control'}, choices=CHOICES_CHECK),
+            'error_tag_check': forms.Select(attrs={'class': 'form-control'}, choices=CHOICES_CHECK),
         }
 
 class AssessmentModify(forms.ModelForm):
