@@ -254,20 +254,22 @@ def get_error_stats(request_data):
         stat_item["degree1_count"] = len(degree1)
         stat_item["degree1_sample"] = ""
         if len(degree1) != 0:
-            token = TblToken.objects.filter(id_token=degree1[0].token_id).get()
-            sentence = TblSentence.objects.filter(Q(id_sentence=token.sentence_id)).get()
-            text = TblText.objects.filter(Q(header=sentence.text_id)).get()
-            text_type = TblTextType.objects.filter(Q(id_text_type=text.text_type_id)).get()
-            stat_item["degree1_sample"] = f"/corpus/Deutsche/{text_type.text_type_name}/{text.id_text}?token={degree1[0].token_id}"
+            text = TblToken.objects.filter(id_token=degree1[0].token_id).values(
+                'sentence_id__text_id',
+                'sentence_id__text_id__text_type_id__text_type_name'
+            ).all()
+            if len(text) > 0:
+                stat_item["degree1_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}/{text[0]['sentence_id__text_id']}?token={degree1[0].token_id}"
 
         degree2 = TblMarkup.objects.filter(tag_id=tag_item.id_tag, grade_id=2)
         stat_item["degree2_count"] = len(degree2)
         if len(degree2) != 0:
-            token = TblToken.objects.filter(id_token=degree2[0].token_id).get()
-            sentence = TblSentence.objects.filter(Q(id_sentence=token.sentence_id)).get()
-            text = TblText.objects.filter(Q(header=sentence.text_id)).get()
-            text_type = TblTextType.objects.filter(Q(id_text_type=text.text_type_id)).get()
-            stat_item["degree2_sample"] = f"/corpus/Deutsche/{text_type.text_type_name}/{text.id_text}?token={degree2[0].token_id}"
+            text = TblToken.objects.filter(id_token=degree2[0].token_id).values(
+                'sentence_id__text_id',
+                'sentence_id__text_id__text_type_id__text_type_name'
+            ).all()
+            if len(text) > 0:
+                stat_item["degree2_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}/{text[0]['sentence_id__text_id']}?token={degree2[0].token_id}"
 
         degree3 = TblMarkup.objects.filter(tag_id=tag_item.id_tag, grade_id=3)
         stat_item["degree3_count"] = len(degree3)
@@ -276,7 +278,8 @@ def get_error_stats(request_data):
                 'sentence_id__text_id',
                 'sentence_id__text_id__text_type_id__text_type_name'
             ).all()
-            stat_item["degree3_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id']}/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}?token={degree3[0].token_id}"
+            if len(text) > 0:
+                stat_item["degree3_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}/{text[0]['sentence_id__text_id']}?token={degree3[0].token_id}"
 
         stat_item['is_normal'] = "none"
         if stat_item['degree1_count'] != 0 and stat_item['degree2_count'] != 0 and stat_item['degree3_count'] != 0:
