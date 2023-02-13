@@ -64,11 +64,11 @@ def _filter_shaping(cql):
     
     # Обрабокта токенов с указанными степенями грубости ошибки
     elif 'grade=' in cql:
-        return Q(Q(grade_id__grade_name = word))
+        return Q(Q(grade_id__grade_name = word) | Q(grade_id__grade_abbrev = word))
     
     # Обрабокта токенов с указанными причинами ошибки
     elif 'reason=' in cql:
-        return Q(Q(reason_id__reason_name = word))
+        return Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word)))
         
     # Обработка токенов не соответсвующих словоформе
     if 'word!=' in cql:
@@ -88,11 +88,11 @@ def _filter_shaping(cql):
     
     # Обрабокта токенов без указанных степеней грубости ошибки
     elif 'grade!=' in cql:
-        return ~Q(Q(grade_id__grade_name = word))
+        return ~Q(Q(grade_id__grade_name = word) | Q(grade_id__grade_abbrev = word))
     
     # Обрабокта токенов без указанных причин ошибки
     elif 'reason!=' in cql:
-        return ~Q(Q(reason_id__reason_name = word))
+        return ~Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word))
     
     return None
         
