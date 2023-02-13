@@ -57,9 +57,11 @@ def get_text(query):
         return(JsonResponse({}))#TODO Ошибку бы сюда прописать, а то вдруг, а то как
     sentences_id = [element['id_sentence'] for element in sentences]
     #* Получение инфы о маркапах
-    markup_info = {element['id_markup']:{
+    markup_info = {
+        element['id_markup']:{
         'tag_text':element['tag_id__tag_text'],
         'tag_text_russian':element['tag_id__tag_text_russian'],
+        'tag_text_abbrev':element['tag_id__tag_text_abbrev'],
         'tag_id':element['tag_id'],
         'markup_type':element['tag_id__markup_type_id'],
         'tag_color':element['tag_id__tag_color'],
@@ -75,6 +77,7 @@ def get_text(query):
             'id_markup', 
             'tag_id__tag_text',
             'tag_id__tag_text_russian',
+            'tag_id__tag_text_abbrev',
             'tag_id',
             'tag_id__markup_type_id',
             'tag_id__tag_color', 

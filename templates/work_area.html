@@ -137,20 +137,36 @@ function re_built_text(response, lang){
                 if(mrk_info.isann){
                     token_markup = document.createElement('div')
                     if(mrk_info.display){
-                        if( lang == 0){
-                            token_markup.innerHTML =response.data.markup_info[mrk_info.ann_id].tag_text
+                        if(response.data.markup_info[mrk_info.ann_id].tag_text_abbrev){
+                            token_markup.innerHTML =  response.data.markup_info[mrk_info.ann_id].tag_text_abbrev
                         }
-                        else {
-                            token_markup.innerHTML = response.data.markup_info[mrk_info.ann_id].tag_text_russian
+                        else{
+                            if( lang == 0){
+                                token_markup.innerHTML =response.data.markup_info[mrk_info.ann_id].tag_text
+                            }
+                            else {
+                                token_markup.innerHTML = response.data.markup_info[mrk_info.ann_id].tag_text_russian
+                            }
                         }
                     }
                     token_markup.setAttribute('class','annotation-subtag')
                     token_markup.setAttribute('annotation-id',mrk_info.ann_id)
-                    token_markup.setAttribute(
-                        'title', 'Причина:  '+String(mrk_info.reason)+'\n'+
-                                     'Грубость:  '+String(mrk_info.grade)+'\n'+
-                                     'Исправление:  '+String(mrk_info.correct)+'\n'+
-                                     'Комментарий:  '+String(mrk_info.comment)+'\n')
+                    if(lang==0){
+                        token_markup.setAttribute(
+                            'title',String(response.data.markup_info[mrk_info.ann_id].tag_text)+'\n'+
+                                        'Причина:  '+String(mrk_info.reason)+'\n'+
+                                        'Грубость:  '+String(mrk_info.grade)+'\n'+
+                                        'Исправление:  '+String(mrk_info.correct)+'\n'+
+                                        'Комментарий:  '+String(mrk_info.comment)+'\n')
+                    }
+                    else{
+                        token_markup.setAttribute(
+                            'title',String(response.data.markup_info[mrk_info.ann_id].tag_text_russian)+'\n'+
+                            'Причина:  '+String(mrk_info.reason)+'\n'+
+                            'Грубость:  '+String(mrk_info.grade)+'\n'+
+                            'Исправление:  '+String(mrk_info.correct)+'\n'+
+                            'Комментарий:  '+String(mrk_info.comment)+'\n')
+                    }
                     token_markup.setAttribute('annotation-type',response.data.markup_info[mrk_info.ann_id].markup_type)
                     token_markup.setAttribute('ann-color',response.data.markup_info[mrk_info.ann_id].tag_color)
                     token_markup.setAttribute('token-markup-id', mrk_info.token_markup_id)
