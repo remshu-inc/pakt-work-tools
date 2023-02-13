@@ -66,13 +66,13 @@ def _filter_shaping(cql):
     elif 'error=' in cql or 'pos=' in cql:
         return Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word) | Q(tag_id__tag_text_abbrev = word))
 
-    # Обрабокта токенов с указанными степенями грубости ошибки
+    # Обработка токенов с указанными степенями грубости ошибки
     elif 'grade=' in cql:
         return Q(Q(grade_id__grade_name = word) | Q(grade_id__grade_abbrev = word))
 
-    # Обрабокта токенов с указанными причинами ошибки
+    # Обработка токенов с указанными причинами ошибки
     elif 'reason=' in cql:
-        return Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word)))
+        return Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word))
         
     # Обработка токенов не соответсвующих словоформе
     if 'word!=' in cql:
