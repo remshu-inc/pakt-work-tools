@@ -65,22 +65,25 @@
                 <div class = "section-head-text">
                     <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#analysis" role="button" aria-expanded="false" aria-controls="analysis">
                     Анализ
-                    <a>
+                    </a>
                 </div>
             </div>
             <div class='collapse' id='analysis'>
             <div class="card-body non-padding">
                 <ul class="list-group">
-                    <a href = "{% url 'statistic'%}" class = 'btn btn-primary section-row-button' >
-                        Статистика по ошибкам
-                    </a>
+                    <li><a href = "{% url 'statistic'%}" class = 'btn btn-primary section-row-button' >
+                        Статистика по ошибкам в группах
+                    </a></li>
+                    <li><a href="{% url 'error-stats'%}"  class = 'btn btn-primary section-row-button' >
+                        Суммарная статистика по ошибкам
+                    </a></li>
                 </ul>
             </div>
         </div>
         </div>
 
 {%else%}
-<h1>Отказано в доступе<h1>
+<h1>Отказано в доступе</h1>
 {%endif%}
 
 {%endblock%}
