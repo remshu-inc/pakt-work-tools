@@ -259,7 +259,7 @@ def get_error_stats(request_data):
                 'sentence_id__text_id__text_type_id__text_type_name'
             ).all()
             if len(text) > 0:
-                stat_item["degree1_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}/{text[0]['sentence_id__text_id']}?token={degree1[0].token_id}"
+                stat_item["degree1_sample"] = ("Deutsche", text[0]['sentence_id__text_id__text_type_id__text_type_name'], text[0]['sentence_id__text_id'])
 
         degree2 = TblMarkup.objects.filter(tag_id=tag_item.id_tag, grade_id=2)
         stat_item["degree2_count"] = len(degree2)
@@ -269,7 +269,7 @@ def get_error_stats(request_data):
                 'sentence_id__text_id__text_type_id__text_type_name'
             ).all()
             if len(text) > 0:
-                stat_item["degree2_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}/{text[0]['sentence_id__text_id']}?token={degree2[0].token_id}"
+                stat_item["degree2_sample"] = ("Deutsche", text[0]['sentence_id__text_id__text_type_id__text_type_name'], text[0]['sentence_id__text_id'])
 
         degree3 = TblMarkup.objects.filter(tag_id=tag_item.id_tag, grade_id=3)
         stat_item["degree3_count"] = len(degree3)
@@ -279,7 +279,7 @@ def get_error_stats(request_data):
                 'sentence_id__text_id__text_type_id__text_type_name'
             ).all()
             if len(text) > 0:
-                stat_item["degree3_sample"] = f"/corpus/Deutsche/{text[0]['sentence_id__text_id__text_type_id__text_type_name']}/{text[0]['sentence_id__text_id']}?token={degree3[0].token_id}"
+                stat_item["degree3_sample"] = ("Deutsche", text[0]['sentence_id__text_id__text_type_id__text_type_name'], text[0]['sentence_id__text_id'])
 
         stat_item['is_normal'] = "none"
         if stat_item['degree1_count'] != 0 and stat_item['degree2_count'] != 0 and stat_item['degree3_count'] != 0:
