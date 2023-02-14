@@ -10,7 +10,7 @@ urlpatterns = [
     path('corpus/delete_text', views.delete_text, name='delete_text'),
 
     path('corpus/<str:language>/<str:text_type>/new_text', views.new_text, name='new_text'),
-    path('corpus/<str:language>/<str:text_type>/<int:text_id>/', views.show_text),
+    path('corpus/<str:language>/<str:text_type>/<int:text_id>/', views.show_text, name='text_view'),
     path('show_text/api/get_classification', api.get_classification, name = 'get_classification'),
     path('show_text/api/add_empty_token', api.add_empty_token, name = 'add_empty_token'),
     path('show_text/api/get_text', api.get_text, name='get_text'),
