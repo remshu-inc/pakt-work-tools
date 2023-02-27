@@ -232,6 +232,15 @@ td{
     overflow-y: hidden;
     background-color: rgba(0, 0, 0, 0.452);
 }
+#text-path{
+    color: var(--color-primary);
+    padding:0.5rem 1rem;
+    font-size: 18pt;
+    background-color: rgba(var(--bs-light-rgb));
+    width: 100%;
+    position: inherit;
+    border-bottom: 1px #6d6d6d00 solid;
+}
 #over-text{
     font-family: Arial, Helvetica, sans-serif;
     user-select: none;
@@ -239,11 +248,11 @@ td{
 .over-text-fields{
     display:inline-block;
     margin-left:-4px;
-    width:230px;
+    width:150px;
 }
 .over-text-labels{
     text-align: center;
-    width:230px;
+    width:150px;
     border-right: 1px #6d6d6d7a solid;
     border-bottom: 1px #6d6d6d00 solid;
     margin-left:-4px;
@@ -264,9 +273,9 @@ td{
 
 .over-text-menu{
     display: none;
-    position: absolute;
-    min-width:230px;
-    top:55px;
+    position:absolute;
+    min-width:150px;
+    top:110px;
     border: 1px solid #00bfe6;
     color: white;
     font-weight: 600;
@@ -386,9 +395,12 @@ td{
     {%block annotation_watch_form_html%}{%endblock%}
 </div>
 {%endif%}
+<div id = "text-path">
+    {{lang_name}}/{{text_info.text_type}}/{{text_info.text_name}}
+</div>
 <div id = "over-text">
     <div id="display-settings" class="over-text-fields">
-        <div id="display-settings-label" class = "over-text-labels">Настройки отображения</div>
+        <div id="display-settings-label" class = "over-text-labels">Вид</div>
             <div id = "text-options" class = 'over-text-menu'>
                 <div id="lang-change-area" v-on:change="ChangeLang">
                     <label>Язык разметки:</label>
@@ -414,14 +426,14 @@ td{
     </div>
     
     <div id="text-info-field" class="over-text-fields">
-        <div id="display-text-info-label", class = "over-text-labels">Информация о тексте</div>
+        <div id="display-text-info-label", class = "over-text-labels">О тексте</div>
         <div id = 'text-info-menu' class = 'over-text-menu'>
             <ul class = 'meta-list'>
-                <li class = 'meta-row'>Название:
+                {% comment %} <li class = 'meta-row'>Название:
                     <font class = 'normal-meta-field'>{{text_info.text_name}}</font>
                 </li>
                 <li class = 'meta-row'>Тип текста: 
-                    <font class = 'normal-meta-field'>{{text_info.text_type}}</font></li>
+                    <font class = 'normal-meta-field'>{{text_info.text_type}}</font></li> {% endcomment %}
                 <li class = 'meta-row'>Курс создания: 
                     <font class = 'normal-meta-field'>{{text_info.course}}</font></li>
                 <li class = 'meta-row'>Дата создания: 
@@ -434,7 +446,7 @@ td{
     </div>
 
     <div id="author-info-field" class="over-text-fields">
-        <div id="display-author-info-label", class = "over-text-labels">Информация об авторе</div>
+        <div id="display-author-info-label", class = "over-text-labels">Об авторе</div>
         <div id = 'author-info-menu' class = 'over-text-menu'>
             <ul class = 'meta-list'>
                 <li class = 'meta-row'>Автор: 
@@ -472,7 +484,7 @@ td{
     </div>
 
     <div id="assessment-info-field" class="over-text-fields">
-        <div id="display-assessment-info-label", class = "over-text-labels">Проверка работы</div>
+        <div id="display-assessment-info-label", class = "over-text-labels">Проверка</div>
         <div id = 'assessment-info-menu' class = 'over-text-menu'>
             <ul class = 'meta-list'>
                 {%if text_info.assessment%}
@@ -519,7 +531,7 @@ td{
         </div>
         {% if auto_degree%}
     <div id="auto-degree-field" class="over-text-fields">
-        <div id="display-auto-degree-label", class = "over-text-labels">Автоматическая оценка</div>
+        <div id="display-auto-degree-label", class = "over-text-labels">Автооценка</div>
         <div id = 'auto-degree-menu' class = 'over-text-menu'>
             <label>Грамматика</label>
             <ul class = 'meta-list'>
@@ -591,7 +603,7 @@ td{
             <input type="hidden" name="language" value="{{ language }}">
             <input type="hidden" name="text_type" value="{{ text_type }}">
             <input type="hidden" name="text_id" value="{{ text_id }}">
-            <button type="submit" class="over-text-labels" style="background-color: #dc3545; border: none; color:white">Удалить текст</button>
+            <button type="submit" class="over-text-labels" id="'del-text-btn" style="background-color: #dc3545; border: none; color:white" onclick="return confirm('Удалить текст?')">Удаление</button>
         </form>
     {%endif%} 
     </div>

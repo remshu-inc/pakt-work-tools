@@ -37,8 +37,6 @@ def show_files(request, language = None, text_type = None):
 
     else:
         form_search = False
-        
-    print(form_search)
 
     students = TblStudent.objects.all()
     
