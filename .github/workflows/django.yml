@@ -20,7 +20,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: Vh7PPkk7HvuzEmK9
-          MYSQL_DATABASE: test_lingo
+          MYSQL_DATABASE: lingo
         ports: ['3306:3306']
 
     steps:
