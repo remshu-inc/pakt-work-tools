@@ -239,53 +239,56 @@ td{
     background-color: rgba(var(--bs-light-rgb));
     width: 100%;
     position: inherit;
-    border-bottom: 1px #6d6d6d00 solid;
+    border-bottom: 1px #d7d7d7 solid;
 }
 #over-text{
     font-family: Arial, Helvetica, sans-serif;
     user-select: none;
-}
-.over-text-fields{
-    display:inline-block;
-    margin-left:-4px;
-    width:150px;
-}
-.over-text-labels{
-    text-align: center;
-    width:150px;
-    border-right: 1px #6d6d6d7a solid;
-    border-bottom: 1px #6d6d6d00 solid;
-    margin-left:-4px;
-}
-.over-text-labels:hover{
-    background-color: #00bfe6;
-    color: white;
-    transition: 0.5s;
+    border-bottom: 1px #6d6d6d7a solid;
 }
 
-.meta-list{
-        margin-left: 0;
-        padding-left: 0;
+.mbtn{
+    border-radius: 0;
+    background-color: white;
+    border-right: 1px #d7d7d7 solid;
+    margin-left: -2px;
+    margin-right: -2px;
+    color: var(--color-primary);
 }
-.meta-row{
-    list-style-type: none;
+.mfield{
+    text-align:left;
 }
-
-.over-text-menu{
-    display: none;
-    position:absolute;
-    min-width:150px;
-    top:110px;
-    border: 1px solid #00bfe6;
+.mflabel{
+    font-weight:bold;
+}
+.mbtn:hover{
+    background-color: var(--color-primary);
     color: white;
-    font-weight: 600;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left:4px;
-    padding-right:4px;
-    border-bottom-left-radius: 10pt;
-    border-bottom-right-radius: 10pt;
-    margin-left:-4px;
+    transition: 0.8s;
+}
+.update-button{
+    width: 100%;
+    background-color: white;
+    color:var(--color-primary);
+    border: 1px var(--color-primary) solid;
+    border-radius: 0px;
+}
+.update-button:hover{
+    background-color: var(--color-primary);
+    color:white;
+    transition: 0.8s;
+}
+.del-button{
+    width: 100%;
+    background-color: white;
+    color:var(--color-warning);
+    border: 1px var(--color-warning) solid;
+    border-radius: 0px;
+}
+.del-button:hover{
+    background-color: var(--color-warning);
+    color:white;
+    transition: 0.8s;
 }
 
 #display-settings{
@@ -331,28 +334,8 @@ td{
     background-color: #00bfe6;
 }
 
-.bad-meta-field{
-    color:#ff2427;
-}
-.normal-meta-field{
-    color:#ffe95e;
-}
-.update-button,.update-button:active, .update-button:hover {
-    padding: 4pt;
-    border:none;
-    color:black;
-    outline: none;
-    background-color: #f1f1f1;
-    border-radius: 4pt;
-    margin-left: 35%;
-    text-decoration: none;
-}
 
-#lang-change-area{
-    margin-bottom: 5px;
-    margin-top: 5px;
-    margin-left: 5px;
-}
+
 #lang-change-area>label{
     display: inline-block;
 }
@@ -369,6 +352,7 @@ td{
 #markup-change-area-table>tbody>tr>td{
     text-align: left;
 }
+
 [annotation-type = "2"]{
     display:none;
 }
@@ -398,215 +382,367 @@ td{
 <div id = "text-path">
     {{lang_name}}/{{text_info.text_type}}/{{text_info.text_name}}
 </div>
-<div id = "over-text">
-    <div id="display-settings" class="over-text-fields">
-        <div id="display-settings-label" class = "over-text-labels">Вид</div>
-            <div id = "text-options" class = 'over-text-menu'>
-                <div id="lang-change-area" v-on:change="ChangeLang">
-                    <label>Язык разметки:</label>
-                    <select id="lang-select">
-                        <option id="foreign-option" value="0">{{lang_name}}</option>
-                        <option id="russian-option" value="1">Русский</option>
-                    </select>
-                </div>
 
-            <div id = "markup-change-area">
-                <table id="markup-change-area-table">
-                    <tr>
-                        <td>Разметка частей речи:</td>
-                        <td><input type="checkbox" id="show-pos" v-on:click = "SwitchPos"></input></td>
-                    </tr>
-                    <tr>
-                        <td>Разметка ошибок:</td>
-                        <td><input type="checkbox" id="show-error" v-on:click = "SwitchError" checked></input></td>
-                    </tr>
-                </table>
+<!--Меню текста-->
+<div id = "over-text btn-group">
+
+    <!--Настрйка вида-->
+    <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Вид
+    </button>
+    <ul class="dropdown-menu">
+    <li><h6 class="dropdown-header">Язык разметки</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield" id = "lang-change-area" v-on:change="ChangeLang">
+                <select id="lang-select">
+                    <option id="foreign-option" value="0">{{lang_name}}</option>
+                    <option id="russian-option" value="1">Русский</option>
+                </select>
             </div>
+        </li>
+        <li><h6 class="dropdown-header">Части речи</h6></li>
+        <li>
+        <div class="dropdown-item-text mfield">
+        <div class="form-check form-switch">
+           <input class="form-check-input" type="checkbox" id="show-pos" v-on:click = "SwitchPos">
         </div>
     </div>
-    
-    <div id="text-info-field" class="over-text-fields">
-        <div id="display-text-info-label", class = "over-text-labels">О тексте</div>
-        <div id = 'text-info-menu' class = 'over-text-menu'>
-            <ul class = 'meta-list'>
-                {% comment %} <li class = 'meta-row'>Название:
-                    <font class = 'normal-meta-field'>{{text_info.text_name}}</font>
-                </li>
-                <li class = 'meta-row'>Тип текста: 
-                    <font class = 'normal-meta-field'>{{text_info.text_type}}</font></li> {% endcomment %}
-                <li class = 'meta-row'>Курс создания: 
-                    <font class = 'normal-meta-field'>{{text_info.course}}</font></li>
-                <li class = 'meta-row'>Дата создания: 
-                    <font class = 'normal-meta-field'>{{text_info.create_date}}</font></li>
-            </ul>
-            {%if text_owner%}
-            <!-- <button class = 'update-button'>Изменить</button> -->
-            {%endif%}
+        </li>
+        <li><h6 class="dropdown-header">Ошибки</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <div class="form-check form-switch">
+                   <input class="form-check-input" type="checkbox" id="show-error" v-on:click = "SwitchError" checked>
+                    <!-- <label class = "mflabel">Ошибки</label> -->
+                </div>
+            </div>
+        </li>
+      </ul>
+
+      <!--Информация о тексте-->
+      <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Текст
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Курс создания:  </label>
+                {{text_info.course}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Дата создания:  </label>
+                {{text_info.create_date}}
+            </div>
+        </li>
+        {% comment %} {%if text_owner%}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+        <div class="dropdown-item-text mfield">
+            <a href = '' class="btn shadow-none update-button">Изменить</a>
         </div>
-    </div>
+        </li>
+        {%endif%} {% endcomment %}
+        {%if superuser%}
+        <li>
+            <li><hr class="dropdown-divider"></li>
+            <div class="dropdown-item-text mfield">
+                <form method="post" novalidate action={% url 'delete_text' %} >
+                    <input type="hidden" name="language" value="{{ language }}">
+                    <input type="hidden" name="text_type" value="{{ text_type }}">
+                    <input type="hidden" name="text_id" value="{{ text_id }}">
+                </form>
+            <button type="submit" class="btn shadow-none del-button" id="'del-text-btn" style="border-radius:0;" onclick="return confirm('Удалить текст?')">Удалить текст</button>
+            </div>
+        </li>
+      </ul>
+      {%endif%} 
 
-    <div id="author-info-field" class="over-text-fields">
-        <div id="display-author-info-label", class = "over-text-labels">Об авторе</div>
-        <div id = 'author-info-menu' class = 'over-text-menu'>
-            <ul class = 'meta-list'>
-                <li class = 'meta-row'>Автор: 
-                    <font class = 'normal-meta-field'>{{text_info.author_name}}</font></li>
-                <li class = 'meta-row'>Группа: 
-                    <font class = 'normal-meta-field'>{{text_info.group_number}}</font></li>
-            </ul>
-            {%if text_owner or teacher%}
-            <a class = 'update-button' href = 'author_edit'>Изменить</a>
-            {%endif%} 
-        </div>
-    </div>
+    <!--Информация об авторе-->
+    <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Автор
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Имя:  </label>
+                {{text_info.author_name}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Группа:  </label>
+                {{text_info.group_number}}
+            </div>
+        </li>
+        {%if text_owner or teacher%}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <a href = 'author_edit' class="btn shadow-none update-button">Изменить</a>
+            </div>
+        </li>
+        {%endif%}
+    </ul>
 
-    <div id="meta-info-field" class="over-text-fields">
-        <div id="display-meta-info-label", class = "over-text-labels">Метаданные</div>
-        <div id = 'meta-info-menu' class = 'over-text-menu'>
-            <ul class = 'meta-list'>
-                <li class = 'meta-row'>Эмоциональное состояние: 
-                    <font class = 'normal-meta-field'>{{text_info.emotional}}</font></li>
-                <li class = 'meta-row'>Средство написания: 
-                    <font class = 'normal-meta-field'>{{text_info.write_tool}}</font></li>
-                <li class = 'meta-row'>Место написания: 
-                    <font class = 'normal-meta-field'>{{text_info.write_place}}</font></li>
-                <li class = 'meta-row'>Уровень знания языка: 
-                    <font class = 'normal-meta-field'>{{text_info.education_level}}</font></li>
-                <li class = 'meta-row'>Самооценивание: 
-                    <font class = 'normal-meta-field'>{{text_info.self_rating}}</font></li>
-                <li class = 'meta-row'>Оценка задания студентом: 
-                    <font class = 'normal-meta-field'>{{text_info.student_assessment}}</font></li>
-            </ul>
-            {%if text_owner%}
-            <a class = 'update-button' href = 'meta_edit'>Изменить</a>
-            {%endif%}
-        </div>
-    </div>
+    <!--Метаданные-->
+    <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Метаданные
+    </button>
+    <ul class="dropdown-menu">
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Эмоциональное состояние:  </label>
+                {{text_info.emotional}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Средство написания:  </label>
+                {{text_info.write_tool}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Место написания:   </label>
+                {{text_info.write_place}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Уровень знания языка:  </label>
+                {{text_info.education_level}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Самооценивание:   </label>
+                {{text_info.self_rating}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Оценка задания студентом:  </label>
+                {{text_info.student_assessment}}
+            </div>
+        </li>
+        {%if text_owner%}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <a href = 'meta_edit' class="btn shadow-none update-button">Изменить</a>
+            </div>
+        </li>
+        {%endif%}
+    </ul>
 
-    <div id="assessment-info-field" class="over-text-fields">
-        <div id="display-assessment-info-label", class = "over-text-labels">Проверка</div>
-        <div id = 'assessment-info-menu' class = 'over-text-menu'>
-            <ul class = 'meta-list'>
-                {%if text_info.assessment%}
-                <li class = 'meta-row'>Оценка: 
-                    <font class = 'normal-meta-field'>{{text_info.assessment}}</font></li>
-                <li class = 'meta-row'>Полнота: 
-                    <font class = 'normal-meta-field'>{{text_info.completeness}}</font></li>
-                <li class = 'meta-row'>Структура: 
-                    <font class = 'normal-meta-field'>{{text_info.structure}}</font></li>
-                <li class = 'meta-row'>Связность:
-                    <font class = 'normal-meta-field'>{{text_info.coherence}}</font></li>
-                <li class = 'meta-row'>Проверяющий: 
-                    <font class = 'normal-meta-field'>{{text_info.teacher_name}}</font></li>
-                {%else%}
-                <li class = 'meta-row'>Оценка: 
-                    <font class = 'bad-meta-field'>Отсутствует</font></li>
-                {%endif%}
-                {%if text_info.pos_check%}
-                <li class = 'meta-row'>Проверка POS разметки: 
-                    <font class = 'normal-meta-field'>Проверено</font></li>
-                <li class = 'meta-row'>Проверил POS разметку: 
-                    <font class = 'normal-meta-field'>{{text_info.pos_check_name}}</font></li>
-                {%else%}
-                <li class = 'meta-row'>Проверка POS разметки: 
-                    <font class = 'bad-meta-field'>Отсутствует</font></li>
-                {%endif%}
+    <!--Проверка работы-->
+    <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Проверка
+    </button>
+    <ul class="dropdown-menu">
+        <li><h6 class="dropdown-header">Оценка работы</h6></li>
+        {%if text_info.assessment%}
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Оценка:  </label>
+                {{text_info.assessment}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Полнота:  </label>
+                {{text_info.completeness}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Структура:  </label>
+                {{text_info.structure}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Связность:  </label>
+                {{text_info.coherence}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Проверяющий:  </label>
+                {{text_info.teacher_name}}
+            </div>
+        </li>
+        {%else%}
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Оценка:  </label>
+                Не указано
+            </div>
+        </li>
+        {%endif%}
 
-                {%if text_info.error_check%}
-                <li class = 'meta-row'>Проверка разметки ошибок: 
-                    <font class = 'normal-meta-field'>Проверено</font></li>
-                <li class = 'meta-row'>Проверил разметку ошибок: 
-                    <font class = 'normal-meta-field'>{{text_info.error_check_name}}</font></li>
-                {%else%}
-                <li class = 'meta-row'>Проверка разметки ошибок: 
-                    <font class = 'bad-meta-field'>Отсутствует</font>
-                </li>
-                {%endif%}
-            </ul>
-            {%if ann_right%}
+        <li><h6 class="dropdown-header">Частеречная разметка</h6></li>
+        {%if text_info.pos_check%}
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Статус:  </label>
+                <font style = "color: var(--color-accept);">Проверено</font>
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Проверяющий:  </label>
+                {{text_info.pos_check_name}}
+            </div>
+        </li>
+        {%else%}
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Статус:  </label>
+                <font style = "color: var(--color-warning);">Не проверено</font>
+            </div>
+        </li>
+        {%endif%}
 
-            <a class = 'update-button' href = 'asses_edit'>Изменить</a>
-            {%endif%}
-        </div>
-        </div>
-        {% if auto_degree%}
-    <div id="auto-degree-field" class="over-text-fields">
-        <div id="display-auto-degree-label", class = "over-text-labels">Автооценка</div>
-        <div id = 'auto-degree-menu' class = 'over-text-menu'>
-            <label>Грамматика</label>
-            <ul class = 'meta-list'>
-                <li class = 'meta-row'>Степень 1: 
-                    <font class = 'normal-meta-field'>{{auto_grammatik.0}}</font>
-                </li>
-                <li class = 'meta-row'>Степень 2: 
-                    <font class = 'normal-meta-field'>{{auto_grammatik.1}}</font>
-                </li>
-                <li class = 'meta-row'>Степень 3: 
-                    <font class = 'normal-meta-field'>{{auto_grammatik.2}}</font>
-                </li>
-                <li class = 'meta-row'><b>Оценка</b> 
-                    <font class = 'normal-meta-field'>{{auto_grammatik.3}}</font>
-                </li>
-            </ul>
+        <li><h6 class="dropdown-header">Разметка ошибок</h6></li>
+        {%if text_info.error_check%}
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Статус:  </label>
+                <font style = "color: var(--color-accept);">Проверено</font>
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Проверяющий:  </label>
+                {{text_info.error_check_name}}
+            </div>
+        </li>
+        {%else%}
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Статус:  </label>
+                <font style = "color: var(--color-warning);">Не проверено</font>
+            </div>
+        </li>
+        {%endif%}
+        {%if ann_right%}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <a href = 'asses_edit' class="btn shadow-none update-button">Изменить</a>
+            </div>
+        </li>
+        {%endif%}
+    </ul>
+    <!--Автооценка-->
+    {% if auto_degree%}
+    <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Автооценка
+    </button>
+    <ul class="dropdown-menu">
+        <li><h6 class="dropdown-header">Грамматика</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 1:  </label>
+                {{auto_grammatik.0}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 2:  </label>
+                {{auto_grammatik.1}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 3:  </label>
+                {{auto_grammatik.2}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Оценка:  </label>
+                {{auto_grammatik.3}}
+            </div>
+        </li>
 
-            <label>Лексика</label>
-            <ul class = 'meta-list'>
-                <li class = 'meta-row'>Степень 1: 
-                    <font class = 'normal-meta-field'>{{auto_lexik.0}}</font>
-                </li>
-                <li class = 'meta-row'>Степень 2: 
-                    <font class = 'normal-meta-field'>{{auto_lexik.1}}</font>
-                </li>
-                <li class = 'meta-row'>Степень 3: 
-                    <font class = 'normal-meta-field'>{{auto_lexik.2}}</font>
-                </li>
-                <li class = 'meta-row'><b>Оценка</b> 
-                    <font class = 'normal-meta-field'>{{auto_lexik.3}}</font>
-                </li>
-            </ul>
+        <li><h6 class="dropdown-header">Лексика</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 1:  </label>
+                {{auto_lexik.0}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 2:  </label>
+                {{auto_lexik.1}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 3:  </label>
+                {{auto_lexik.2}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Оценка:  </label>
+                {{auto_lexik.3}}
+            </div>
+        </li>
 
-            <label>Орфография и пунктуация</label>
-            <ul class = 'meta-list'>
-                <li class = 'meta-row'>Степень 1: 
-                    <font class = 'normal-meta-field'>{{auto_orth.0}}</font>
-                </li>
-                <li class = 'meta-row'>Степень 2: 
-                    <font class = 'normal-meta-field'>{{auto_orth.1}}</font>
-                </li>
-                <li class = 'meta-row'>Степень 3: 
-                    <font class = 'normal-meta-field'>{{auto_orth.2}}</font>
-                </li>
-                <li class = 'meta-row'><b>Оценка</b> 
-                    <font class = 'normal-meta-field'>{{auto_orth.3}}</font>
-                </li>
-            </ul>
+        <li><h6 class="dropdown-header">Орфография и пунктуация</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 1:  </label>
+                {{auto_orth.0}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 2:  </label>
+                {{auto_orth.1}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Степень 3:  </label>
+                {{auto_orth.2}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Оценка:  </label>
+                {{auto_orth.3}}
+            </div>
+        </li>
 
-            <label>Подсчёт ошибок:</label>
-            <ul class = 'meta-list'>
-                <li class = 'meta-row'>Дискурс: 
-                    <font class = 'normal-meta-field'>{{count_dis}}</font>
-                </li>
-                <li class = 'meta-row'>Пропуски: 
-                    <font class = 'normal-meta-field'>{{count_skip}}</font>
-                </li>
-                <li class = 'meta-row'>Лишние элементы: 
-                    <font class = 'normal-meta-field'>{{count_extra}}</font>
-                </li>
-            </ul>
-        </div>
-    </div>
+        <li><h6 class="dropdown-header">Подсчёт ошибок</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Дискурс:  </label>
+                {{count_dis}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Пропуски:  </label>
+                {{count_skip}}
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <label class = "mflabel">Лишние элементы:  </label>
+                {{count_extra}}
+            </div>
+        </li>
+    </ul>
     
     {%endif%}
-    {%if superuser%}
-    <div id="delete-text-field" class="over-text-fields">
-        <form method="post" novalidate action={% url 'delete_text' %} >
-            <input type="hidden" name="language" value="{{ language }}">
-            <input type="hidden" name="text_type" value="{{ text_type }}">
-            <input type="hidden" name="text_id" value="{{ text_id }}">
-            <button type="submit" class="over-text-labels" id="'del-text-btn" style="background-color: #dc3545; border: none; color:white" onclick="return confirm('Удалить текст?')">Удаление</button>
-        </form>
-    {%endif%} 
-    </div>
 </div>
 <div class = "text-place">
 <table class = "text-area"></table>
