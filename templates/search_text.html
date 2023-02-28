@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
+
+<div class="container-sm">
+    <main>
+        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+
+        <div><a href="{% url 'cql_faq' %}">FAQ по CQL</a></div>
+        <form action="{% url 'search' %}" method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="corpus_search" class="form-control non-round" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
+
+                <button type="submit" class="btn btn-outline-secondary non-round" id="button-addon2">Поиск</button>
+            </div>
+        </form>
+
+        <div class="search_list mt-5">
+            {% if error_search %}
+            <div class="search_result mt-3">
+                <h1 style="color: red;">{{ error_search }}</h1>
+            </div>
+            {% endif %}
+
+            <h1>{{header}}</h1>
+            <div class="main-text mt-5">{{text}}</div>
+        </div>
+
+        <div>
+
+        </div>
+
+    </main>
+</div>
+
+{%endblock%}
