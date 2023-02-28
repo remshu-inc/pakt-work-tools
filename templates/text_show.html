@@ -87,12 +87,14 @@
 .tools-button>svg{
     border-radius: 50%;
     transition: 0.1s linear;
-}
-.create-annotation-button>svg{
-    fill:var(--color-accept);
+    opacity:0.5;
 }
 .tools-button:hover>svg{
-    opacity:0.5;
+    opacity:1;
+    transition: 0.2s;
+}
+.create-annotation-button>svg{
+    fill:var(--color-primary);
 }
 
 .delete-annotation-button>svg{
