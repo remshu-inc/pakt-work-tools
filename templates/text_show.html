@@ -436,28 +436,25 @@ td{
                 {{text_info.create_date}}
             </div>
         </li>
-        {% comment %} {%if text_owner%}
         <li><hr class="dropdown-divider"></li>
         <li>
-        <div class="dropdown-item-text mfield">
-            <a href = '' class="btn shadow-none update-button">Изменить</a>
-        </div>
+            <div class="dropdown-item-text mfield">
+                <a href = 'show_raw' class="btn shadow-none update-button">Исходный текст</a>
+            </div>
         </li>
-        {%endif%} {% endcomment %}
         {%if superuser%}
         <li>
-            <li><hr class="dropdown-divider"></li>
             <div class="dropdown-item-text mfield">
                 <form method="post" novalidate action={% url 'delete_text' %} >
                     <input type="hidden" name="language" value="{{ language }}">
                     <input type="hidden" name="text_type" value="{{ text_type }}">
                     <input type="hidden" name="text_id" value="{{ text_id }}">
                 </form>
-            <button type="submit" class="btn shadow-none del-button" id="'del-text-btn" style="border-radius:0;" onclick="return confirm('Удалить текст?')">Удалить текст</button>
+            <button type="submit" class="btn shadow-none del-button" id="del-text-btn" style="border-radius:0;" onclick="return confirm('Удалить текст?')">Удалить текст</button>
             </div>
         </li>
-      </ul>
       {%endif%} 
+      </ul>
 
     <!--Информация об авторе-->
     <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -637,6 +634,7 @@ td{
         </li>
         {%endif%}
     </ul>
+
     <!--Автооценка-->
     {% if auto_degree%}
     <button type="button" class="btn shadow-none mbtn dropdown" data-bs-toggle="dropdown" aria-expanded="false">

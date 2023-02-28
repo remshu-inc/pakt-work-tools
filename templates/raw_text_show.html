@@ -1,0 +1,49 @@
+{%extends "base.html"%}
+{%block styles%}
+#text-path{
+    color: var(--color-primary);
+    padding:0.5rem 1rem;
+    font-size: 18pt;
+    background-color: rgba(var(--bs-light-rgb));
+    width: 100%;
+    position: inherit;
+    border-bottom: 1px #d7d7d7 solid;
+}
+.text-block{
+    margin-left: 20px;
+    margin-top: 20px;
+}
+.order-number{
+    color: var(--color-decline);
+    padding-right: 20px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.sent-row{
+    border-bottom: 10px white solid;
+}
+{%endblock%}
+{%block content%}
+
+{%if right%}
+<div id = "text-path">
+    {{lang_name}}/{{text_type}}/{{text_name}}
+</div>
+<table class = 'text-block'>
+{%for sentence in sentences%}
+    <tr class = 'sent-row'>
+        <td class = 'order-number'>{{sentence.0}}</td>
+        <td class = 'sent-text'>{{sentence.1}}</td>
+    </tr>
+{%endfor%}
+</table>
+{%else%}
+<div class="alert alert-danger" role="alert">
+  Текст не найден или недостаточно прав для просмотра
+</div>
+{%endif%}
+{%endblock%}

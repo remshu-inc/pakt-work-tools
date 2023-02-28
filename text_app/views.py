@@ -793,6 +793,39 @@ def author_form(request, text_id = 1, **kwargs):
             'go_back':go_back_url,
         }))
 
+def show_raw(request, text_id:int, **kwargs):
+    author_id = TblText.objects.filter(id_text = text_id).values(
+        'user_id',
+        'language_id__language_name', 
+        'text_type_id__text_type_name',
+        'header').all()
+    output = []
+    right = True
+    language = ''
+    text_type = ''
+    header = ''
+
+    if author_id.exists() and (request.user.is_teacher() or  request.user.id_user == author_id[0]['user_id']):
+        sentences = TblSentence.objects\
+                .filter(text_id = text_id)\
+                .order_by('order_number')\
+                .values('text').all()
+        language = author_id[0]['language_id__language_name']
+        text_type = author_id[0]['text_type_id__text_type_name']
+        header = author_id[0]['header']
+        if sentences.exists():
+            output = [[i+1, sentence['text'].replace('-EMPTY-','')] for i, sentence in enumerate(sentences)]
+    else:
+        right = False
+
+    return(render(request, 'raw_text_show.html', context={
+        'right':right,
+        'sentences':output,
+        'lang_name':language,
+        'text_type':text_type,
+        'text_name': header
+    }))
+
 
 
 
