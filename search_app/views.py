@@ -168,7 +168,7 @@ def search(request):
         # Получение строк по заданным условиям
         sentence_objects = TblMarkup.objects.filter(filters).values(
             'token_id', 'token_id__sentence_id', 'token_id__sentence_id__text_id__header',
-            'token_id__sentence_id__text_id__create_date'
+            'token_id__sentence_id__text_id__create_date', 'token_id__sentence_id__text_id'
         )
 
         # TODO: пропписать исключение
@@ -179,7 +179,7 @@ def search(request):
         # Количество найденных предложений
         count_search = len(sentence_objects)
 
-        sentence_objects = sentence_objects[:100]
+        sentence_objects = sentence_objects
 
         list_search = []
         for sentence in sentence_objects:
@@ -199,7 +199,8 @@ def search(request):
             list_search.append({
                 'header': sentence['token_id__sentence_id__text_id__header'],
                 'tokens': list_token,
-                'create_date': sentence['token_id__sentence_id__text_id__create_date']
+                'create_date': sentence['token_id__sentence_id__text_id__create_date'],
+                'text_id': sentence['token_id__sentence_id__text_id'],
             })
 
         # Для неточного поиска
@@ -212,6 +213,17 @@ def search(request):
     else:
         return redirect(request, 'home')
 
+def text(request, text_id = None):
+    text_obj = TblText.objects.filter(id_text=text_id)
+    
+    if len(text_obj) == 0:
+        return render(request, "corpus.html", context = {'error_search': 'Text not Found'})
+    else:
+        text_obj = text_obj.first()
+        text = text_obj.text
+        header = text_obj.header
+    
+    return(render(request, "search_text.html", context={'text': text, 'header': header}))
 
 def get_stat(request):
     if request.user.is_teacher():

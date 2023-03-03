@@ -22,4 +22,6 @@ urlpatterns = [
         name = 'meta_edit'),
     path('corpus/<str:language>/<str:text_type>/<int:text_id>/author_edit', views.author_form, 
         name = 'author_edit'),
+    path('corpus/<str:language>/<str:text_type>/<int:text_id>/show_raw', views.show_raw, 
+        name = 'show_raw'),
 ]

@@ -38,7 +38,7 @@
                     </div>
                     <div class="col">
                         <div class="search_header">
-                            {{ search.header }}
+                            <a href="{% url 'text' text_id=search.text_id %}">{{ search.header }}</a>
                             {% if search.create_date != None %}
                             , {{ search.create_date }}
                             {% endif %}
