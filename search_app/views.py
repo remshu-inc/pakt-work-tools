@@ -45,7 +45,11 @@ def _filter_shaping(cql):
     """
 
     # Получение аттрибута запроса
-    word = re.search(r'[\'\"\”].*[\'\"\”]', cql).group(0)[1:-1]
+    content = re.search(r'[\'\"\”].*[\'\"\”]', cql)
+    if content is not None:
+        word = content.group(0)[1:-1]
+    else:
+        word = content
 
     # Удаление всех пробелов
     cql = cql.replace(" ", "")
