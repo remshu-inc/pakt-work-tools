@@ -138,7 +138,6 @@ def _parse_cql(user_query=None):
 
             filters &= alt_filters
 
-
         else:
             if _filter_shaping(token_cql) is not None:
                 filters &= _filter_shaping(token_cql)
@@ -213,17 +212,20 @@ def search(request):
     else:
         return redirect(request, 'home')
 
+
 def text(request, text_id = None):
     text_obj = TblText.objects.filter(id_text=text_id)
-    
+
     if len(text_obj) == 0:
         return render(request, "corpus.html", context = {'error_search': 'Text not Found'})
-    else:
-        text_obj = text_obj.first()
-        text = text_obj.text
-        header = text_obj.header
-    
-    return(render(request, "search_text.html", context={'text': text, 'header': header}))
+
+    text_obj = text_obj.first()
+    # удаление -EMPTY- тегов
+    text_data = re.sub(" -EMPTY- ", " ", text_obj.text)
+    header = text_obj.header
+
+    return render(request, "search_text.html", context={'text': text_data, 'header': header})
+
 
 def get_stat(request):
     if request.user.is_teacher():
