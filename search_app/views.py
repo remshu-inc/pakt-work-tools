@@ -58,7 +58,11 @@ def _filter_shaping(cql):
     """
 
     # Получение аттрибута запроса
-    word = re.search(r'[\'\"\”].*[\'\"\”]', cql).group(0)[1:-1]
+    content = re.search(r'[\'\"\”].*[\'\"\”]', cql)
+    if content is not None:
+        word = content.group(0)[1:-1]
+    else:
+        word = content
 
     # Удаление всех пробелов
     cql = cql.replace(" ", "")
@@ -151,7 +155,6 @@ def _parse_cql(user_query=None):
 
             filters &= alt_filters
 
-
         else:
             if _filter_shaping(token_cql) is not None:
                 filters &= _filter_shaping(token_cql)
@@ -230,22 +233,24 @@ def search(request):
     else:
         return redirect(request, 'home')
 
+
 def text(request, text_id = None):
+
     text_obj = TblText.objects.filter(id_text=text_id).values(
         'text', 'header', 'language_id__language_name', 'text_type_id__text_type_name'
     )
     
     if len(text_obj) == 0:
         return render(request, "corpus.html", context = {'error_search': 'Text not Found'})
-    else:
-        text_obj = text_obj[0]
-        text = text_obj['text']
-        header = text_obj['header']
-        language = text_obj['language_id__language_name']
-        text_type = text_obj['text_type_id__text_type_name']
-        text_path = str(language) + '/' + str(text_type) + '/' + str(header)
+
+    text_obj = text_obj[0]
+    text_data = re.sub(" -EMPTY- ", " ", text_obj['text'])
+    header = text_obj['header']
+    language = text_obj['language_id__language_name']
+    text_type = text_obj['text_type_id__text_type_name']
+    text_path = str(language) + '/' + str(text_type) + '/' + str(header)
     
-    return(render(request, "search_text.html", context={'text': text, 'text_path': text_path, 'text_id': text_id, 
+    return(render(request, "search_text.html", context={'text': text_data, 'text_path': text_path, 'text_id': text_id, 
                                                         'language_name': language, 'text_type_name': text_type}))
 
 def get_stat(request):
