@@ -27,7 +27,7 @@
         <div class="row">
             <div class="col">
                 <h1>Немецкий корпус</h1>
-                <b>Размер корпуса:</b> 297096 токена <span style="font-size: 12px; color: gray;">(на сентябрь 2022)</span>
+                <b>Размер корпуса в токенах:  </b>{{tokens_count.1}}
                 <br>
                 <b>Частеречная разметка: </b><br>TreeTagger, набор тегов STTS
                 <br>
@@ -41,7 +41,7 @@
             </div>
             <div class="col">
                 <h1>Французский корпус</h1>
-                <b>Размер корпуса:</b> 80764 токена <span style="font-size: 12px; color: gray;">(на сентябрь 2022)</span>
+                <b>Размер корпуса в токенах:  </b>{{tokens_count.2}}
 
                 <br>
                 <b>Частеречная разметка: </b><br>CoreNLP, набор тегов Treebank
@@ -55,7 +55,10 @@
                 </ul>
             </div>
         </div>
-
+        <div style = 'text-align:  center;'>
+            <span style="font-size: 12px; color: gray;">Дата последнего обновления показателей: {{update_time}}</span>
+        </div>
+        <hr>
         <div class="main-text" style="margin-top: 0;">
             Часть корпуса имеет разметку эмоциональных компонентов для возможности проведения дополнительных исследований.
             <br><br>

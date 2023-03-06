@@ -1,7 +1,7 @@
 :root{
-    --active-text-color: #0d6efd;
-    --options-select-color:#0073ff9d;
-    --warning-color:#fd0d0d;
+    --active-text-color: #235ad1;
+    --options-select-color:#3266d5;
+    --warning-color:#ff2427;
     --warning-select-color:#ff00009d;
     --color-primary: #235ad1;
     --color-accept:#49ff24;
@@ -72,12 +72,12 @@ input:focus {
 }
 
 .email {
-    color: rgba(13, 202, 240, 0.8);
+    color: var(--color-primary);
     /* color: white; */
 }
 
 .pakt-btn {
-    background-color: #0d6efd;
+    background-color: var(--color-primary);
     color: white;
     float: right;
     border-radius: 0;
@@ -96,7 +96,7 @@ select[readonly] {
 }
 
 .custom-input:focus-within {
-    border-color: #0d6efd;
+    border-color: var(--color-primary);
 }
 
 .custom-input:has(.is-invalid) {

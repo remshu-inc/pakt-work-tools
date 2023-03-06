@@ -1,5 +1,5 @@
 .search_result {
-    border-left: 3px #0d6efd solid;
+    border-left: 3px var(--color-primary) solid;
     padding-left: 10px;
 }
 

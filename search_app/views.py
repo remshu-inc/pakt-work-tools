@@ -9,6 +9,9 @@ from text_app.models import TblMarkup, TblToken, TblTag, TblSentence, TblText, T
 from .forms import StatisticForm
 from .stat_src import built_group_stat
 
+from datetime import datetime
+from pakt_work_tools.custom_settings import AUTO_STAT
+
 
 def index(request):
     """ Рендер главной страницы
@@ -19,8 +22,18 @@ def index(request):
     Returns:
         HttpResponse: html главной страницы
     """
-
-    return render(request, "index.html")
+    current_time = datetime.now()
+    if (current_time - AUTO_STAT['update_time']).total_seconds() >= AUTO_STAT['update_interval']:
+        for key in AUTO_STAT['languages_tokens_counts'].keys():
+            AUTO_STAT['languages_tokens_counts'][key] = TblToken.objects.filter(
+                Q(sentence_id__text_id__language_id = key) & \
+                ~Q(text = '-EMPTY-'))\
+            .count()
+        AUTO_STAT['update_time'] = current_time
+    return render(request, "index.html", context = {
+        'tokens_count': AUTO_STAT['languages_tokens_counts'],
+        'update_time': AUTO_STAT['update_time'].strftime("%d.%m.%Y")
+    })
 
 
 def cql_faq(request):
