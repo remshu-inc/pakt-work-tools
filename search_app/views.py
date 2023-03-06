@@ -32,7 +32,7 @@ def index(request):
         AUTO_STAT['update_time'] = current_time
     return render(request, "index.html", context = {
         'tokens_count': AUTO_STAT['languages_tokens_counts'],
-        'update_time': AUTO_STAT['update_time'].strftime("%d.%m.%Y")
+        'update_time': AUTO_STAT['update_time'].strftime("%d.%m.%Y (%H:%M:%S)")
     })
 
 
