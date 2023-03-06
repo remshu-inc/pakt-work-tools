@@ -168,6 +168,8 @@ def search(request):
         # Получение строк по заданным условиям
         sentence_objects = TblMarkup.objects.filter(filters).values(
             'token_id', 'token_id__sentence_id', 'token_id__sentence_id__text_id__header',
+            'token_id__sentence_id__text_id__language_id__language_name',
+            'token_id__sentence_id__text_id__text_type_id__text_type_name',
             'token_id__sentence_id__text_id__create_date', 'token_id__sentence_id__text_id'
         )
 
@@ -198,6 +200,8 @@ def search(request):
 
             list_search.append({
                 'header': sentence['token_id__sentence_id__text_id__header'],
+                'language': sentence['token_id__sentence_id__text_id__language_id__language_name'],
+                'text_type': sentence['token_id__sentence_id__text_id__text_type_id__text_type_name'],
                 'tokens': list_token,
                 'create_date': sentence['token_id__sentence_id__text_id__create_date'],
                 'text_id': sentence['token_id__sentence_id__text_id'],
@@ -214,16 +218,22 @@ def search(request):
         return redirect(request, 'home')
 
 def text(request, text_id = None):
-    text_obj = TblText.objects.filter(id_text=text_id)
+    text_obj = TblText.objects.filter(id_text=text_id).values(
+        'text', 'header', 'language_id__language_name', 'text_type_id__text_type_name'
+    )
     
     if len(text_obj) == 0:
         return render(request, "corpus.html", context = {'error_search': 'Text not Found'})
     else:
-        text_obj = text_obj.first()
-        text = text_obj.text
-        header = text_obj.header
+        text_obj = text_obj[0]
+        text = text_obj['text']
+        header = text_obj['header']
+        language = text_obj['language_id__language_name']
+        text_type = text_obj['text_type_id__text_type_name']
+        text_path = str(language) + '/' + str(text_type) + '/' + str(header)
     
-    return(render(request, "search_text.html", context={'text': text, 'header': header}))
+    return(render(request, "search_text.html", context={'text': text, 'text_path': text_path, 'text_id': text_id, 
+                                                        'language_name': language, 'text_type_name': text_type}))
 
 def get_stat(request):
     if request.user.is_teacher():
