@@ -368,7 +368,7 @@ def _get_group_students(group_id: int, in_: bool) -> list:
         'user_id__last_name',
         'user_id__name',
         'user_id__patronymic',
-    )
+    ).order_by('user_id__last_name')
 
     students_reform = []
 
