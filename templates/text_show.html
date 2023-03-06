@@ -451,8 +451,8 @@ td{
                     <input type="hidden" name="language" value="{{ language }}">
                     <input type="hidden" name="text_type" value="{{ text_type }}">
                     <input type="hidden" name="text_id" value="{{ text_id }}">
+                    <button type="submit" class="btn shadow-none del-button" id="del-text-btn" style="border-radius:0;" onclick="return confirm('Удалить текст?')">Удалить текст</button>
                 </form>
-            <button type="submit" class="btn shadow-none del-button" id="del-text-btn" style="border-radius:0;" onclick="return confirm('Удалить текст?')">Удалить текст</button>
             </div>
         </li>
       {%endif%} 
