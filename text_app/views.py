@@ -32,7 +32,7 @@ def show_files(request, language=None, text_type=None):
     # Для выбора языка
 
     if not request.user.is_authenticated:
-        return redirect('home')
+        return redirect('login')
     elif request.user.is_teacher():
         form_search = SearchTextForm()
 
@@ -77,7 +77,7 @@ def show_files(request, language=None, text_type=None):
         # except TblLanguage.DoesNotExist:
         # TODO: прописать исключение для каждой ошибки?
         except:
-            return (render(request, "corpus.html", context={'error': True, 'text_html': '<div id = "Text_found_err">404 Not Found<\div>'}))
+            return render(request, "corpus.html", context={'error': True, 'text_html': '<div id = "Text_found_err">404 Not Found<\div>'})
 
     # Для выбора типа текста
     elif text_type == None:
@@ -94,16 +94,16 @@ def show_files(request, language=None, text_type=None):
 
         language_object = TblLanguage.objects.filter(language_name=language)
         if len(language_object) == 0:
-            return (render(request, "corpus.html", context={'error': True, 'text_html': 'Language not found'}))
+            return render(request, "corpus.html", context={'error': True, 'text_html': 'Language not found'})
         else:
             language_id = language_object.first().id_language
 
         list_text_type = TblTextType.objects.filter(
             language_id=language_id).order_by(order_by)
         if len(list_text_type) == 0:
-            return (render(request, "corpus.html", context={'error': True, 'text_html': 'Text type not found'}))
+            return render(request, "corpus.html", context={'error': True, 'text_html': 'Text type not found'})
         else:
-            return (render(request, "corpus.html", context={'list_text_type': list_text_type, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students}))
+            return render(request, "corpus.html", context={'list_text_type': list_text_type, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students})
 
     # Для выбора текста
     else:
@@ -558,10 +558,11 @@ def meta_form(request, text_id=1, **kwargs):
                 'form': form
             }))
     else:
-        return (render(request, 'meta_form.html', {'right': False}))
-
+        return render(request, 'meta_form.html', {'right': False})
 
 def show_text(request, text_id=1, language=None, text_type=None):
+    if not hasattr(request.user, 'id_user'):
+        return redirect('login')
 
     text_info = TblText.objects.filter(id_text=text_id).values(
         'header', 'language_id', 'language_id__language_name', 'user_id').all()
