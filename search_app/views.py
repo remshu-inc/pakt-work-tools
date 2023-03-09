@@ -1,7 +1,9 @@
-import logging
-from os import remove
 import re
+import urllib
+from datetime import datetime
+from os import remove
 from wsgiref.util import FileWrapper
+
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.utils import timezone
@@ -14,6 +16,9 @@ from text_app.models import TblMarkup, TblToken, TblTag, TblSentence, TblText, T
 
 from datetime import timedelta
 from pakt_work_tools.custom_settings import AUTO_STAT
+from text_app.models import TblMarkup, TblToken, TblTag, TblText, TblGrade
+from .forms import StatisticForm
+from .stat_src import built_group_stat
 
 
 def index(request):
@@ -94,16 +99,16 @@ def _filter_shaping(cql):
 
     # Обрабокта токенов с указанными тегами ошибок и частеречной разметки
     elif 'error=' in cql or 'pos=' in cql:
-        return Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word) | Q(tag_id__tag_text_abbrev = word))
+        return Q(Q(tag_id__tag_text=word) | Q(tag_id__tag_text_russian=word) | Q(tag_id__tag_text_abbrev=word))
 
     # Обработка токенов с указанными степенями грубости ошибки
     elif 'grade=' in cql:
-        return Q(Q(grade_id__grade_name = word) | Q(grade_id__grade_abbrev = word))
+        return Q(Q(grade_id__grade_name=word) | Q(grade_id__grade_abbrev=word))
 
     # Обработка токенов с указанными причинами ошибки
     elif 'reason=' in cql:
-        return Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word))
-        
+        return Q(Q(reason_id__reason_name=word) | Q(reason_id__reason_abbrev=word))
+
     # Обработка токенов не соответсвующих словоформе
     if 'word!=' in cql:
         # REGEX
@@ -118,16 +123,16 @@ def _filter_shaping(cql):
 
     # Обрабокта токенов без указанных тегов ошибок и частеречной разметки
     elif 'error!=' in cql or 'pos!=' in cql:
-        return ~Q(Q(tag_id__tag_text = word) | Q(tag_id__tag_text_russian = word) | Q(tag_id__tag_text_abbrev = word) )
+        return ~Q(Q(tag_id__tag_text=word) | Q(tag_id__tag_text_russian=word) | Q(tag_id__tag_text_abbrev=word))
 
     # Обрабокта токенов без указанных степеней грубости ошибки
     elif 'grade!=' in cql:
-        return ~Q(Q(grade_id__grade_name = word) | Q(grade_id__grade_abbrev = word))
+        return ~Q(Q(grade_id__grade_name=word) | Q(grade_id__grade_abbrev=word))
 
     # Обрабокта токенов без указанных причин ошибки
     elif 'reason!=' in cql:
-        return ~Q(Q(reason_id__reason_name = word) | Q(reason_id__reason_abbrev = word))
-    
+        return ~Q(Q(reason_id__reason_name=word) | Q(reason_id__reason_abbrev=word))
+
     return None
 
 
@@ -187,74 +192,75 @@ def search(request):
     Returns:
         HttpResponse: html страница с результатом поиска
     """
+    user_query = ""
+
     if request.POST:
-        user_query = request.POST['corpus_search']
-        filters = _parse_cql(user_query)
-        if filters is None:
-            return render(request, "search.html",
-                          context={'error_search': 'Text not Found', 'search_value': request.POST['corpus_search']})
-
-        # Получение строк по заданным условиям
-        sentence_objects = TblMarkup.objects.filter(filters).values(
-            'token_id', 'token_id__sentence_id', 'token_id__sentence_id__text_id__header',
-            'token_id__sentence_id__text_id__language_id__language_name',
-            'token_id__sentence_id__text_id__text_type_id__text_type_name',
-            'token_id__sentence_id__text_id__create_date', 'token_id__sentence_id__text_id'
-        )
-
-        # TODO: пропписать исключение
-        if len(sentence_objects) == 0:
-            return render(request, "search.html",
-                          context={'error_search': 'Text not Found', 'search_value': request.POST['corpus_search']})
-
-        # Количество найденных предложений
-        count_search = len(sentence_objects)
-
-        sentence_objects = sentence_objects
-
-        list_search = []
-        for sentence in sentence_objects:
-            tokens = TblToken.objects.filter(
-                sentence_id=sentence['token_id__sentence_id']
-            ).order_by('order_number')
-
-            list_token = []
-            for token in tokens:
-                if token.text == '-EMPTY-':
-                    continue
-                if token.id_token == sentence['token_id']:
-                    list_token.append({'text': token.text, 'primary': True})
-                else:
-                    list_token.append({'text': token.text})
-
-            list_search.append({
-                'header': sentence['token_id__sentence_id__text_id__header'],
-                'language': sentence['token_id__sentence_id__text_id__language_id__language_name'],
-                'text_type': sentence['token_id__sentence_id__text_id__text_type_id__text_type_name'],
-                'tokens': list_token,
-                'create_date': sentence['token_id__sentence_id__text_id__create_date'],
-                'text_id': sentence['token_id__sentence_id__text_id'],
-            })
-
-        # Для неточного поиска
-        # MyClass.objects.filter(name__iexact=my_parameter)
-
-        return render(request, "search.html",
-                      context={'search_value': request.POST['corpus_search'], 'list_search': list_search,
-                               'count_search': count_search})
-
+        user_query = request.POST.get('corpus_search', "")
     else:
-        return redirect(request, 'home')
+        user_query = request.GET.get('corpus_search', "")
+
+    filters = _parse_cql(user_query)
+    if filters is None:
+        return render(request, "search.html",
+                      context={'error_search': 'Text not Found', 'search_value': user_query})
+
+    # Получение строк по заданным условиям
+    sentence_objects = TblMarkup.objects.filter(filters).values(
+        'token_id', 'token_id__sentence_id', 'token_id__sentence_id__text_id__header',
+        'token_id__sentence_id__text_id__language_id__language_name',
+        'token_id__sentence_id__text_id__text_type_id__text_type_name',
+        'token_id__sentence_id__text_id__create_date', 'token_id__sentence_id__text_id'
+    )
+
+    # TODO: пропписать исключение
+    if len(sentence_objects) == 0:
+        return render(request, "search.html",
+                      context={'error_search': 'Text not Found', 'search_value': user_query})
+
+    # Количество найденных предложений
+    count_search = len(sentence_objects)
+
+    sentence_objects = sentence_objects
+
+    list_search = []
+    for sentence in sentence_objects:
+        tokens = TblToken.objects.filter(
+            sentence_id=sentence['token_id__sentence_id']
+        ).order_by('order_number')
+
+        list_token = []
+        for token in tokens:
+            if token.text == '-EMPTY-':
+                continue
+            if token.id_token == sentence['token_id']:
+                list_token.append({'text': token.text, 'primary': True})
+            else:
+                list_token.append({'text': token.text})
+
+        list_search.append({
+            'header': sentence['token_id__sentence_id__text_id__header'],
+            'language': sentence['token_id__sentence_id__text_id__language_id__language_name'],
+            'text_type': sentence['token_id__sentence_id__text_id__text_type_id__text_type_name'],
+            'tokens': list_token,
+            'create_date': sentence['token_id__sentence_id__text_id__create_date'],
+            'text_id': sentence['token_id__sentence_id__text_id'],
+        })
+
+    # Для неточного поиска
+    # MyClass.objects.filter(name__iexact=my_parameter)
+
+    return render(request, "search.html",
+                  context={'search_value': user_query, 'list_search': list_search,
+                           'count_search': count_search, 'is_registered': hasattr(request.user, 'id_user')})
 
 
-def text(request, text_id = None):
-
+def text(request, text_id=None):
     text_obj = TblText.objects.filter(id_text=text_id).values(
         'text', 'header', 'language_id__language_name', 'text_type_id__text_type_name'
     )
-    
+
     if len(text_obj) == 0:
-        return render(request, "corpus.html", context = {'error_search': 'Text not Found'})
+        return render(request, "corpus.html", context={'error_search': 'Text not Found'})
 
     text_obj = text_obj[0]
     text_data = re.sub(" -EMPTY- ", " ", text_obj['text'])
@@ -262,9 +268,10 @@ def text(request, text_id = None):
     language = text_obj['language_id__language_name']
     text_type = text_obj['text_type_id__text_type_name']
     text_path = str(language) + '/' + str(text_type) + '/' + str(header)
-    
-    return(render(request, "search_text.html", context={'text': text_data, 'text_path': text_path, 'text_id': text_id, 
-                                                        'language_name': language, 'text_type_name': text_type}))
+
+    return (render(request, "search_text.html", context={'text': text_data, 'text_path': text_path, 'text_id': text_id,
+                                                         'language_name': language, 'text_type_name': text_type}))
+
 
 def get_stat(request):
     if request.user.is_teacher():
@@ -299,40 +306,49 @@ def get_stat(request):
 def get_error_stats(request_data):
     # получаем список ошибок
     tags = TblTag.objects.filter(tag_language_id=1)
+    grades = TblGrade.objects.filter(grade_language_id=1)
+    grade1 = ""
+    grade2 = ""
+    grade3 = ""
+    for grade in grades:
+        if grade.id_grade == 1:
+            grade1 = grade.grade_abbrev
+            if grade1 is None:
+                grade1 = grade.grade_name
+        if grade.id_grade == 2:
+            grade2 = grade.grade_abbrev
+            if grade2 is None:
+                grade2 = grade.grade_name
+        if grade.id_grade == 3:
+            grade3 = grade.grade_abbrev
+            if grade3 is None:
+                grade3 = grade.grade_name
+
     data = []
     for tag_item in tags:
-        stat_item = {'id_tag': tag_item.id_tag, 'tag_name': tag_item.tag_text, 'tag_desc': tag_item.tag_text_russian}
+        stat_item = {'id_tag': tag_item.id_tag, 'tag_name': tag_item.tag_text, 'tag_desc': tag_item.tag_text_russian,
+                     'tag_text_abbrev': tag_item.tag_text_abbrev}
         # ищем использование ошибки
         degree1 = TblMarkup.objects.filter(tag_id=tag_item.id_tag, grade_id=1)
         stat_item["degree1_count"] = len(degree1)
-        stat_item["degree1_sample"] = ""
+        stat_item["degree1_name"] = grade1
         if len(degree1) != 0:
-            text = TblToken.objects.filter(id_token=degree1[0].token_id).values(
-                'sentence_id__text_id',
-                'sentence_id__text_id__text_type_id__text_type_name'
-            ).all()
-            if len(text) > 0:
-                stat_item["degree1_sample"] = ("Deutsche", text[0]['sentence_id__text_id__text_type_id__text_type_name'], text[0]['sentence_id__text_id'])
+            stat_item["degree1_sample"] = "corpus_search=" + urllib.parse.quote(
+                f"[grade=\"{grade1}\" & error=\"{tag_item.tag_text_abbrev}\"]")
 
         degree2 = TblMarkup.objects.filter(tag_id=tag_item.id_tag, grade_id=2)
         stat_item["degree2_count"] = len(degree2)
+        stat_item["degree2_name"] = grade2
         if len(degree2) != 0:
-            text = TblToken.objects.filter(id_token=degree2[0].token_id).values(
-                'sentence_id__text_id',
-                'sentence_id__text_id__text_type_id__text_type_name'
-            ).all()
-            if len(text) > 0:
-                stat_item["degree2_sample"] = ("Deutsche", text[0]['sentence_id__text_id__text_type_id__text_type_name'], text[0]['sentence_id__text_id'])
+            stat_item["degree2_sample"] = "corpus_search=" + urllib.parse.quote(
+                f"[grade=\"{grade2}\" & error=\"{tag_item.tag_text_abbrev}\"]")
 
         degree3 = TblMarkup.objects.filter(tag_id=tag_item.id_tag, grade_id=3)
         stat_item["degree3_count"] = len(degree3)
+        stat_item["degree3_name"] = grade3
         if len(degree3) != 0:
-            text = TblToken.objects.filter(id_token=degree3[0].token_id).values(
-                'sentence_id__text_id',
-                'sentence_id__text_id__text_type_id__text_type_name'
-            ).all()
-            if len(text) > 0:
-                stat_item["degree3_sample"] = ("Deutsche", text[0]['sentence_id__text_id__text_type_id__text_type_name'], text[0]['sentence_id__text_id'])
+            stat_item["degree3_sample"] = "corpus_search=" + urllib.parse.quote(
+                f"[grade=\"{grade3}\" & error=\"{tag_item.tag_text_abbrev}\"]")
 
         stat_item['is_normal'] = "none"
         if stat_item['degree1_count'] != 0 and stat_item['degree2_count'] != 0 and stat_item['degree3_count'] != 0:

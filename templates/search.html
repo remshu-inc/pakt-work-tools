@@ -42,6 +42,9 @@
                             {% if search.create_date != None %}
                             , {{ search.create_date }}
                             {% endif %}
+                            {% if is_registered %}
+                            [<a href="{% url 'text_view' language=search.language text_type=search.text_type text_id=search.text_id %}">Разбор</a>]
+                            {% endif %}
                         </div>
                         <div class="search_text">
                             {% for token in search.tokens  %}
