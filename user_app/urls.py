@@ -12,4 +12,5 @@ urlpatterns = [
     path('manage/group_modify/', views.group_selection, name = 'group_selection'),
     path('manage/group_modify/<int:group_id>/', views.group_modify, name = 'group_modify'),
     # path('manage/group_modify/<int:group_id>', views.group_selection, name = 'group_selection'),
+    path('manage/tasks_info/<int:user_id>', views.tasks_info, name = 'tasks_info')
 ]

@@ -4,12 +4,14 @@ from .login import MyBackend
 # from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 from django.db.models import Q
-from .models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
+from .models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup, TblLanguage
 from .forms import UserCreationForm, StudentCreationForm, LoginForm, GroupCreationForm, GroupModifyForm, \
     GroupModifyStudent, StudentGroupCreationForm
 
 from right_app.models import TblUserRights
 from right_app.views import check_is_superuser
+
+from text_app.models import TblText, TblMarkup
 
 from string import punctuation
 from datetime import datetime
@@ -210,12 +212,15 @@ def log_out(request):
 
 # * Teacher management page
 def manage(request):
-    if request.user.is_teacher():
+    teacher = request.user.is_teacher()
+    student = request.user.is_student()
+    if teacher or student:
         return (render(request, 'manage_page.html',
-                       {'teacher': True, 'superuser': check_is_superuser(request.user.id_user)}))
-    else:
-        return (render(request, 'manage_page.html',
-                       {'teacher': False, 'superuser': check_is_superuser(request.user.id_user)}))
+                       {'teacher': teacher,
+                        'student': student,
+                         'superuser': check_is_superuser(request.user.id_user),
+                         }
+                        ))
 
 
 # * Group creation page
@@ -534,5 +539,78 @@ def group_modify(request, group_id):
 
     else:
         return (render(request, 'group_modify.html', context={
+            'right': False
+        }))
+
+
+def tasks_info(request, user_id):
+    if (request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher():
+        about_student = TblStudent.objects\
+            .filter(user_id = user_id)\
+            .values('user_id__name', 'user_id__last_name','user_id__patronymic').all()
+        if about_student.exists():
+            about_student = {
+                'name': about_student[0]['user_id__name'] if about_student[0]['user_id__name'] else '',
+                'last_name': about_student[0]['user_id__last_name'] if about_student[0]['user_id__last_name'] else '',
+                'patronymic': about_student[0]['user_id__patronymic'] if about_student[0]['user_id__patronymic'] else '',
+            }
+        else:
+            about_student = {
+                'name':'Не указано',
+                'last_name':'Не указано',
+                'patronymic': 'Не указано'
+            }
+        
+        tasks = TblText.objects\
+            .filter(user_id = user_id)\
+            .order_by('create_date')\
+            .values(
+                'id_text',
+                'language_id__language_name',
+                'text_type_id__text_type_name',
+                'header',
+                'create_date',
+                'error_tag_check',
+                'assessment',
+            ).all()
+        out = []
+        if tasks.exists():
+            for task in tasks:
+                error_check = 'Да' if task['error_tag_check'] else 'Нет'
+                assessment = ''
+                if task['assessment'] and task['assessment']>0:
+                    for element in TblText.TASK_RATES:
+                        if task['assessment'] == element[0]:
+                            assessment = element[1]
+                            break
+                if assessment:
+                    num_of_errors = TblMarkup.objects.filter(
+                        Q(token_id__sentence_id__text_id = task['id_text']) &\
+                        Q(tag_id__markup_type_id = 1)
+                    ).count()
+                else:
+                    num_of_errors = ''
+                
+                path = {'lang': task['language_id__language_name'],
+                                'type':task['text_type_id__text_type_name'],
+                                'id':task['id_text']
+                              }
+    
+                out.append({
+                    'header':task['header'],
+                    'path':path,
+                    'error_check':error_check,
+                    'assessment':assessment,
+                    'err_count':num_of_errors,
+                    'date':task['create_date']
+                })
+        
+        return (render(request, 'tasks_list.html', context={
+            'right': True,
+            'author':about_student,
+            'tasks':out
+        }))
+    else:
+        return (render(request, 'tasks_list.html', context={
             'right': False
         }))

@@ -60,6 +60,20 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
         else:
             return False
         
+    #TODO Объединить с is_teacher
+    def is_student(self):
+        """Checking for a student
+
+        Returns:
+            boolean: true or false student
+        """  
+
+        student = TblStudent.objects.filter(user_id = self.id_user)
+        if len(student) != 0:
+            return True
+        else:
+            return False
+        
     def save(self, *args, **kwargs):
         super(TblUser, self).save(*args, **kwargs) 
         return self

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+{%if right%}
+<div class = "info-line">
+     {{author.last_name}} {{author.name}} {{author.patronymic}}
+</div>
+<table class="table table-borderless">
+    <thead class = 'table-light active-text non-border'>
+    <tr class = 'table-top-border'>
+        <th scope="col" class = 'cell-padding section-head-text'>Название</th>
+        <th scope="col" class='section-head-text'>Тип текста</th>
+        <th scope="col" class='section-head-text'>Дата создания</th>
+        <th scope="col" class='section-head-text'>Проверка ошибок</th>
+        <th scope="col" class='section-head-text'>Оценка</th>
+        <th scope="col" class='section-head-text'>Количество ошибок</th>
+    </tr>
+    </thead>
+    <tbody>
+    {%for task in tasks%}
+    <tr class = 'selectable-table-row cell-paddings'>
+        <td scope="row" class = 'cell-padding index-cell'>
+            <a href = {% url 'text_view' language=task.path.lang text_type=task.path.type text_id=task.path.id%} >
+                {{task.header}}
+            </a>
+        </td>
+        <td>{{task.path.type}}</td>
+        <td >{{task.date}}</td>
+        <td >{{task.error_check}}</td>
+        <td >{{task.assessment}}</td>
+        <td >{{task.err_count}}</td>
+    </tr>
+    {%endfor%}
+</tbody>
+</table>
+{%else%}
+ <h1>Отказано в доступе</h1>
+{%endif%}
+{%endblock%}

@@ -30,7 +30,7 @@
     {% if user.is_authenticated %}
     <ul class="nav">
 
-      {% if user.is_teacher %}
+      {% if user.is_teacher or user.is_student%}
       {% comment %} <li class="nav-item">
         <a class="nav-link" href="{% url 'signup' %}">Регистрация студента</a>
       </li> {% endcomment %}
