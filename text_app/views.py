@@ -43,7 +43,8 @@ def show_files(request, language=None, text_type=None):
     #! Переделать
     lang_query = TblLanguage.objects.filter(language_name = language).all().values('id_language')
     languages = [1,2] if not lang_query.exists() else [lang_query[0]['id_language']]
-    students = TblStudent.objects.filter(user_id__language_id__in = languages).all().order_by('user_id__last_name')
+    students = TblStudent.objects.filter(user_id__language_id__in = languages).all()\
+        .order_by('user_id__last_name','user_id__name','user_id__patronymic')
     #!---------------------------------------------
 
     all_students = []

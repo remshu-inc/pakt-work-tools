@@ -21,14 +21,14 @@
                             {% endfor %}
                         </select>
                     </div>
-
-                <button class="button btn pakt-btn" style="float: right;"">
+                
+                <button class="btn shadow-none update-button" style="float: right;">
                     Новый текст
                 </button>
 
                 </form>
 
-                <button class="button btn pakt-btn" style="float: left;" @click="$emit('close')">
+                <button class="btn shadow-none decline-button" style="float: left;" @click="$emit('close')">
                     Закрыть
                 </button>
 
@@ -69,13 +69,13 @@
                     <div class="input-group mb-1">
                         {% load filters %}
                         {{ form_search.header|addclass:'non-round' }}
-                        <button class="btn btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">
+                        <button class="btn shadow-none decline-button btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
                                 <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
                             </svg>
                             Фильтр
                         </button>
-                        <button name="corpus_search" class="btn btn-outline-secondary non-round" type="submit" id="button-addon">Поиск</button>
+                        <button name="corpus_search" class="btn shadow-none update-button" type="submit" id="button-addon">Поиск</button>
                     </div>
 
                     <div class="filter" id="list-filter">
@@ -336,14 +336,14 @@
         {% if work_with_file %}
         <div id="new_text_btn" class="col-md-2 mt-5">
             {% if user.is_teacher %}
-            <button id="show-modal" class="button btn pakt-btn" @click="showModal = true">Новый текст</button>
+            <button id="show-modal" class="btn shadow-none update-button" @click="showModal = true">Новый текст</button>
             <!-- use the modal component, pass in the prop -->
             <modal v-if="showModal" @close="showModal = false">
             </modal>
             {% else %}
-            <a href='new_text' class="button btn pakt-btn">Новый текст</a>
+            <a href='new_text' class="btn shadow-none update-button">Новый текст</a>
             {% endif %}
-            <!-- <button type="button" class="btn btn-danger">Danger</button> -->
+            <!-- <button type="button" class="btn shadow-none del-button">Danger</button> -->
         </div>
         {% endif %}
 

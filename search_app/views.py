@@ -26,7 +26,7 @@ def index(request):
     Returns:
         HttpResponse: html главной страницы
     """
-    current_time = timezone.now() + timedelta(hours=3)
+    current_time = timezone.now()
     out_time = current_time
     out_metrics = []
     metrics = TblSystemMetric.objects.filter(metric_name='token_counter').order_by('id_metric').values().all()

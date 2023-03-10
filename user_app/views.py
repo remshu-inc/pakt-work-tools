@@ -214,13 +214,37 @@ def log_out(request):
 def manage(request):
     teacher = request.user.is_teacher()
     student = request.user.is_student()
+    
     if teacher or student:
+        # if teacher:
+        #     available_students = []
+        #     lang = [1,2] if not request.user.language_id else [request.user.language_id]
+        #     available_students = [
+        #         {
+        #             'id':el['user_id'],
+        #             'name': f"{el['user_id__last_name']} {el['user_id__name']} {el['user_id__patronymic']}"
+        #          }   for el in TblStudent.objects\
+        #                                                 .filter(user_id__language_id__in = lang)\
+        #                                                 .all()\
+        #                                                 .order_by(
+        #                                                         'user_id__last_name',
+        #                                                         'user_id__name',
+        #                                                         'user_id__patronymic'
+        #                                                         )\
+        #                                                 .values(
+        #                                                     'user_id__last_name',
+        #                                                     'user_id__name',
+        #                                                     'user_id__patronymic',
+        #                                                     'user_id'
+        #                                                 )]
         return (render(request, 'manage_page.html',
-                       {'teacher': teacher,
-                        'student': student,
-                         'superuser': check_is_superuser(request.user.id_user),
+                       {
+                            'teacher': teacher,
+                            'student': student,
+                            # 'avaliable_students': available_students,
+                            'superuser': check_is_superuser(request.user.id_user)
                          }
-                        ))
+                                 ))
 
 
 # * Group creation page

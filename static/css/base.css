@@ -8,6 +8,7 @@
     --color-accept:#49ff24;
     --color-warning:#ff2427;
     --color-decline:#999999;
+    --color-cancel:#7d7d7d;
 }
 
 /* Общие стили */
@@ -269,3 +270,39 @@ select[readonly] {
         border-bottom: 1px #d7d7d7 solid;
 }
 
+.text-menu-btn{
+    width: 100%;
+}
+.update-button{
+    background-color: white;
+    color:var(--color-primary);
+    border: 1px var(--color-primary) solid;
+    border-radius: 0px;
+}
+.update-button:hover{
+    background-color: var(--color-primary);
+    color:white;
+    transition: 0.8s;
+}
+.del-button{
+    background-color: white;
+    color:var(--color-warning);
+    border: 1px var(--color-warning) solid;
+    border-radius: 0px;
+}
+.del-button:hover{
+    background-color: var(--color-warning);
+    color:white;
+    transition: 0.8s;
+}
+.decline-button{
+    background-color: white;
+    color:var(--color-cancel);
+    border: 1px var(--color-cancel) solid;
+    border-radius: 0px;
+}
+.decline-button:hover{
+    background-color: var(--color-cancel);
+    color:white;
+    transition: 0.8s;
+}

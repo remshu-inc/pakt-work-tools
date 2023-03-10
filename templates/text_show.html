@@ -55,11 +55,11 @@
     background-color: #f1f1f1;
 }
 .sentence::-webkit-scrollbar-thumb {
-    background-color: #5ce4ff8f;
+    background-color: var(--color-decline);
 }
 .sentence:hover::-webkit-scrollbar-thumb{
-    background-color: #00bfe6;
-    transition: 1s;
+    background-color: var(--options-select-color);
+    transition: 1.2s;
 
 }
 
@@ -173,7 +173,7 @@
 }
 
 .token:hover{
-    background-color:#42c4fc;
+    background-color: var(--soft-select-color);
     transition: 0.1s;
 
 }
@@ -268,30 +268,6 @@ td{
     color: white;
     transition: 0.8s;
 }
-.update-button{
-    width: 100%;
-    background-color: white;
-    color:var(--color-primary);
-    border: 1px var(--color-primary) solid;
-    border-radius: 0px;
-}
-.update-button:hover{
-    background-color: var(--color-primary);
-    color:white;
-    transition: 0.8s;
-}
-.del-button{
-    width: 100%;
-    background-color: white;
-    color:var(--color-warning);
-    border: 1px var(--color-warning) solid;
-    border-radius: 0px;
-}
-.del-button:hover{
-    background-color: var(--color-warning);
-    color:white;
-    transition: 0.8s;
-}
 
 #display-settings{
     margin-left:2px;
@@ -333,7 +309,7 @@ td{
 {
     z-index: 2;
     display: block;
-    background-color: #00bfe6;
+    background-color: var(--color-primary);
 }
 
 
@@ -385,7 +361,7 @@ td{
     {{lang_name}}/{{text_info.text_type}}/{{text_info.text_name}}
 </div>
 
-<!--Меню текста-->
+ <!--Меню текста-->
 <div id = "over-text btn-group">
 
     <!--Настрйка вида-->
@@ -441,7 +417,7 @@ td{
         <li><hr class="dropdown-divider"></li>
         <li>
             <div class="dropdown-item-text mfield">
-                <a href = 'show_raw' class="btn shadow-none update-button">Исходный текст</a>
+                <a href = 'show_raw' class="btn shadow-none update-button text-menu-btn">Исходный текст</a>
             </div>
         </li>
         {%if superuser%}
@@ -451,7 +427,7 @@ td{
                     <input type="hidden" name="language" value="{{ language }}">
                     <input type="hidden" name="text_type" value="{{ text_type }}">
                     <input type="hidden" name="text_id" value="{{ text_id }}">
-                    <button type="submit" class="btn shadow-none del-button" id="del-text-btn" style="border-radius:0;" onclick="return confirm('Удалить текст?')">Удалить текст</button>
+                    <button type="submit" class="btn shadow-none del-button text-menu-btn" id="del-text-btn" style="border-radius:0;" onclick="return confirm('Удалить текст?')">Удалить текст</button>
                 </form>
             </div>
         </li>
@@ -479,7 +455,7 @@ td{
         <li><hr class="dropdown-divider"></li>
         <li>
             <div class="dropdown-item-text mfield">
-                <a href = 'author_edit' class="btn shadow-none update-button">Изменить</a>
+                <a href = 'author_edit' class="btn shadow-none update-button text-menu-btn">Изменить</a>
             </div>
         </li>
         {%endif%}
@@ -530,7 +506,7 @@ td{
         <li><hr class="dropdown-divider"></li>
         <li>
             <div class="dropdown-item-text mfield">
-                <a href = 'meta_edit' class="btn shadow-none update-button">Изменить</a>
+                <a href = 'meta_edit' class="btn shadow-none update-button text-menu-btn">Изменить</a>
             </div>
         </li>
         {%endif%}
@@ -631,7 +607,7 @@ td{
         <li><hr class="dropdown-divider"></li>
         <li>
             <div class="dropdown-item-text mfield">
-                <a href = 'asses_edit' class="btn shadow-none update-button">Изменить</a>
+                <a href = 'asses_edit' class="btn shadow-none update-button text-menu-btn">Изменить</a>
             </div>
         </li>
         {%endif%}

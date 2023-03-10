@@ -49,7 +49,7 @@
                                     "/  "+(parseInt(year.value)+1).toString();
                                 }; 
                         </script>
-                        <input type="submit" value="Сохранить" class = 'mt-2 btn btn-success save_button', name = 'group_info_modify'>
+                        <input type="submit" value="Сохранить" class = 'mt-2 btn shadow-none update-button', name = 'group_info_modify'>
                     </form>
                 </ul>
             </div>
@@ -109,7 +109,7 @@
                             <p title = 'Выберите студентов для удаления (CTRL+ЛКМ)'>Выбор студентов:</p>
                             <div>{{add_std_form.studs}}</div>
                         </div>
-                        <input type="submit" value="Добавить" class = 'mt-2 btn btn-success save_button', name = 'add_studs'>
+                        <input type="submit" value="Добавить" class = 'mt-2 btn shadow-none update-button', name = 'add_studs'>
                     </form>
                 </ul>
             </div>
@@ -133,7 +133,7 @@
                             <p title = 'Выберите студентов для удаления (CTRL+ЛКМ)'>Выбор студентов:</p>
                             <div>{{del_std_form.studs}}</div>
                         </div>
-                        <input type="submit" value="Удалить" class = 'mt-2 btn btn-danger save_button', name = 'del_studs'>
+                        <input type="submit" value="Удалить" class = 'mt-2 btn shadow-none del-button', name = 'del_studs'>
                     </form>
                 </ul>
             </div>
@@ -153,7 +153,7 @@
                 <ul class="list-group">
                     <form method="POST" novalidate onSubmit="return confirm('Удалить группу?');">
                         {% comment %} {% csrf_token %} {% endcomment %}
-                        <input type="submit" value="Удалить группу" class = 'mt-2 btn btn-danger save_button', name = 'del_group' hre>
+                        <input type="submit" value="Удалить группу" class = 'mt-2 btn shadow-none del-button', name = 'del_group' hre>
                     </form>
                 </ul>
             </div>
@@ -174,7 +174,7 @@
     <div class='container-fluid'>
         <div class = 'row'>
             <div class = 'col'>
-                <a class = 'mt-2 mb-3 btn btn-secondary' href="{% url 'group_selection'%}">Назад</a>
+                <a class = 'mt-2 mb-3 btn shadow-none decline-button' href="{% url 'group_selection'%}">Назад</a>
             </div<
         </div>
     </div>

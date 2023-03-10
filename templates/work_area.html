@@ -385,11 +385,11 @@ function select_ann(event){
     for(var i =0; i<same_elements.length; i++){
         if(same_elements[i].getAttribute('annotation-id') == current_id){
             var token_id = same_elements[i].getAttribute('child-token-id') 
-            same_elements[i].style.backgroundColor = '#42c4fc';
+            same_elements[i].style.backgroundColor = 'var(--soft-select-color)';
             same_elements[i].style.fontWeight = "500";
             if(!selected_tokens.includes(parseInt(token_id))){
             var child_element = document.querySelector(`[token-id = "${token_id}"]`)
-            child_element.style.backgroundColor = '#42c4fc';
+            child_element.style.backgroundColor = 'var(--soft-select-color)';
             child_element.style.fontWeight = "300";
             }
             }
@@ -862,8 +862,8 @@ textarea::-webkit-scrollbar-thumb {
                 </ul>
                 <div id="creator-field">Создатель аннотации:<div id="creator-name"></div></div>
                 <div class = 'btn-group'>
-                    <button class = "btn update-button" id = "form-save-button" type = "button" v-on:click = "Save">Сохранить</button>
-                    <button class = "btn del-button"  style = "margin-left:10px;" id = "form-delete-button" type = "button" v-on:click = "Delete">Удалить</button>
+                    <button class = "btn update-button text-menu-btn" id = "form-save-button" type = "button" v-on:click = "Save">Сохранить</button>
+                    <button class = "btn del-button text-menu-btn"  style = "margin-left:10px;" id = "form-delete-button" type = "button" v-on:click = "Delete">Удалить</button>
                 </div>
                 </form>
             </div>
