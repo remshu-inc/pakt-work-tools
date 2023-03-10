@@ -1,23 +1,18 @@
 import re
 import urllib
-from datetime import datetime
+from datetime import timedelta
 from os import remove
 from wsgiref.util import FileWrapper
 
-from django.shortcuts import redirect, render
+from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.utils import timezone
 
-from django.db.models import Q
-from .models import TblSystemMetric
-from .forms import StatisticForm
-from .stat_src import built_group_stat
-from text_app.models import TblMarkup, TblToken, TblTag, TblSentence, TblText, TblTextType
-
-from datetime import timedelta
 from pakt_work_tools.custom_settings import AUTO_STAT
 from text_app.models import TblMarkup, TblToken, TblTag, TblText, TblGrade
 from .forms import StatisticForm
+from .models import TblSystemMetric
 from .stat_src import built_group_stat
 
 
@@ -33,6 +28,13 @@ def index(request):
     current_time = timezone.now()+timedelta(hours=3)
     out_metrics = []
     metrics = TblSystemMetric.objects.filter(metric_name = 'token_counter').order_by('id_metric').values().all()
+
+    if len(metrics) == 0:
+        return render(request, "index.html", context= {
+        'tokens_count': {1:0, 2:0},
+        'update_time': current_time.strftime("%d.%m.%Y %H:%M:%S")
+        })
+
     if (current_time - metrics[0]['metric_update_time']).total_seconds() >= AUTO_STAT['update_interval']:
         for index in range(len(metrics)):
             try:
