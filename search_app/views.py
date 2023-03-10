@@ -1,23 +1,19 @@
 import re
 import urllib
-from datetime import datetime
+from datetime import timedelta
 from os import remove
 from wsgiref.util import FileWrapper
 
-from django.shortcuts import redirect, render
+from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.utils import timezone
 
-from django.db.models import Q
-from .models import TblSystemMetric
-from .forms import StatisticForm
-from .stat_src import built_group_stat
-from text_app.models import TblMarkup, TblToken, TblTag, TblSentence, TblText, TblTextType
-
-from datetime import timedelta
 from pakt_work_tools.custom_settings import AUTO_STAT
 from text_app.models import TblMarkup, TblToken, TblTag, TblText, TblGrade
+from user_app.models import TblLanguage
 from .forms import StatisticForm
+from .models import TblSystemMetric
 from .stat_src import built_group_stat
 
 
@@ -30,27 +26,51 @@ def index(request):
     Returns:
         HttpResponse: html главной страницы
     """
-    current_time = timezone.now()+timedelta(hours=3)
+    current_time = timezone.now() + timedelta(hours=3)
+    out_time = current_time
     out_metrics = []
-    metrics = TblSystemMetric.objects.filter(metric_name = 'token_counter').order_by('id_metric').values().all()
-    if (current_time - metrics[0]['metric_update_time']).total_seconds() >= AUTO_STAT['update_interval']:
-        for index in range(len(metrics)):
+    metrics = TblSystemMetric.objects.filter(metric_name='token_counter').order_by('id_metric').values().all()
+
+    if len(metrics) == 0:
+        # если метрик еще нет, то считаем по всем языкам
+        langs = TblLanguage.objects.all()
+        for lang in langs:
             try:
                 out_metrics.append(int(TblToken.objects.filter(
-                    Q(sentence_id__text_id__language_id = metrics[index]['language_id'])&~Q(text = '-EMPTY-')).count()))
+                    Q(sentence_id__text_id__language_id=lang.id_language) & ~Q(text='-EMPTY-')).count()))
             except:
                 out_metrics.append(0)
-                
-        TblSystemMetric.objects.filter(metric_name = 'token_counter').update(metric_update_time=current_time)
-        TblSystemMetric.objects.filter(Q(metric_name = 'token_counter')&Q(language_id = 1)).update(metric_value=out_metrics[0])
-        TblSystemMetric.objects.filter(Q(metric_name = 'token_counter')&Q(language_id = 2)).update(metric_value=out_metrics[1])
+
+        for lang in langs:
+            token_counter = TblSystemMetric(metric_name='token_counter',
+                                            language_id=lang.id_language,
+                                            metric_value=out_metrics[lang.id_language - 1],
+                                            metric_update_time=current_time)
+            token_counter.save()
+
+    elif (current_time - metrics[0]['metric_update_time']).total_seconds() >= AUTO_STAT['update_interval']:
+        # если метрики устарели
+        for idx in range(len(metrics)):
+            try:
+                out_metrics.append(int(TblToken.objects.filter(
+                    Q(sentence_id__text_id__language_id=metrics[idx]['language_id']) & ~Q(text='-EMPTY-')).count()))
+            except:
+                out_metrics.append(0)
+
+        TblSystemMetric.objects.filter(metric_name='token_counter').update(metric_update_time=current_time)
+        TblSystemMetric.objects.filter(Q(metric_name='token_counter') & Q(language_id=1)).update(
+            metric_value=out_metrics[0])
+        TblSystemMetric.objects.filter(Q(metric_name='token_counter') & Q(language_id=2)).update(
+            metric_value=out_metrics[1])
 
     else:
+        # если метрики актуальны
         out_metrics = [int(metrics[index]['metric_value']) for index in range(len(metrics))]
+        out_time = metrics[0]['metric_update_time']
 
-    return render(request, "index.html", context = {
-        'tokens_count': {1:out_metrics[0], 2:out_metrics[1]},
-        'update_time': current_time.strftime("%d.%m.%Y %H:%M:%S")
+    return render(request, "index.html", context={
+        'tokens_count': {1: out_metrics[0], 2: out_metrics[1]},
+        'update_time': out_time.strftime("%d.%m.%Y %H:%M:%S")
     })
 
 

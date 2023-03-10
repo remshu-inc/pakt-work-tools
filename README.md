@@ -65,6 +65,7 @@ DATABASES = {
     	1. `python manage.py makemigrations text_app`
 		2. `python manage.py makemigrations user_app`
 		3. `python manage.py makemigrations right_app`
+		4. `python manage.py makemigrations search_app`
 	2. Иначе выполните скрипт `python drop_migrations.py` и выполните пункт 11.1
 12. Запустите миграцию
 `python manage.py migrate`
