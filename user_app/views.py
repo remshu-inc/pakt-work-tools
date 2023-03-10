@@ -563,7 +563,7 @@ def tasks_info(request, user_id):
         
         tasks = TblText.objects\
             .filter(user_id = user_id)\
-            .order_by('create_date')\
+            .order_by('-create_date')\
             .values(
                 'id_text',
                 'language_id__language_name',
