@@ -420,6 +420,12 @@ td{
                 <a href = 'show_raw' class="btn shadow-none update-button text-menu-btn">Исходный текст</a>
             </div>
         </li>
+        <li>
+            <div class="dropdown-item-text mfield" id="update_part_of_speech_btn">
+                <a href="#" class="btn shadow-none update-button text-menu-btn"
+                   onclick="process_part_of_speech(event, '{{language}}', '{{text_type}}', '{{text_id}}')">Обновление частей речи</a>
+            </div>
+        </li>
         {%if superuser%}
         <li>
             <div class="dropdown-item-text mfield">
@@ -736,6 +742,35 @@ if (eventData.button === 0) {
 document.body.onmouseup = function(eventData) {
 if (eventData.button === 0) {
     key_down=false}
+}
+
+function process_part_of_speech(eventData, language, text_type, text_id) {
+    // функция отправки запроса на обновление частеречной разметки текста
+    eventData.preventDefault();
+
+    if (!window.confirm("Вы действительно желаете обновить частеречную разметку? Старая разметка будет удалена")) {
+        return;
+    }
+
+    document.getElementById("update_part_of_speech_btn").style.display = 'none';
+
+    let process_url = "{% url 'part_of_speech' %}";
+    fetch(process_url, {
+        method: 'POST',
+        body: JSON.stringify({language, text_type, text_id})
+    }).then(
+        response => {
+            if (response.ok) {
+                console.log("SUCCESS");
+                window.alert("Частеречная разметка обновлена!");
+                document.getElementById("update_part_of_speech_btn").style.display = 'block';
+                return;
+            }
+            console.log(response);
+        }, networkError => {
+            console.log(networkError.message);
+        }
+    );
 }
 
 {%if ann_right%}
