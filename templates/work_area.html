@@ -137,17 +137,17 @@ function re_built_text(response, lang){
                 if(mrk_info.isann){
                     token_markup = document.createElement('div')
                     if(mrk_info.display){
-                        if(response.data.markup_info[mrk_info.ann_id].tag_text_abbrev){
-                            token_markup.innerHTML =  response.data.markup_info[mrk_info.ann_id].tag_text_abbrev
-                        }
-                        else{
+                        // if(response.data.markup_info[mrk_info.ann_id].tag_text_abbrev){
+                        //     token_markup.innerHTML =  response.data.markup_info[mrk_info.ann_id].tag_text_abbrev
+                        // }
+                        // else{
                             if( lang == 0){
                                 token_markup.innerHTML =response.data.markup_info[mrk_info.ann_id].tag_text
                             }
                             else {
                                 token_markup.innerHTML = response.data.markup_info[mrk_info.ann_id].tag_text_russian
                             }
-                        }
+                        // }
                     }
                     token_markup.setAttribute('class','annotation-subtag')
                     token_markup.setAttribute('annotation-id',mrk_info.ann_id)
@@ -155,6 +155,7 @@ function re_built_text(response, lang){
                     if(lang==0){
                         token_markup.setAttribute(
                             'title',String(response.data.markup_info[mrk_info.ann_id].tag_text)+'\n'+
+                                        'Аббревиатура: '+String(response.data.markup_info[mrk_info.ann_id].tag_text_abbrev)+'\n'+
                                         'Причина:  '+String(mrk_info.reason)+'\n'+
                                         'Грубость:  '+String(mrk_info.grade)+'\n'+
                                         'Исправление:  '+String(mrk_info.correct)+'\n'+
