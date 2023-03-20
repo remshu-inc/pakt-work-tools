@@ -213,6 +213,7 @@ class TblGrade(models.Model):
 
     grade_name = models.CharField(max_length=255)
     grade_language = models.ForeignKey(TblLanguage, on_delete=models.SET_NULL, blank=True, null=True)
+    grade_value = models.SmallIntegerField(blank=False, null=False, default = 0)
     grade_abbrev = models.CharField(max_length=30, default= '', null = True)
 
     def __str__(self):
