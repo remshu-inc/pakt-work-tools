@@ -282,6 +282,7 @@ def group_creation(request):
             if form.is_valid():
                 group_name = str(form.cleaned_data['group_name'])
                 year = str(form.cleaned_data['year'])
+                course_number = int(form.cleaned_data['course_number'])
 
                 if _symbol_check(group_name):
                     if year.isnumeric() and 999 < int(year) < datetime.now().year + 1:
@@ -295,7 +296,8 @@ def group_creation(request):
                             new_row = TblGroup(
                                 group_name=group_name,
                                 enrollement_date=enrollement_date,
-                                language_id=request.user.language_id)
+                                language_id=request.user.language_id,
+                                course_number = course_number)
                             new_row.save()
 
                             return (render(request, 'group_creation_form.html',
@@ -416,10 +418,11 @@ def _get_group_students(group_id: int, in_: bool) -> list:
 
 def group_modify(request, group_id):
     if request.user.is_teacher():
-        groups = TblGroup.objects.filter(id_group=group_id).values('enrollement_date', 'group_name')
+        groups = TblGroup.objects.filter(id_group=group_id).values('enrollement_date', 'group_name', 'course_number')
         if groups.exists():
             year = groups[0]['enrollement_date'].year
             group_name = groups[0]['group_name']
+            course_number = groups[0]['course_number']
             students_in = _get_group_students(group_id, True)
             students_out = _get_group_students(group_id, False)
         else:
@@ -440,15 +443,16 @@ def group_modify(request, group_id):
                     'group_students': students_in,
                     'del_std_form': GroupModifyStudent(students_in),
                     'add_std_form': GroupModifyStudent(students_out),
-                    'data_form': GroupModifyForm(year, group_name)}))
+                    'data_form': GroupModifyForm(year, group_name, course_number)}))
 
         # * Modify info about group
         elif 'group_info_modify' in request.POST:
 
-            form = GroupModifyForm(year, group_name, request.POST or None)
+            form = GroupModifyForm(year, group_name, course_number, request.POST or None)
             if form.is_valid():
                 group_name_new = str(form.cleaned_data['group_name'])
                 year_new = str(form.cleaned_data['year'])
+                course_number_new = int(form.cleaned_data['course_number']) 
 
                 if _symbol_check(group_name_new):
                     if year_new.isnumeric() and 999 < int(year_new) < datetime.now().year + 1:
@@ -457,6 +461,7 @@ def group_modify(request, group_id):
                         group = TblGroup.objects.get(id_group=group_id)
                         group.group_name = group_name_new
                         group.enrollement_date = enrollement_date
+                        group.course_number = course_number_new
 
                         group.save()
                         return (render(request, 'group_modify.html', context={
@@ -467,7 +472,7 @@ def group_modify(request, group_id):
                             'group_students': students_in,
                             'del_std_form': GroupModifyStudent(students_in),
                             'add_std_form': GroupModifyStudent(students_out),
-                            'data_form': GroupModifyForm(year, group_name)}))
+                            'data_form': GroupModifyForm(year, group_name, course_number)}))
 
                     else:
                         return (render(request, 'group_modify.html', context={
@@ -478,7 +483,7 @@ def group_modify(request, group_id):
                             'group_students': students_in,
                             'del_std_form': GroupModifyStudent(students_in),
                             'add_std_form': GroupModifyStudent(students_out),
-                            'data_form': GroupModifyForm(year, group_name)}))
+                            'data_form': GroupModifyForm(year, group_name, course_number)}))
                 else:
                     return (render(request, 'group_modify.html', context={
                         'right': True,
@@ -488,7 +493,7 @@ def group_modify(request, group_id):
                         'group_students': students_in,
                         'del_std_form': GroupModifyStudent(students_in),
                         'add_std_form': GroupModifyStudent(students_out),
-                        'data_form': GroupModifyForm(year, group_name)}))
+                        'data_form': GroupModifyForm(year, group_name, course_number)}))
 
         elif 'add_studs' in request.POST:
             form = GroupModifyStudent(students_out, request.POST or None)
@@ -513,7 +518,7 @@ def group_modify(request, group_id):
                     'group_students': updated_students_in,
                     'del_std_form': GroupModifyStudent(updated_students_in),
                     'add_std_form': GroupModifyStudent(updated_students_out),
-                    'data_form': GroupModifyForm(year, group_name)}))
+                    'data_form': GroupModifyForm(year, group_name, course_number)}))
             else:
                 return (render(request, 'group_modify.html', context={
                     'right': False}))
@@ -536,7 +541,7 @@ def group_modify(request, group_id):
                         'group_students': students_in,
                         'del_std_form': GroupModifyStudent(students_in),
                         'add_std_form': GroupModifyStudent(students_out),
-                        'data_form': GroupModifyForm(year, group_name)}))
+                        'data_form': GroupModifyForm(year, group_name, course_number)}))
 
                 updated_students_in = _get_group_students(group_id, True)
                 updated_students_out = _get_group_students(group_id, False)
@@ -549,7 +554,7 @@ def group_modify(request, group_id):
                     'group_students': updated_students_in,
                     'del_std_form': GroupModifyStudent(updated_students_in),
                     'add_std_form': GroupModifyStudent(updated_students_out),
-                    'data_form': GroupModifyForm(year, group_name)}))
+                    'data_form': GroupModifyForm(year, group_name, course_number)}))
 
         elif 'del_group' in request.POST:
             TblGroup.objects.filter(id_group=group_id).delete()
