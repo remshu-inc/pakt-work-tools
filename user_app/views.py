@@ -11,12 +11,18 @@ from .forms import UserCreationForm, StudentCreationForm, LoginForm, GroupCreati
 from right_app.models import TblUserRights
 from right_app.views import check_is_superuser
 
-from text_app.models import TblText, TblMarkup
+from text_app.models import TblText, TblMarkup, TblTextType
 
 from string import punctuation
 from datetime import datetime
 from hashlib import sha512
 
+#for dashboard
+from django.http import JsonResponse
+from django.db import connection
+import json
+from django.views.generic import View
+#----------------------------
 
 def signup(request):
     try:
@@ -216,6 +222,7 @@ def manage(request):
     student = request.user.is_student()
     
     if teacher or student:
+        #TODO Связать с таблицей работ и дэшем
         # if teacher:
         #     available_students = []
         #     lang = [1,2] if not request.user.language_id else [request.user.language_id]
@@ -643,3 +650,373 @@ def tasks_info(request, user_id):
         return (render(request, 'tasks_list.html', context={
             'right': False
         }))
+
+#* Dashboard (Polina Osipova)
+def get_sql_querty(sql_querty):
+    with connection.cursor() as cursor:
+        cursor.execute(sql_querty)
+        result = [item[0] for item in cursor.fetchall()]
+
+    return result
+
+
+def get_sql_querty_for_data(sql_querty):
+    with connection.cursor() as cursor:
+        cursor.execute(sql_querty)
+        rows = cursor.fetchall()
+        data = []
+        for i in range(len(rows)):
+            my_data = {
+                'id_tag': rows[i][0],
+                'tag_parent_id': rows[i][1],
+                'tag_language_id': rows[i][2],
+                'tag_text': rows[i][3],
+                'tag_text_russian': rows[i][4],
+                'count_data': rows[i][5]
+            }
+            data.append(my_data)
+
+        return data
+
+
+def get_sql_querty_for_data_grade(sql_querty):
+    with connection.cursor() as cursor:
+        cursor.execute(sql_querty)
+        rows = cursor.fetchall()
+        data = []
+        for i in range(len(rows)):
+            my_data = {
+                'id_grade': rows[i][0],
+                'grade_name': rows[i][1],
+                'grade_language_id': rows[i][2],
+                'count_data': rows[i][3]
+            }
+            data.append(my_data)
+
+        return data
+
+
+def DFS(v, c, h, data):
+    h[v] = 1
+    c += data[v]["count_data"]
+    for i in range(len(data)):
+        if data[i]["tag_parent_id"] == data[v]["id_tag"]:
+            if h[i] == 0:
+                c = DFS(i, c, h, data)
+
+    return c
+
+
+def data_group_by_parent_id(data):
+    n = len(data)
+    h = [0 for i in range(n)]
+
+    for i in range(n):
+        if h[i] == 0 and data[i]["tag_parent_id"] == None:
+            c = 0
+            c = DFS(i, c, h, data)
+            data[i]["count_data"] = c
+
+    data_group = []
+    for el in data:
+        if el["tag_parent_id"] == None:
+            data_group.append(el)
+
+    return data_group
+
+
+class DiagramView(View):
+    def get(self, request):
+        if request.user.is_teacher():
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+            groups = list(TblGroup.objects.values('group_name').distinct().order_by('group_name'))
+            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            courses = {'course_number': get_sql_querty("select distinct course_number from tblStudent order by course_number asc")}
+            texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
+
+            data = get_sql_querty_for_data('''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
+                                                    tbltag.tag_text, tbltag.tag_text_russian, 0 as count
+                                                from tbltag
+                                                where tbltag.markup_type_id=1 and tbltag.id_tag not in
+                                                    (select tbltag.id_tag
+                                                    from tbltag, tblmarkup
+                                                    where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
+                                                    group by tbltag.id_tag)
+                                                union
+                                                select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
+                                                    tbltag.tag_text, tbltag.tag_text_russian, count(*) as count
+                                                from tbltag, tblmarkup
+                                                where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
+                                                group by tbltag.id_tag''')
+            data = data_group_by_parent_id(data)
+
+            data_grade = get_sql_querty_for_data_grade('''select tblgrade.id_grade, tblgrade.grade_name,
+                                                                    tblgrade.grade_language_id, count(*) as count
+                                                        from tblmarkup, tblgrade, tbltag
+                                                        where tblmarkup.grade_id = tblgrade.id_grade
+                                                            and tblmarkup.tag_id=tbltag.id_tag and tbltag.markup_type_id=1
+                                                        group by tblgrade.id_grade''')
+
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'data_type_errors': data, 'list_languages': languages, 'list_text_types': text_types,
+                                    'list_groups': groups, 'list_courses': courses, 'list_texts': texts,
+                                    'data_grade_errors': data_grade, 'enrollement_date': enrollement_date}, status=200)
+
+            return render(request, 'dashboard.html', context = {'right':True})
+        else:
+            return render(request, 'dashboard.html', context = {'right':False})
+
+    def post(self, request):
+        list_filter = json.loads(request.body)
+        text_types_id = list_filter['text_type_id']
+        text = list_filter['text']
+        surname = list_filter['surname']
+        name = list_filter['name']
+        patronymic = list_filter['patronymic']
+        course = list_filter['course']
+        groups = list_filter['groups']
+        date = list_filter['date']
+
+        sql_querty = '''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
+                            tbltag.tag_text_russian, 0 as count
+                        from tbltag
+                        where tbltag.markup_type_id=1 and tbltag.id_tag not in
+                            (select tbltag.id_tag
+                             from tbltag, tblmarkup, tblsentence, tbltext, tbluser
+                             where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
+                                and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                                and tbltag.markup_type_id=1 {conditions_for_filters})
+                        union
+                        select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
+                            tbltag.tag_text_russian, count(*) as count
+                        from tbltag, tblmarkup, tblsentence, tbltext, tbluser
+                        where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
+                            and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                            and tbltag.markup_type_id=1 {conditions_for_filters}
+                        group by tbltag.id_tag'''
+
+        sql_querty_for_student = '''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
+                                        tbltag.tag_text_russian,  0 as count
+                                    from tbltag
+                                    where tbltag.markup_type_id=1 and tbltag.id_tag not in
+                                        (select tbltag.id_tag
+                                         from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent
+                                         where tbltag.id_tag=tblmarkup.tag_id
+                                            and tblmarkup.sentence_id=tblsentence.id_sentence
+                                            and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                                            and tbluser.id_user=tblstudent.user_id and tbltag.markup_type_id=1
+                                             {conditions_for_filters})
+                                    union
+                                    select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
+                                        tbltag.tag_text_russian, count(*) as count
+                                    from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent
+                                    where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
+                                        and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                                        and tbluser.id_user=tblstudent.user_id and tbltag.markup_type_id=1
+                                         {conditions_for_filters}
+                                    group by tbltag.id_tag'''
+
+        sql_querty_for_group = '''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
+                                    tbltag.tag_text_russian, 0 as count
+                                  from tbltag
+                                  where tbltag.markup_type_id=1 and tbltag.id_tag not in
+                                    (select tbltag.id_tag
+                                     from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent,
+                                        tblstudentgroup, tblgroup
+                                     where tbltag.id_tag=tblmarkup.tag_id
+                                        and tblmarkup.sentence_id=tblsentence.id_sentence
+                                        and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                                        and tbluser.id_user=tblstudent.user_id 
+                                        and tblstudent.id_student=tblstudentgroup.student_id
+                                        and tblstudentgroup.group_id=tblgroup.id_group
+                                        and tbltag.markup_type_id=1 {conditions_for_filters})
+                                  union
+                                  select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
+                                    tbltag.tag_text_russian, count(*) as count
+                                  from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent, tblstudentgroup,
+                                    tblgroup
+                                  where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
+                                    and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                                    and tbluser.id_user=tblstudent.user_id
+                                    and tblstudent.id_student=tblstudentgroup.student_id
+                                    and tblstudentgroup.group_id=tblgroup.id_group and tbltag.markup_type_id=1
+                                    {conditions_for_filters}
+                                  group by tbltag.id_tag'''
+
+        sql_querty_grade = '''select tblgrade.id_grade, tblgrade.grade_name, tblgrade.grade_language_id,
+                                        count(*) as count
+                              from tblmarkup, tblgrade, tbltag, tblsentence, tbltext, tbluser
+                              where tblmarkup.grade_id = tblgrade.id_grade and tblmarkup.tag_id = tbltag.id_tag
+                                and tbltag.markup_type_id = 1 and tblmarkup.sentence_id=tblsentence.id_sentence
+                                and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                                {conditions_for_filters}
+                              group by tblgrade.id_grade'''
+
+        sql_querty_grade_for_student = '''select tblgrade.id_grade, tblgrade.grade_name, tblgrade.grade_language_id,
+                                                    count(*) as count
+                                          from tblmarkup, tblgrade, tbltag, tblsentence, tbltext, tbluser, tblstudent
+                                          where tblmarkup.grade_id = tblgrade.id_grade
+                                                and tblmarkup.tag_id = tbltag.id_tag and tbltag.markup_type_id = 1
+                                                and tblmarkup.sentence_id=tblsentence.id_sentence
+                                                and tblsentence.text_id=tbltext.id_text
+                                                and tbltext.user_id=tbluser.id_user
+                                                and tbluser.id_user=tblstudent.user_id {conditions_for_filters}
+                                          group by tblgrade.id_grade'''
+
+        sql_querty_grade_for_group = '''select tblgrade.id_grade, tblgrade.grade_name, tblgrade.grade_language_id,
+                                            count(*) as count
+                                        from tblmarkup, tblgrade, tbltag, tblsentence, tbltext, tbluser, tblstudent,
+                                            tblstudentgroup, tblgroup
+                                        where tblmarkup.grade_id = tblgrade.id_grade
+                                            and tblmarkup.tag_id = tbltag.id_tag and tbltag.markup_type_id = 1
+                                            and tblmarkup.sentence_id=tblsentence.id_sentence 
+                                            and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
+                                            and tbluser.id_user=tblstudent.user_id
+                                            and tblstudent.id_student=tblstudentgroup.student_id
+                                            and tblstudentgroup.group_id=tblgroup.id_group {conditions_for_filters}
+                                        group by tblgrade.id_grade'''
+
+        if surname and name and patronymic and text and text_types_id:
+            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
+                and tbluser.last_name='{surname}' and tbluser.name='{name}' and tbluser.patronymic='{patronymic}' ''' \
+                .format(text=text, text_types_id=text_types_id, surname=surname, name=name, patronymic=patronymic)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif surname and name and patronymic and text:
+            conditions_for_filters = '''and tbltext.header='{text}' and tbluser.last_name='{surname}'
+                                        and tbluser.name='{name}' and tbluser.patronymic='{patronymic}' '''\
+                    .format(text=text, surname=surname, name=name, patronymic=patronymic)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif surname and name and patronymic and text_types_id:
+            conditions_for_filters = '''and tbltext.text_type_id={text_types_id} and tbluser.last_name='{surname}'
+                                        and tbluser.name='{name}' and tbluser.patronymic='{patronymic}' '''\
+                    .format(text_types_id=text_types_id, surname=surname, name=name, patronymic=patronymic)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif surname and name and patronymic:
+            conditions_for_filters = '''and tbluser.last_name='{surname}' and tbluser.name='{name}'
+                    and tbluser.patronymic='{patronymic}' '''.format(surname=surname, name=name, patronymic=patronymic)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif surname and name and text and text_types_id:
+            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
+                            and tbluser.last_name='{surname}' and tbluser.name='{name}' '''\
+                .format(text=text, text_types_id=text_types_id, surname=surname, name=name)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif surname and name and text:
+            conditions_for_filters = '''and tbltext.header='{text}' and tbluser.last_name='{surname}'
+                            and tbluser.name='{name}' '''.format(text=text, surname=surname, name=name)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif surname and name and text_types_id:
+            conditions_for_filters = '''and tbltext.text_type_id={text_types_id} and tbluser.last_name='{surname}'
+                        and tbluser.name='{name}' '''.format(text_types_id=text_types_id, surname=surname, name=name)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif surname and name:
+            conditions_for_filters = "and tbluser.last_name='{surname}' and tbluser.name='{name}'" \
+                .format(surname=surname, name=name)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif course and text_types_id and text:
+            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
+                and tblstudent.course_number={course}'''.format(text=text, text_types_id=text_types_id, course=course)
+            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+        elif course and text:
+            conditions_for_filters = "and tbltext.header='{text}' and tblstudent.course_number={course}"\
+                .format(text=text, course=course)
+            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+        elif course and text_types_id:
+            conditions_for_filters = "and tbltext.text_type_id={text_types_id} and tblstudent.course_number={course}"\
+                .format(text_types_id=text_types_id, course=course)
+            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+        elif course:
+            conditions_for_filters = "and tblstudent.course_number={course}".format(course=course)
+            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+        elif groups and text and text_types_id:
+            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
+                and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}' '''\
+                .format(text=text, text_types_id=text_types_id, groups=groups, date=date)
+            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+        elif groups and text:
+            conditions_for_filters = "and tbltext.header='{text}' and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}'"\
+                .format(text=text, groups=groups, date=date)
+            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+        elif groups and text_types_id:
+            conditions_for_filters = "and tbltext.text_type_id={text_types_id} and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}'"\
+                .format(text_types_id=text_types_id, groups=groups, date=date)
+            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+        elif groups:
+            conditions_for_filters = "and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}'"\
+                .format(groups=groups, date=date)
+            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+        elif text_types_id and text:
+            conditions_for_filters = "and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}" \
+                .format(text=text, text_types_id=text_types_id)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif text_types_id:
+            conditions_for_filters = "and tbltext.text_type_id={text_types_id}".format(text_types_id=text_types_id)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        elif text:
+            conditions_for_filters = "and tbltext.header='{text}'".format(text=text)
+            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
+            data_grade = get_sql_querty_for_data_grade(
+                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+        else:
+            data = get_sql_querty_for_data('''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
+                                                     tbltag.tag_text, tbltag.tag_text_russian, 0 as count
+                                               from tbltag
+                                               where tbltag.markup_type_id=1 and tbltag.id_tag not in
+                                                      (select tbltag.id_tag
+                                                       from tbltag, tblmarkup
+                                                       where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
+                                                       group by tbltag.id_tag)
+                                               union
+                                               select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
+                                                       tbltag.tag_text, tbltag.tag_text_russian, count(*) as count
+                                               from tbltag, tblmarkup
+                                               where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
+                                               group by tbltag.id_tag''')
+
+            data_grade = get_sql_querty_for_data_grade('''select tblgrade.id_grade, tblgrade.grade_name,
+                                                                            tblgrade.grade_language_id, count(*) as count
+                                                                  from tblmarkup, tblgrade, tbltag
+                                                                  where tblmarkup.grade_id = tblgrade.id_grade
+                                                                    and tblmarkup.tag_id=tbltag.id_tag and tbltag.markup_type_id=1
+                                                                  group by tblgrade.id_grade''')
+
+
+        data = data_group_by_parent_id(data)
+
+        return JsonResponse({'data_type_errors': data, 'data_grade_errors': data_grade}, status=200)
