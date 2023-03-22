@@ -337,10 +337,12 @@ td{
 {%block annotation_edit_form_css%}{%endblock%}
 {%endblock styles%}
 </style>
+{% load static %}
 
 {%block plugins%}
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="{% static 'js/work_area.js' %}"></script>
 {%endblock plugins%}
 
 <body>
@@ -376,6 +378,14 @@ td{
                     <option id="foreign-option" value="0">{{lang_name}}</option>
                     <option id="russian-option" value="1">Русский</option>
                 </select>
+            </div>
+        </li>
+        <li><h6 class="dropdown-header">Компактный вид</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <div class="form-check form-switch">
+                   <input class="form-check-input" type="checkbox" id="tag-style" v-on:click = "SwitchTagStyle">
+                </div>
             </div>
         </li>
         <li><h6 class="dropdown-header">Части речи</h6></li>
@@ -796,6 +806,29 @@ var lang_changers = new Vue({
     el:"#lang-change-area",
     methods:{
         ChangeLang:reset_language
+    }
+})
+var switchtagstyle = new Vue({
+    el:"#tag-style",
+    methods:{
+        SwitchTagStyle: function change_tag_style(event){
+            var tags = document.querySelectorAll('[annotation-type="1"][annotation-position="start"],[annotation-type="1"][annotation-position="single"]')
+            if(compact_style ==0 ){
+                compact_style = 1
+                console.log(tags[1].innerHTML)
+                for(let i = 0; i < tags.length; i++){
+                    var new_name = tags[i].getAttribute('name-abbrev')
+                    tags[i].innerHTML = new_name
+                }
+            }
+            else{
+                compact_style = 0
+                for(let i = 0; i < tags.length; i++){
+                    var new_name = tags[i].getAttribute('current-name')
+                    tags[i].innerHTML = new_name
+                } 
+            }
+        }
     }
 })
 var switchpos = new Vue({
