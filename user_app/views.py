@@ -19,9 +19,10 @@ from hashlib import sha512
 
 #for dashboard
 from django.http import JsonResponse
-from django.db import connection
+from django.db.models import Count, Value, IntegerField, F
 import json
 from django.views.generic import View
+from text_app.models import TblTag, TblMarkup
 #----------------------------
 
 def signup(request):
@@ -652,55 +653,11 @@ def tasks_info(request, user_id):
         }))
 
 #* Dashboard (Polina Osipova)
-def get_sql_querty(sql_querty):
-    with connection.cursor() as cursor:
-        cursor.execute(sql_querty)
-        result = [item[0] for item in cursor.fetchall()]
-
-    return result
-
-
-def get_sql_querty_for_data(sql_querty):
-    with connection.cursor() as cursor:
-        cursor.execute(sql_querty)
-        rows = cursor.fetchall()
-        data = []
-        for i in range(len(rows)):
-            my_data = {
-                'id_tag': rows[i][0],
-                'tag_parent_id': rows[i][1],
-                'tag_language_id': rows[i][2],
-                'tag_text': rows[i][3],
-                'tag_text_russian': rows[i][4],
-                'count_data': rows[i][5]
-            }
-            data.append(my_data)
-
-        return data
-
-
-def get_sql_querty_for_data_grade(sql_querty):
-    with connection.cursor() as cursor:
-        cursor.execute(sql_querty)
-        rows = cursor.fetchall()
-        data = []
-        for i in range(len(rows)):
-            my_data = {
-                'id_grade': rows[i][0],
-                'grade_name': rows[i][1],
-                'grade_language_id': rows[i][2],
-                'count_data': rows[i][3]
-            }
-            data.append(my_data)
-
-        return data
-
-
 def DFS(v, c, h, data):
     h[v] = 1
     c += data[v]["count_data"]
     for i in range(len(data)):
-        if data[i]["tag_parent_id"] == data[v]["id_tag"]:
+        if data[i]["tag__tag_parent"] == data[v]["tag__id_tag"]:
             if h[i] == 0:
                 c = DFS(i, c, h, data)
 
@@ -712,17 +669,35 @@ def data_group_by_parent_id(data):
     h = [0 for i in range(n)]
 
     for i in range(n):
-        if h[i] == 0 and data[i]["tag_parent_id"] == None:
+        if h[i] == 0 and data[i]["tag__tag_parent"] == None:
             c = 0
             c = DFS(i, c, h, data)
             data[i]["count_data"] = c
 
     data_group = []
     for el in data:
-        if el["tag_parent_id"] == None:
+        if el["tag__tag_parent"] == None:
             data_group.append(el)
 
     return data_group
+
+
+def get_data_errors(data_count_errors):
+    list_tag_id_in_markup = []
+    for data in data_count_errors:
+        list_tag_id_in_markup.append(data["tag__id_tag"])
+
+    data_tags_not_in_errors = list(
+        TblTag.objects.values('id_tag', 'tag_parent', 'tag_language', 'tag_text', 'tag_text_russian').filter(
+            Q(markup_type=1) & ~Q(id_tag__in=list_tag_id_in_markup)).annotate(
+            count_data=Value(0, output_field=IntegerField()), tag__id_tag=F('id_tag'), tag__tag_parent=F('tag_parent'),
+            tag__tag_language=F('tag_language'), tag__tag_text=F('tag_text'),
+            tag__tag_text_russian=F('tag_text_russian')))
+
+    data = data_count_errors + data_tags_not_in_errors
+    data = data_group_by_parent_id(data)
+
+    return data
 
 
 class DiagramView(View):
@@ -732,31 +707,18 @@ class DiagramView(View):
             text_types = list(TblTextType.objects.values())
             groups = list(TblGroup.objects.values('group_name').distinct().order_by('group_name'))
             enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
-            courses = {'course_number': get_sql_querty("select distinct course_number from tblStudent order by course_number asc")}
+            courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
-            data = get_sql_querty_for_data('''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
-                                                    tbltag.tag_text, tbltag.tag_text_russian, 0 as count
-                                                from tbltag
-                                                where tbltag.markup_type_id=1 and tbltag.id_tag not in
-                                                    (select tbltag.id_tag
-                                                    from tbltag, tblmarkup
-                                                    where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
-                                                    group by tbltag.id_tag)
-                                                union
-                                                select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
-                                                    tbltag.tag_text, tbltag.tag_text_russian, count(*) as count
-                                                from tbltag, tblmarkup
-                                                where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
-                                                group by tbltag.id_tag''')
-            data = data_group_by_parent_id(data)
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(tag__markup_type=1).annotate(
+                    count_data=Count('tag__id_tag')))
+            data = get_data_errors(data_count_errors)
 
-            data_grade = get_sql_querty_for_data_grade('''select tblgrade.id_grade, tblgrade.grade_name,
-                                                                    tblgrade.grade_language_id, count(*) as count
-                                                        from tblmarkup, tblgrade, tbltag
-                                                        where tblmarkup.grade_id = tblgrade.id_grade
-                                                            and tblmarkup.tag_id=tbltag.id_tag and tbltag.markup_type_id=1
-                                                        group by tblgrade.id_grade''')
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    tag__markup_type=1).annotate(count_data=Count('grade__id_grade')))
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'data_type_errors': data, 'list_languages': languages, 'list_text_types': text_types,
@@ -778,245 +740,280 @@ class DiagramView(View):
         groups = list_filter['groups']
         date = list_filter['date']
 
-        sql_querty = '''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
-                            tbltag.tag_text_russian, 0 as count
-                        from tbltag
-                        where tbltag.markup_type_id=1 and tbltag.id_tag not in
-                            (select tbltag.id_tag
-                             from tbltag, tblmarkup, tblsentence, tbltext, tbluser
-                             where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
-                                and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                                and tbltag.markup_type_id=1 {conditions_for_filters})
-                        union
-                        select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
-                            tbltag.tag_text_russian, count(*) as count
-                        from tbltag, tblmarkup, tblsentence, tbltext, tbluser
-                        where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
-                            and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                            and tbltag.markup_type_id=1 {conditions_for_filters}
-                        group by tbltag.id_tag'''
-
-        sql_querty_for_student = '''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
-                                        tbltag.tag_text_russian,  0 as count
-                                    from tbltag
-                                    where tbltag.markup_type_id=1 and tbltag.id_tag not in
-                                        (select tbltag.id_tag
-                                         from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent
-                                         where tbltag.id_tag=tblmarkup.tag_id
-                                            and tblmarkup.sentence_id=tblsentence.id_sentence
-                                            and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                                            and tbluser.id_user=tblstudent.user_id and tbltag.markup_type_id=1
-                                             {conditions_for_filters})
-                                    union
-                                    select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
-                                        tbltag.tag_text_russian, count(*) as count
-                                    from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent
-                                    where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
-                                        and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                                        and tbluser.id_user=tblstudent.user_id and tbltag.markup_type_id=1
-                                         {conditions_for_filters}
-                                    group by tbltag.id_tag'''
-
-        sql_querty_for_group = '''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
-                                    tbltag.tag_text_russian, 0 as count
-                                  from tbltag
-                                  where tbltag.markup_type_id=1 and tbltag.id_tag not in
-                                    (select tbltag.id_tag
-                                     from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent,
-                                        tblstudentgroup, tblgroup
-                                     where tbltag.id_tag=tblmarkup.tag_id
-                                        and tblmarkup.sentence_id=tblsentence.id_sentence
-                                        and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                                        and tbluser.id_user=tblstudent.user_id 
-                                        and tblstudent.id_student=tblstudentgroup.student_id
-                                        and tblstudentgroup.group_id=tblgroup.id_group
-                                        and tbltag.markup_type_id=1 {conditions_for_filters})
-                                  union
-                                  select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id, tbltag.tag_text,
-                                    tbltag.tag_text_russian, count(*) as count
-                                  from tbltag, tblmarkup, tblsentence, tbltext, tbluser, tblstudent, tblstudentgroup,
-                                    tblgroup
-                                  where tbltag.id_tag=tblmarkup.tag_id and tblmarkup.sentence_id=tblsentence.id_sentence
-                                    and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                                    and tbluser.id_user=tblstudent.user_id
-                                    and tblstudent.id_student=tblstudentgroup.student_id
-                                    and tblstudentgroup.group_id=tblgroup.id_group and tbltag.markup_type_id=1
-                                    {conditions_for_filters}
-                                  group by tbltag.id_tag'''
-
-        sql_querty_grade = '''select tblgrade.id_grade, tblgrade.grade_name, tblgrade.grade_language_id,
-                                        count(*) as count
-                              from tblmarkup, tblgrade, tbltag, tblsentence, tbltext, tbluser
-                              where tblmarkup.grade_id = tblgrade.id_grade and tblmarkup.tag_id = tbltag.id_tag
-                                and tbltag.markup_type_id = 1 and tblmarkup.sentence_id=tblsentence.id_sentence
-                                and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                                {conditions_for_filters}
-                              group by tblgrade.id_grade'''
-
-        sql_querty_grade_for_student = '''select tblgrade.id_grade, tblgrade.grade_name, tblgrade.grade_language_id,
-                                                    count(*) as count
-                                          from tblmarkup, tblgrade, tbltag, tblsentence, tbltext, tbluser, tblstudent
-                                          where tblmarkup.grade_id = tblgrade.id_grade
-                                                and tblmarkup.tag_id = tbltag.id_tag and tbltag.markup_type_id = 1
-                                                and tblmarkup.sentence_id=tblsentence.id_sentence
-                                                and tblsentence.text_id=tbltext.id_text
-                                                and tbltext.user_id=tbluser.id_user
-                                                and tbluser.id_user=tblstudent.user_id {conditions_for_filters}
-                                          group by tblgrade.id_grade'''
-
-        sql_querty_grade_for_group = '''select tblgrade.id_grade, tblgrade.grade_name, tblgrade.grade_language_id,
-                                            count(*) as count
-                                        from tblmarkup, tblgrade, tbltag, tblsentence, tbltext, tbluser, tblstudent,
-                                            tblstudentgroup, tblgroup
-                                        where tblmarkup.grade_id = tblgrade.id_grade
-                                            and tblmarkup.tag_id = tbltag.id_tag and tbltag.markup_type_id = 1
-                                            and tblmarkup.sentence_id=tblsentence.id_sentence 
-                                            and tblsentence.text_id=tbltext.id_text and tbltext.user_id=tbluser.id_user
-                                            and tbluser.id_user=tblstudent.user_id
-                                            and tblstudent.id_student=tblstudentgroup.student_id
-                                            and tblstudentgroup.group_id=tblgroup.id_group {conditions_for_filters}
-                                        group by tblgrade.id_grade'''
-
         if surname and name and patronymic and text and text_types_id:
-            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
-                and tbluser.last_name='{surname}' and tbluser.name='{name}' and tbluser.patronymic='{patronymic}' ''' \
-                .format(text=text, text_types_id=text_types_id, surname=surname, name=name, patronymic=patronymic)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif surname and name and patronymic and text:
-            conditions_for_filters = '''and tbltext.header='{text}' and tbluser.last_name='{surname}'
-                                        and tbluser.name='{name}' and tbluser.patronymic='{patronymic}' '''\
-                    .format(text=text, surname=surname, name=name, patronymic=patronymic)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                        sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                        sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
+
         elif surname and name and patronymic and text_types_id:
-            conditions_for_filters = '''and tbltext.text_type_id={text_types_id} and tbluser.last_name='{surname}'
-                                        and tbluser.name='{name}' and tbluser.patronymic='{patronymic}' '''\
-                    .format(text_types_id=text_types_id, surname=surname, name=name, patronymic=patronymic)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
         elif surname and name and patronymic:
-            conditions_for_filters = '''and tbluser.last_name='{surname}' and tbluser.name='{name}'
-                    and tbluser.patronymic='{patronymic}' '''.format(surname=surname, name=name, patronymic=patronymic)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(
+                        sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(
+                        sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('grade__id_grade')))
+
         elif surname and name and text and text_types_id:
-            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
-                            and tbluser.last_name='{surname}' and tbluser.name='{name}' '''\
-                .format(text=text, text_types_id=text_types_id, surname=surname, name=name)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
         elif surname and name and text:
-            conditions_for_filters = '''and tbltext.header='{text}' and tbluser.last_name='{surname}'
-                            and tbluser.name='{name}' '''.format(text=text, surname=surname, name=name)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif surname and name and text_types_id:
-            conditions_for_filters = '''and tbltext.text_type_id={text_types_id} and tbluser.last_name='{surname}'
-                        and tbluser.name='{name}' '''.format(text_types_id=text_types_id, surname=surname, name=name)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif surname and name:
-            conditions_for_filters = "and tbluser.last_name='{surname}' and tbluser.name='{name}'" \
-                .format(surname=surname, name=name)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                        sentence__text_id__user__name=name)).annotate(count_data=Count('grade__id_grade')))
+
         elif course and text_types_id and text:
-            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
-                and tblstudent.course_number={course}'''.format(text=text, text_types_id=text_types_id, course=course)
-            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif course and text:
-            conditions_for_filters = "and tbltext.header='{text}' and tblstudent.course_number={course}"\
-                .format(text=text, course=course)
-            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                        sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                        sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
+
         elif course and text_types_id:
-            conditions_for_filters = "and tbltext.text_type_id={text_types_id} and tblstudent.course_number={course}"\
-                .format(text_types_id=text_types_id, course=course)
-            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
         elif course:
-            conditions_for_filters = "and tblstudent.course_number={course}".format(course=course)
-            data = get_sql_querty_for_data(sql_querty_for_student.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_student.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif groups and text and text_types_id:
-            conditions_for_filters = '''and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}
-                and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}' '''\
-                .format(text=text, text_types_id=text_types_id, groups=groups, date=date)
-            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                        date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
+                    sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
         elif groups and text:
-            conditions_for_filters = "and tbltext.header='{text}' and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}'"\
-                .format(text=text, groups=groups, date=date)
-            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                        date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif groups and text_types_id:
-            conditions_for_filters = "and tbltext.text_type_id={text_types_id} and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}'"\
-                .format(text_types_id=text_types_id, groups=groups, date=date)
-            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                        date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif groups:
-            conditions_for_filters = "and tblgroup.group_name='{groups}' and tblgroup.enrollement_date='{date}'"\
-                .format(groups=groups, date=date)
-            data = get_sql_querty_for_data(sql_querty_for_group.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade_for_group.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                        date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            date, "%Y-%m-%d"))).annotate(count_data=Count('grade__id_grade')))
+
         elif text_types_id and text:
-            conditions_for_filters = "and tbltext.header='{text}' and tbltext.text_type_id={text_types_id}" \
-                .format(text=text, text_types_id=text_types_id)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id) & Q(
+                        sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id) & Q(
+                        sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
+
         elif text_types_id:
-            conditions_for_filters = "and tbltext.text_type_id={text_types_id}".format(text_types_id=text_types_id)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         elif text:
-            conditions_for_filters = "and tbltext.header='{text}'".format(text=text)
-            data = get_sql_querty_for_data(sql_querty.format(conditions_for_filters=conditions_for_filters))
-            data_grade = get_sql_querty_for_data_grade(
-                sql_querty_grade.format(conditions_for_filters=conditions_for_filters))
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__header=text)).annotate(
+                    count_data=Count('tag__id_tag')))
+
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    Q(tag__markup_type=1) & Q(sentence__text_id__header=text)).annotate(
+                    count_data=Count('grade__id_grade')))
+
         else:
-            data = get_sql_querty_for_data('''select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
-                                                     tbltag.tag_text, tbltag.tag_text_russian, 0 as count
-                                               from tbltag
-                                               where tbltag.markup_type_id=1 and tbltag.id_tag not in
-                                                      (select tbltag.id_tag
-                                                       from tbltag, tblmarkup
-                                                       where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
-                                                       group by tbltag.id_tag)
-                                               union
-                                               select tbltag.id_tag, tbltag.tag_parent_id, tbltag.tag_language_id,
-                                                       tbltag.tag_text, tbltag.tag_text_russian, count(*) as count
-                                               from tbltag, tblmarkup
-                                               where tbltag.id_tag=tblmarkup.tag_id and tbltag.markup_type_id=1
-                                               group by tbltag.id_tag''')
+            data_count_errors = list(
+                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                         'tag__tag_text_russian').filter(tag__markup_type=1).annotate(
+                    count_data=Count('tag__id_tag')))
 
-            data_grade = get_sql_querty_for_data_grade('''select tblgrade.id_grade, tblgrade.grade_name,
-                                                                            tblgrade.grade_language_id, count(*) as count
-                                                                  from tblmarkup, tblgrade, tbltag
-                                                                  where tblmarkup.grade_id = tblgrade.id_grade
-                                                                    and tblmarkup.tag_id=tbltag.id_tag and tbltag.markup_type_id=1
-                                                                  group by tblgrade.id_grade''')
+            data_grade = list(
+                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                    tag__markup_type=1).annotate(count_data=Count('grade__id_grade')))
 
-
-        data = data_group_by_parent_id(data)
+        data = get_data_errors(data_count_errors)
 
         return JsonResponse({'data_type_errors': data, 'data_grade_errors': data_grade}, status=200)
