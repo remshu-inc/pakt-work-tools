@@ -33,7 +33,7 @@ async function get_resquest_data_errors(){
                         languages = response.data.list_languages
                         text_types = response.data.list_text_types
                         groups = response.data.list_groups
-                        courses = response.data.list_courses.course_number
+                        courses = response.data.list_courses
                         texts = response.data.list_texts
                         data_grade = response.data.data_grade_errors
                         enrollement_date = response.data.enrollement_date
@@ -82,8 +82,8 @@ async function post_request_data_errors(text_type, text, surname, name, patronym
 async function actions(){
     await get_resquest_data_errors()
 
-    var data_for_language = list_data.filter(data => data.tag_language_id==list_languages[0].id_language);
-    var data_grade_for_language = list_data_grade.filter(data => data.grade_language_id==list_languages[0].id_language)
+    var data_for_language = list_data.filter(data => data.tag__tag_language==list_languages[0].id_language);
+    var data_grade_for_language = list_data_grade.filter(data => data.grade__grade_language==list_languages[0].id_language)
 
     var title_of_page = new Vue({
         el: '#div_title',
@@ -114,8 +114,8 @@ async function actions(){
             async update_diagrams(){
                 await post_request_data_errors(this.selected_text_type, this.selected_text, this.surname, this.name,
                     this.patronymic, this.selected_course, this.selected_group, this.selected_date)
-                data_for_language = list_data.filter(data => data.tag_language_id == languages.selected_language);
-                data_grade_for_language = list_data_grade.filter(data => data.grade_language_id== languages.selected_language)
+                data_for_language = list_data.filter(data => data.tag__tag_language == languages.selected_language);
+                data_grade_for_language = list_data_grade.filter(data => data.grade__grade_language== languages.selected_language)
                 type_errors_bar.get_data()
                 type_errors_bar.update_chart()
                 type_errors_pie.get_data()
@@ -265,8 +265,8 @@ async function actions(){
                 filters.texts = list_texts.filter(text => text.language==this.selected_language)
                 filters.text_types = list_text_types.filter(text_type => text_type.language_id==this.selected_language);
 
-                data_for_language = list_data.filter(data => data.tag_language_id == this.selected_language);
-                data_grade_for_language = list_data_grade.filter(data => data.grade_language_id==this.selected_language)
+                data_for_language = list_data.filter(data => data.tag__tag_language == this.selected_language);
+                data_grade_for_language = list_data_grade.filter(data => data.grade__grade_language==this.selected_language)
                 type_errors_bar.get_data()
                 type_errors_bar.update_chart()
                 type_errors_pie.get_data()
@@ -330,7 +330,7 @@ async function actions(){
             var points = []
 
             for (let i=0; i<data_for_language.length; i++) {
-                labels.push(data_for_language[i].tag_text)
+                labels.push(data_for_language[i].tag__tag_text)
                 points.push(data_for_language[i].count_data)
             }
 
@@ -414,7 +414,7 @@ async function actions(){
             }
 
             for (let i=0; i<data_for_language.length; i++) {
-                labels.push(data_for_language[i].tag_text)
+                labels.push(data_for_language[i].tag__tag_text)
                 points.push(data_for_language[i].count_data * 100 / count)
             }
 
@@ -477,7 +477,7 @@ async function actions(){
             var points = []
 
             for (let i=0; i<data_grade_for_language.length; i++) {
-                labels.push(data_grade_for_language[i].grade_name)
+                labels.push(data_grade_for_language[i].grade__grade_name)
                 points.push(data_grade_for_language[i].count_data)
             }
 
@@ -553,7 +553,7 @@ async function actions(){
             }
 
             for (let i=0; i<data_grade_for_language.length; i++) {
-                labels.push(data_grade_for_language[i].grade_name)
+                labels.push(data_grade_for_language[i].grade__grade_name)
                 points.push(data_grade_for_language[i].count_data * 100 / count)
             }
 
