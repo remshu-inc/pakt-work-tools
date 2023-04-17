@@ -307,6 +307,96 @@ def annotation_edit(query):
     return HttpResponse()
 
 
+def _convert_tags(rftagger_map):
+    """
+    Преобразование частей речи RF Tagger в части речи Tree Tagger (STTS)
+    """
+    result = []
+
+    for item in rftagger_map:
+        if item[1].startswith("ADJA"):
+            result.append((item[0], "ADJA"))
+        elif item[1].startswith("ADJD"):
+            result.append((item[0], "ADJD"))
+        elif item[1].startswith("ADV"):
+            result.append((item[0], "ADV"))
+        elif item[1].startswith("APPR"):
+            result.append((item[0], "APPR"))
+        elif item[1].startswith("ART"):
+            result.append((item[0], "ART"))
+        elif item[1].startswith("CARD"):
+            result.append((item[0], "CARD"))
+        elif item[1].startswith("CONJ.Coord"):
+            result.append((item[0], "KON"))
+        elif item[1].startswith("CONJ.Comp"):
+            result.append((item[0], "KOKOM"))
+        elif item[1].startswith("CONJ.SubInf"):
+            result.append((item[0], "KOUS"))
+        elif item[1].startswith("CONJ.SubFin"):
+            result.append((item[0], "KOKOM"))
+        elif item[1].startswith("N.Reg"):
+            result.append((item[0], "NN"))
+        elif item[1].startswith("N.Name"):
+            result.append((item[0], "NE"))
+        elif item[1].startswith("PRO.Dem.Attr"):
+            result.append((item[0], "PDAT"))
+        elif item[1].startswith("PRO.Dem.Subst"):
+            result.append((item[0], "PDS"))
+        elif item[1].startswith("PRO.Indef.Attr"):
+            result.append((item[0], "PIAT"))
+        elif item[1].startswith("PRO.Indef.Subst"):
+            result.append((item[0], "PIS"))
+        elif item[1].startswith("PRO.Pers"):
+            result.append((item[0], "PPER"))
+        elif item[1].startswith("PRO.Inter.Subst"):
+            result.append((item[0], "PWS"))
+        elif item[1].startswith("PRO.Inter.Attr"):
+            result.append((item[0], "PWAT"))
+        elif item[1].startswith("PRO.Poss.Subst"):
+            result.append((item[0], "PPOSS"))
+        elif item[1].startswith("PRO.Poss.Attr"):
+            result.append((item[0], "PPOSAT"))
+        elif item[1].startswith("PRO.Rel.Subst"):
+            result.append((item[0], "PRELS"))
+        elif item[1].startswith("PRO.Rel.Attr"):
+            result.append((item[0], "PRELAT"))
+        elif item[1].startswith("PRO.Refl"):
+            result.append((item[0], "PRF"))
+        elif item[1].startswith("PROADV"):
+            result.append((item[0], "PROAV"))
+        elif item[1].startswith("PART.Zu"):
+            result.append((item[0], "PTKZU"))
+        elif item[1].startswith("PART.Neg"):
+            result.append((item[0], "PTKNEG"))
+        elif item[1].startswith("PART.Verb"):
+            result.append((item[0], "PTKVZ"))
+        elif item[1].startswith("VFIN.Aux"):
+            result.append((item[0], "VAFIN"))
+        elif item[1].startswith("VFIN.Mod"):
+            result.append((item[0], "VMFIN"))
+        elif item[1].startswith("VFIN.Sein") or item[1].startswith("VFIN.Haben") or item[1].startswith("VFIN.Full"):  # Other: VFIN.Sein.1.Sg.Past.Ind
+            result.append((item[0], "VVFIN"))
+        elif item[1].startswith("VINF.Aux"):
+            result.append((item[0], "VAINF"))
+        elif item[1].startswith("VINF.Mod"):
+            result.append((item[0], "VMINF"))
+        elif item[1].startswith("VINF.Full") or item[1].startswith("VINF.Sein") or item[1].startswith("VINF.Haben"):
+            result.append((item[0], "VVINF"))
+        elif item[1].startswith("VPP.Full"):
+            result.append((item[0], "VVPP"))
+        elif item[1].startswith("SYM.Pun.Comma"):
+            result.append((item[0], "$,"))
+        elif item[1].startswith("SYM.Pun.Sent"):
+            result.append((item[0], "$."))
+        elif item[1].startswith("SYM.Paren") or item[1].startswith("SYM.Pun.Hyph"):
+            result.append((item[0], "$("))
+        else:
+            print(f"ERROR!!!: Unknown tag {item[1]}")
+            result.append(item)
+
+    return result
+
+
 def process_part_of_speech(query):
     """
     Функция обработки запроса на обновление частей речи.
@@ -352,7 +442,7 @@ def process_part_of_speech(query):
         part_of_speeches = {}
         for item in part_of_speeches_data:
             part_of_speeches[str(item["tag_text"])] = item["id_tag"]
-        print(part_of_speeches)
+        # print(part_of_speeches)
 
         # бежим по предложениям: для каждого предложения делаем тегирование, мапим с токенами и записываем теги
         for sentence in sentences:
@@ -396,16 +486,18 @@ def process_part_of_speech(query):
                 'text',
             ).order_by('order_number').all())
             map_result, error_score = _map_lists(tagger_tokens, sentence_tokens, 0, 0)
-            print(map_result)
+            #print(map_result)
             print(error_score)
             # 5. Удаляем все токены частеречной разметки этого предложения
-            deleted_count = TblMarkup.objects.filter(sentence_id=sentence['id_sentence'], tag_id__markup_type_id=2).delete()
-            print("Deleted " + str(deleted_count))
-            for item in map_result:
-                if item[1] in part_of_speeches.keys():
-                    print ("token_id=" + str(item[0]) + "; tag_id=" + str(part_of_speeches[item[1]]))
-                else:
-                    print("Unknown tag: " + item[1])
+            deleted_count = TblMarkup.objects.filter(sentence_id=sentence['id_sentence'],
+                                                     tag_id__markup_type_id=2).all()  # TODO: DELETE!!!!
+            #print("Deleted " + str(deleted_count))
+            map_result = _convert_tags(map_result)
+            # for item in map_result:
+            #     if item[1] in part_of_speeches.keys():
+            #         print("token_id=" + str(item[0]) + "; tag_id=" + str(part_of_speeches[item[1]]))
+            #     else:
+            #         print("Unknown tag: " + item[1])
 
         return HttpResponse()
 
@@ -422,19 +514,22 @@ def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index):
 
     while tagger_index < len(tagger_tokens):
         if sentence_tokens[sentence_index]["text"] == tagger_tokens[tagger_index][0]:
-            part = tagger_tokens[tagger_index][1].split(".", 1)[0]
+            part = tagger_tokens[tagger_index][1]
             ret.append((sentence_tokens[sentence_index]["id_token"], part))
             tagger_index += 1
             sentence_index += 1
-        elif sentence_index + 1 < len(sentence_tokens) and sentence_tokens[sentence_index + 1]["text"] == "." and\
+        elif sentence_index + 1 < len(sentence_tokens) and sentence_tokens[sentence_index + 1]["text"] == "." and \
                 sentence_tokens[sentence_index]["text"] + "." == tagger_tokens[tagger_index][0]:
-            part = tagger_tokens[tagger_index][1].split(".", 1)[0]
+            part = tagger_tokens[tagger_index][1]
             ret.append((sentence_tokens[sentence_index]["id_token"], part))
             # TODO: вставить часть речи точки
             tagger_index += 1
             sentence_index += 2
-
         else:
+            print(f"Process {tagger_index} in {len(tagger_tokens)}")
+            print(tagger_tokens)
+            print(sentence_tokens)
+            print(f"Test with tagger={tagger_index} and sentence={sentence_index}")
             ret1, err1 = _map_lists(tagger_tokens, sentence_tokens, tagger_index + 1, sentence_index)
             ret2, err2 = _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index + 1)
             if err1 > err2:
@@ -445,5 +540,6 @@ def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index):
                 print("NOT FOUND: " + tagger_tokens[tagger_index][0] + " in tagger tokens")
                 error_count += err1 + 1
                 ret.extend(ret1)
+            print(f"Return {ret}, {error_count}")
             return ret, error_count
     return ret, error_count
