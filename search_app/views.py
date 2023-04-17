@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from pakt_work_tools.custom_settings import AUTO_STAT
-from text_app.models import TblMarkup, TblToken, TblTag, TblText, TblGrade
+from text_app.models import TblMarkup, TblToken, TblTag, TblText, TblGrade, TblReason
 from user_app.models import TblLanguage
 from .forms import StatisticForm
 from .models import TblSystemMetric
@@ -29,7 +29,8 @@ def index(request):
     current_time = timezone.now()
     out_time = current_time
     out_metrics = []
-    metrics = TblSystemMetric.objects.filter(metric_name='token_counter').order_by('id_metric').values().all()
+    metrics = TblSystemMetric.objects.filter(
+        metric_name='token_counter').order_by('id_metric').values().all()
 
     if len(metrics) == 0:
         # если метрик еще нет, то считаем по всем языкам
@@ -57,7 +58,8 @@ def index(request):
             except:
                 out_metrics.append(0)
 
-        TblSystemMetric.objects.filter(metric_name='token_counter').update(metric_update_time=current_time)
+        TblSystemMetric.objects.filter(metric_name='token_counter').update(
+            metric_update_time=current_time)
         TblSystemMetric.objects.filter(Q(metric_name='token_counter') & Q(language_id=1)).update(
             metric_value=out_metrics[0])
         TblSystemMetric.objects.filter(Q(metric_name='token_counter') & Q(language_id=2)).update(
@@ -65,7 +67,8 @@ def index(request):
 
     else:
         # если метрики актуальны
-        out_metrics = [int(metrics[index]['metric_value']) for index in range(len(metrics))]
+        out_metrics = [int(metrics[index]['metric_value'])
+                       for index in range(len(metrics))]
         out_time = metrics[0]['metric_update_time']
 
     return render(request, "index.html", context={
@@ -85,6 +88,31 @@ def cql_faq(request):
     """
 
     return render(request, "cql_faq.html")
+
+
+def tag_list(request):
+    """ Рендер справочника по тегам
+
+    Args:
+        request: http-запрос с пользовательской информацией
+
+    Returns:
+        HttpResponse: html Справочник тегов
+    """
+
+    deutsche_reasons = TblReason.objects.filter(reason_language_id=1).values(
+        'reason_name', 'reason_abbrev')
+
+    deutsche_grades = TblGrade.objects.filter(grade_language_id=1).values(
+        'grade_name', 'grade_abbrev')
+
+    deutsche_error_tags = TblTag.objects.filter(markup_type_id=1, tag_language_id=1).values(
+        'tag_text', 'tag_text_russian', 'tag_text_abbrev')
+
+    deutsche_pos_tags = TblTag.objects.filter(markup_type_id=2, tag_language_id=1).values(
+        'tag_text')
+
+    return render(request, "tag_list.html", {'deutsche_reasons': deutsche_reasons, 'deutsche_grades': deutsche_grades, 'deutsche_error_tags': deutsche_error_tags, 'deutsche_pos_tags': deutsche_pos_tags, })
 
 
 def _filter_shaping(cql):
@@ -179,7 +207,6 @@ def _parse_cql(user_query=None):
 
                 if _filter_shaping(part) is not None:
                     filters &= _filter_shaping(part)
-
 
         # Парсинг альтернативных вариантов
         # TODO: Исправить вывод дублированных текстов(где совпадает и токен, и тег)
@@ -299,7 +326,8 @@ def get_stat(request):
             return (render(request, 'stat_form.html',
                            {'right': True, 'form': StatisticForm(request.user.language_id), 'no_data': False}))
         else:
-            form = StatisticForm(request.user.language_id, request.POST or None)
+            form = StatisticForm(request.user.language_id,
+                                 request.POST or None)
             if form.is_valid():
 
                 group_id = int(form.cleaned_data['group'])
@@ -311,7 +339,8 @@ def get_stat(request):
                                             content_type='application/zip')
 
                     filename = stat_res['file_name'].replace(" ", "_")
-                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+                        filename)
 
                     remove(stat_res['folder_link'])
                     return response

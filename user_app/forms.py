@@ -138,11 +138,12 @@ class GroupCreationForm(forms.Form):
     year = forms.CharField(widget  = forms.TextInput(attrs={'class':'form-control'}), 
         initial = str(default),
         max_length=4)
+    course_number = forms.IntegerField(widget=forms.NumberInput())
 
 class GroupModifyForm(forms.Form):
-    fields = ['group_name', 'year']
+    fields = ['group_name', 'year','course_number']
 
-    def __init__(self, year, group_name, *args, **kwargs):
+    def __init__(self, year, group_name, course_number, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['year']  =   forms.CharField(
             widget=forms.TextInput(attrs={'class': 'form-control'}),
@@ -153,6 +154,7 @@ class GroupModifyForm(forms.Form):
             widget  = forms.TextInput(attrs={'class':'form-control'}), 
             initial = group_name,
             max_length =256)
+        self.fields['course_number'] = forms.IntegerField(widget=forms.NumberInput(), initial=course_number)
 
 class GroupModifyStudent(forms.Form):
     fields = ['studs']

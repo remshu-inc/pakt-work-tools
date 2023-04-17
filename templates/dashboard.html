@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{%block plugins%}
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+{%endblock plugins%}
+
+{% block content %}
+{%if right%}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}">
+
+    {% verbatim %}
+    <div id="div_title">
+        <h1> {{title_page}} </h1>
+    </div>
+
+    <div id="languages">
+        <label>Язык</label><br>
+        <hr id="line_language">
+        <select v-model="selected_language"  @change="on_change_language">
+            <option v-for="language in languages":value="language.id_language">{{ language.language_name }}</option>
+        </select>
+    </div>
+
+    <hr style=" margin: 2% 0 1%; float: top">
+    <form id="form_filters" name="filters">
+        {% endverbatim %}{% csrf_token %}{% verbatim %}
+        <div id="filters">
+            <p class="filter_title"> Фильтры</p>
+            <div class="filter_group_with_title">
+                <p class="filter_group" @click="on_change_filters_for_student">Фильтры по студентам</p>
+                <div id="filters_for_student">
+                    <div id="groups" class="filter" style="width: max-content;">
+                        <input type="checkbox" id="filter_groups" value="groups" v-model="checked_filters" @change="on_change_choice_group"/>
+                        <span>Группа</span>
+                         <select v-model="selected_group" id="filter_group" class="filters_choices">
+                                <option v-for="group in groups">{{ group.group_name }}</option>
+                         </select>
+                        <div id="filter_date">
+                           <span>Дата зачисления</span>
+                            <select v-model="selected_date">
+                                <option v-for="date in group_dates">{{ date.enrollement_date }}</option>
+                            </select>
+                            <input type="button" @click="on_change_group" value="Применить">
+                        </div>
+                        <p id="error_group" class="message">Выберите группу и дату зачисления.</p>
+                    </div>
+
+                    <div id="student" class="filter">
+                        <input type="checkbox" id="filter_student" value="student" v-model="checked_filters" @change="on_change_choice_student"/>
+                        <span>Студент</span>
+                        <div id="filter_students">
+                            <input v-model="surname" placeholder="фамилия">
+                            <input v-model="name" placeholder="имя">
+                            <input v-model="patronymic" placeholder="отчество">
+                            <input type="button" @click="on_change_student" value="Применить">
+                        </div>
+                        <p id="error_student" class="message">Введите фамилию и имя студента.</p>
+                    </div>
+
+                    <div id="courses" class="filter">
+                        <input type="checkbox" id="filter_courses" value="courses" v-model="checked_filters" @change="on_change_choice_course"/>
+                        <span>Курс</span>
+                        <select v-model="selected_course" @change="on_change_course" id="filter_course" class="filters_choices">
+                            <option v-for="course in courses">{{ course.course_number }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter_group_with_title">
+                <p class="filter_group" @click="on_change_filters_for_texts">Фильтры по текстам</p>
+                <div id="filters_for_texts">
+                    <div id="all_texts" class="filter" style="width: max-content">
+                        <input type="checkbox" id="filter_all_texts" value="all_texts" v-model="checked_filters" @change="on_change_choice_text"/>
+                        <span>Название текста</span>
+                        <select v-model="selected_text" @change="on_change_text" id="filter_text" class="filters_choices">
+                            <option v-for="text in texts":value="text.header">{{ text.header }}</option>
+                        </select>
+                    </div>
+
+                    <div id="text_types" class="filter" style="width: max-content">
+                        <input type="checkbox" id="filter_text_types" value="text_types" v-model="checked_filters" @change="on_change_choice_text_types"/>
+                        <span>Тип текста</span>
+                        <select v-model="selected_text_type" @change="on_change_text_type" id="filter_text_type" class="filters_choices">
+                            <option v-for="text_type in text_types":value="text_type.id_text_type">{{ text_type.text_type_name }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <hr style=" margin: 2% 0; clear: left">
+    <div id="diagrams">
+        <div id="diagrams_type_errors">
+            <label class="statistic_name">Статистика по типам ошибок</label><br>
+            <div id="type_errors_bar">
+                <canvas id="errors_bar" ref="chart" class="chart"></canvas>
+            </div>
+            <div id="type_errors_pie">
+                <canvas id="errors_pie" ref="chart" class="chart"></canvas>
+            </div>
+        </div>
+         <hr style=" margin: 30% 0 2%; clear: left">
+        <div id="diagrams_grade_errors">
+            <label class="statistic_name">Статистика по грубости ошибок</label><br>
+            <div id="grade_errors_bar">
+                <canvas id="errors_bar_grade" ref="chart" class="chart"></canvas>
+            </div>
+            <div id="grade_errors_pie">
+                <canvas id="errors_pie_grade" ref="chart" class="chart"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endverbatim %}
+{%else%}
+Недостаточно прав
+{%endif%}
+{% endblock content%}
+
+{%block script%}
+<script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
+{%endblock script%}

@@ -1,0 +1,99 @@
+#div_title{
+    text-align: center;
+}
+
+#languages{
+    font-size: 1.3em;
+}
+
+#line_language{
+    margin: 0;
+    width: 10%;
+}
+
+#line_statistic{
+    margin: 0;
+    width: 15%;
+}
+
+#errors_bar{
+    float: left;
+    max-width:50%;
+    max-height:500px;
+}
+#errors_pie{
+    float: left;
+    max-width:50%;
+    max-height:500px;
+}
+
+#errors_bar_grade{
+    float: left;
+    max-width:50%;
+    max-height:500px;
+}
+#errors_pie_grade{
+    float: left;
+    max-width:50%;
+    max-height:500px;
+}
+
+#filters_for_student{
+    margin: 0 3% 1%;
+    display: none;
+}
+
+#filters_for_texts{
+    margin: 0 3% 2%;
+    display: none;
+    width: max-content;
+}
+
+#filter_students{
+    margin: 0.5% 1% 0;
+    display: none;
+    width: max-content;
+}
+
+#filter_date{
+    margin: 1% 1% 0;
+    display: none;
+    width: max-content;
+}
+
+.filter_title{
+    font-size: 1.3em
+}
+
+.filter_group{
+    margin: 1% 2% 0;
+    font-size: 1.1em;
+    color: dimgrey;
+    cursor: pointer;
+    width: max-content;
+}
+
+.filter{
+    margin: 0.5%;
+}
+
+.filters_choices{
+    visibility: hidden;
+}
+
+.filter_group_with_title{
+    margin: 0 1% 1% 1%;
+    float: left;
+}
+
+.statistic_name{
+    font-size: 1.5em;
+    font-style: italic;
+}
+
+.message{
+    color: red;
+    margin: 1% 1% 0;
+    display: none;
+}
+
