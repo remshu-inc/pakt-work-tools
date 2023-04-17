@@ -17,13 +17,14 @@ from string import punctuation
 from datetime import datetime
 from hashlib import sha512
 
-#for dashboard
+# for dashboard
 from django.http import JsonResponse
 from django.db.models import Count, Value, IntegerField, F
 import json
 from django.views.generic import View
 from text_app.models import TblTag, TblMarkup
-#----------------------------
+# ----------------------------
+
 
 def signup(request):
     try:
@@ -61,9 +62,9 @@ def signup(request):
                 return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student,
                                                        'form_student_group': form_student_group})
 
-            # Save User       
+            # Save User
             user = form_user.save(commit=False)
-            user.language = request.user.language
+            user.language_id = request.user.language_id
             user = user.save()
 
             # Save Student
@@ -112,7 +113,8 @@ def change_password(request):
         for student in students:
             try:
                 user = TblUser.objects.filter(id_user=student.user_id).first()
-                all_students.append([user.id_user, user.last_name + ' ' + user.name])
+                all_students.append(
+                    [user.id_user, user.last_name + ' ' + user.name])
             except:
                 count += 1
 
@@ -142,7 +144,7 @@ def signup_teacher(request):
             return render(request, 'signup_teacher.html', {'form_user': form_user})
 
         if form_user.is_valid():
-            # Save User       
+            # Save User
             user = form_user.save()
 
             # Save Teacher
@@ -221,9 +223,9 @@ def log_out(request):
 def manage(request):
     teacher = request.user.is_teacher()
     student = request.user.is_student()
-    
+
     if teacher or student:
-        #TODO Связать с таблицей работ и дэшем
+        # TODO Связать с таблицей работ и дэшем
         # if teacher:
         #     available_students = []
         #     lang = [1,2] if not request.user.language_id else [request.user.language_id]
@@ -247,12 +249,12 @@ def manage(request):
         #                                                 )]
         return (render(request, 'manage_page.html',
                        {
-                            'teacher': teacher,
-                            'student': student,
-                            # 'avaliable_students': available_students,
-                            'superuser': check_is_superuser(request.user.id_user)
-                         }
-                                 ))
+                           'teacher': teacher,
+                           'student': student,
+                           # 'avaliable_students': available_students,
+                           'superuser': check_is_superuser(request.user.id_user)
+                       }
+                       ))
 
 
 # * Group creation page
@@ -296,7 +298,7 @@ def group_creation(request):
                     if year.isnumeric() and 999 < int(year) < datetime.now().year + 1:
 
                         enrollement_date = datetime(int(year), 9, 1)
-                        valid_sample = TblGroup.objects.filter(Q(group_name=group_name) \
+                        valid_sample = TblGroup.objects.filter(Q(group_name=group_name)
                                                                & Q(enrollement_date=enrollement_date)).values(
                             'id_group').all()
 
@@ -305,7 +307,7 @@ def group_creation(request):
                                 group_name=group_name,
                                 enrollement_date=enrollement_date,
                                 language_id=request.user.language_id,
-                                course_number = course_number)
+                                course_number=course_number)
                             new_row.save()
 
                             return (render(request, 'group_creation_form.html',
@@ -362,12 +364,13 @@ def group_creation(request):
 # * Group selection page
 def group_selection(request):
     if request.user.is_teacher():
-        groups = TblGroup.objects.filter(language_id=request.user.language_id).order_by('-enrollement_date')
+        groups = TblGroup.objects.filter(
+            language_id=request.user.language_id).order_by('-enrollement_date')
         if groups.exists():
             groups = groups.values()
             for index in range(len(groups)):
                 groups[index]['enrollement_date'] = str(groups[index]['enrollement_date'].year) \
-                                                    + ' /  ' + str(groups[index]['enrollement_date'].year + 1)
+                    + ' /  ' + str(groups[index]['enrollement_date'].year + 1)
 
             return (render(request, 'group_select.html', context={
                 'right': True,
@@ -391,7 +394,8 @@ def group_selection(request):
 
 
 def _get_group_students(group_id: int, in_: bool) -> list:
-    language_id = TblGroup.objects.filter(id_group=group_id).values('language_id')[0]['language_id']
+    language_id = TblGroup.objects.filter(
+        id_group=group_id).values('language_id')[0]['language_id']
     students_in_group = TblStudentGroup.objects.filter(
         Q(group_id=group_id) &
         Q(student_id__user_id__language_id=language_id)
@@ -399,7 +403,8 @@ def _get_group_students(group_id: int, in_: bool) -> list:
     if in_:
         query = Q(id_student__in=students_in_group)
     else:
-        query = ~Q(id_student__in=students_in_group) & Q(user_id__language_id=language_id)
+        query = ~Q(id_student__in=students_in_group) & Q(
+            user_id__language_id=language_id)
 
     students = TblStudent.objects.filter(query).values(
         'id_student',
@@ -426,7 +431,8 @@ def _get_group_students(group_id: int, in_: bool) -> list:
 
 def group_modify(request, group_id):
     if request.user.is_teacher():
-        groups = TblGroup.objects.filter(id_group=group_id).values('enrollement_date', 'group_name', 'course_number')
+        groups = TblGroup.objects.filter(id_group=group_id).values(
+            'enrollement_date', 'group_name', 'course_number')
         if groups.exists():
             year = groups[0]['enrollement_date'].year
             group_name = groups[0]['group_name']
@@ -441,7 +447,8 @@ def group_modify(request, group_id):
         if request.method != 'POST':
 
             # * Page Creation
-            groups = TblGroup.objects.filter(id_group=group_id).values('enrollement_date', 'group_name')
+            groups = TblGroup.objects.filter(id_group=group_id).values(
+                'enrollement_date', 'group_name')
             if groups.exists():
                 return (render(request, 'group_modify.html', context={
                     'right': True,
@@ -456,11 +463,12 @@ def group_modify(request, group_id):
         # * Modify info about group
         elif 'group_info_modify' in request.POST:
 
-            form = GroupModifyForm(year, group_name, course_number, request.POST or None)
+            form = GroupModifyForm(
+                year, group_name, course_number, request.POST or None)
             if form.is_valid():
                 group_name_new = str(form.cleaned_data['group_name'])
                 year_new = str(form.cleaned_data['year'])
-                course_number_new = int(form.cleaned_data['course_number']) 
+                course_number_new = int(form.cleaned_data['course_number'])
 
                 if _symbol_check(group_name_new):
                     if year_new.isnumeric() and 999 < int(year_new) < datetime.now().year + 1:
@@ -507,12 +515,14 @@ def group_modify(request, group_id):
             form = GroupModifyStudent(students_out, request.POST or None)
 
             if form.is_valid():
-                values = [int(element) for element in form.cleaned_data['studs']]
+                values = [int(element)
+                          for element in form.cleaned_data['studs']]
                 # TODO: Добавить вывод ошибки
-                if not TblStudentGroup.objects.filter( \
-                        Q(group_id=group_id) & \
+                if not TblStudentGroup.objects.filter(
+                        Q(group_id=group_id) &
                         Q(student_id__in=values)).exists():
-                    values = [TblStudentGroup(student_id=value, group_id=group_id) for value in values]
+                    values = [TblStudentGroup(
+                        student_id=value, group_id=group_id) for value in values]
                     TblStudentGroup.objects.bulk_create(values)
 
                 updated_students_in = _get_group_students(group_id, True)
@@ -534,9 +544,11 @@ def group_modify(request, group_id):
         elif 'del_studs' in request.POST:
             form = GroupModifyStudent(students_in, request.POST or None)
             if form.is_valid():
-                values = [int(element) for element in form.cleaned_data['studs']]
+                values = [int(element)
+                          for element in form.cleaned_data['studs']]
 
-                query = TblStudentGroup.objects.filter(Q(group_id=group_id) & Q(student_id__in=values))
+                query = TblStudentGroup.objects.filter(
+                    Q(group_id=group_id) & Q(student_id__in=values))
                 # TODO: Добавить вывод ошибки
                 if query.exists() and len(query) == len(values):
                     query.delete()
@@ -573,7 +585,6 @@ def group_modify(request, group_id):
                 'right': False
             }))
 
-
     else:
         return (render(request, 'group_modify.html', context={
             'right': False
@@ -583,8 +594,8 @@ def group_modify(request, group_id):
 def tasks_info(request, user_id):
     if (request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher():
         about_student = TblStudent.objects\
-            .filter(user_id = user_id)\
-            .values('user_id__name', 'user_id__last_name','user_id__patronymic').all()
+            .filter(user_id=user_id)\
+            .values('user_id__name', 'user_id__last_name', 'user_id__patronymic').all()
         if about_student.exists():
             about_student = {
                 'name': about_student[0]['user_id__name'] if about_student[0]['user_id__name'] else '',
@@ -593,13 +604,13 @@ def tasks_info(request, user_id):
             }
         else:
             about_student = {
-                'name':'Не указано',
-                'last_name':'Не указано',
+                'name': 'Не указано',
+                'last_name': 'Не указано',
                 'patronymic': 'Не указано'
             }
-        
+
         tasks = TblText.objects\
-            .filter(user_id = user_id)\
+            .filter(user_id=user_id)\
             .order_by('-create_date')\
             .values(
                 'id_text',
@@ -615,44 +626,46 @@ def tasks_info(request, user_id):
             for task in tasks:
                 error_check = 'Да' if task['error_tag_check'] else 'Нет'
                 assessment = ''
-                if task['assessment'] and task['assessment']>0:
+                if task['assessment'] and task['assessment'] > 0:
                     for element in TblText.TASK_RATES:
                         if task['assessment'] == element[0]:
                             assessment = element[1]
                             break
                 if assessment:
                     num_of_errors = TblMarkup.objects.filter(
-                        Q(token_id__sentence_id__text_id = task['id_text']) &\
-                        Q(tag_id__markup_type_id = 1)
+                        Q(token_id__sentence_id__text_id=task['id_text']) &
+                        Q(tag_id__markup_type_id=1)
                     ).count()
                 else:
                     num_of_errors = ''
-                
+
                 path = {'lang': task['language_id__language_name'],
-                                'type':task['text_type_id__text_type_name'],
-                                'id':task['id_text']
-                              }
-    
+                        'type': task['text_type_id__text_type_name'],
+                        'id': task['id_text']
+                        }
+
                 out.append({
-                    'header':task['header'],
-                    'path':path,
-                    'error_check':error_check,
-                    'assessment':assessment,
-                    'err_count':num_of_errors,
-                    'date':task['create_date']
+                    'header': task['header'],
+                    'path': path,
+                    'error_check': error_check,
+                    'assessment': assessment,
+                    'err_count': num_of_errors,
+                    'date': task['create_date']
                 })
-        
+
         return (render(request, 'tasks_list.html', context={
             'right': True,
-            'author':about_student,
-            'tasks':out
+            'author': about_student,
+            'tasks': out
         }))
     else:
         return (render(request, 'tasks_list.html', context={
             'right': False
         }))
 
-#* Dashboard (Polina Osipova)
+# * Dashboard (Polina Osipova)
+
+
 def DFS(v, c, h, data):
     h[v] = 1
     c += data[v]["count_data"]
@@ -705,10 +718,14 @@ class DiagramView(View):
         if request.user.is_teacher():
             languages = list(TblLanguage.objects.values())
             text_types = list(TblTextType.objects.values())
-            groups = list(TblGroup.objects.values('group_name').distinct().order_by('group_name'))
-            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
-            courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
-            texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
+            groups = list(TblGroup.objects.values(
+                'group_name').distinct().order_by('group_name'))
+            enrollement_date = list(TblGroup.objects.values(
+                'enrollement_date').distinct().order_by('enrollement_date'))
+            courses = list(TblStudent.objects.values(
+                'course_number').distinct().order_by('course_number'))
+            texts = list(TblText.objects.values(
+                'header', 'language').distinct().order_by('header'))
 
             data_count_errors = list(
                 TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
@@ -723,11 +740,11 @@ class DiagramView(View):
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'data_type_errors': data, 'list_languages': languages, 'list_text_types': text_types,
                                     'list_groups': groups, 'list_courses': courses, 'list_texts': texts,
-                                    'data_grade_errors': data_grade, 'enrollement_date': enrollement_date}, status=200)
+                                     'data_grade_errors': data_grade, 'enrollement_date': enrollement_date}, status=200)
 
-            return render(request, 'dashboard.html', context = {'right':True})
+            return render(request, 'dashboard.html', context={'right': True})
         else:
-            return render(request, 'dashboard.html', context = {'right':False})
+            return render(request, 'dashboard.html', context={'right': False})
 
     def post(self, request):
         list_filter = json.loads(request.body)
@@ -906,10 +923,10 @@ class DiagramView(View):
             data_count_errors = list(
                 TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                          'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
-                    sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                                 date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
+                                             sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
             data_grade = list(
                 TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
@@ -923,9 +940,9 @@ class DiagramView(View):
             data_count_errors = list(
                 TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                          'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                                 date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
                     count_data=Count('tag__id_tag')))
 
             data_grade = list(
@@ -940,9 +957,9 @@ class DiagramView(View):
             data_count_errors = list(
                 TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                          'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                                 date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
                     count_data=Count('tag__id_tag')))
 
             data_grade = list(
@@ -957,9 +974,9 @@ class DiagramView(View):
             data_count_errors = list(
                 TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                          'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                                             sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                                 date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
 
             data_grade = list(
                 TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
