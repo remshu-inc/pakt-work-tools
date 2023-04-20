@@ -775,9 +775,12 @@ function process_part_of_speech(eventData, language, text_type, text_id) {
                 window.alert("Частеречная разметка обновлена!");
                 document.getElementById("update_part_of_speech_btn").style.display = 'block';
                 return;
+            } else {
+                window.alert("Ошибка разметки текста: " + response.statusText)
             }
             console.log(response);
         }, networkError => {
+            window.alert("Ошибка разметки текста: " + networkError.message)
             console.log(networkError.message);
         }
     );

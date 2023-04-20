@@ -322,18 +322,28 @@ def _convert_tags(rftagger_map):
             result.append((item[0], "ADV"))
         elif item[1].startswith("APPR"):
             result.append((item[0], "APPR"))
+        elif item[1].startswith("APPRART"):
+            result.append((item[0], "APPRART"))
+        elif item[1].startswith("APPO"):
+            result.append((item[0], "APPO"))
+        elif item[1].startswith("APZR"):
+            result.append((item[0], "APZR"))
         elif item[1].startswith("ART"):
             result.append((item[0], "ART"))
         elif item[1].startswith("CARD"):
             result.append((item[0], "CARD"))
+        elif item[1].startswith("FM"):
+            result.append((item[0], "FM"))
+        elif item[1].startswith("ITJ"):
+            result.append((item[0], "ITJ"))
         elif item[1].startswith("CONJ.Coord"):
             result.append((item[0], "KON"))
         elif item[1].startswith("CONJ.Comp"):
             result.append((item[0], "KOKOM"))
         elif item[1].startswith("CONJ.SubInf"):
-            result.append((item[0], "KOUS"))
+            result.append((item[0], "KOUI"))
         elif item[1].startswith("CONJ.SubFin"):
-            result.append((item[0], "KOKOM"))
+            result.append((item[0], "KOUS"))
         elif item[1].startswith("N.Reg"):
             result.append((item[0], "NN"))
         elif item[1].startswith("N.Name"):
@@ -370,6 +380,12 @@ def _convert_tags(rftagger_map):
             result.append((item[0], "PTKNEG"))
         elif item[1].startswith("PART.Verb"):
             result.append((item[0], "PTKVZ"))
+        elif item[1].startswith("PART.Ans"):
+            result.append((item[0], "PTKANT"))
+        elif item[1].startswith("PART.Deg"):
+            result.append((item[0], "PTKA"))
+        elif item[1].startswith("TRUNC"):
+            result.append((item[0], "TRUNC"))
         elif item[1].startswith("VFIN.Aux"):
             result.append((item[0], "VAFIN"))
         elif item[1].startswith("VFIN.Mod"):
@@ -383,13 +399,17 @@ def _convert_tags(rftagger_map):
             result.append((item[0], "VMINF"))
         elif item[1].startswith("VINF.Full") or item[1].startswith("VINF.Sein") or item[1].startswith("VINF.Haben"):
             result.append((item[0], "VVINF"))
+        elif item[1].startswith("VIMP.Full"):
+            result.append((item[0], "VVIMP"))
         elif item[1].startswith("VPP.Full"):
             result.append((item[0], "VVPP"))
         elif item[1].startswith("SYM.Pun.Comma"):
             result.append((item[0], "$,"))
+        elif item[1].startswith("SYM.Other.XY"):
+            result.append((item[0], "XY"))
         elif item[1].startswith("SYM.Pun.Sent"):
             result.append((item[0], "$."))
-        elif item[1].startswith("SYM.Paren") or item[1].startswith("SYM.Pun.Hyph"):
+        elif item[1].startswith("SYM.Paren") or item[1].startswith("SYM.Pun.Hyph") or item[1].startswith("SYM.Pun.Colon"):
             result.append((item[0], "$("))
         else:
             print(f"ERROR!!!: Unknown tag {item[1]}")
@@ -442,8 +462,9 @@ def process_part_of_speech(query):
         part_of_speeches_data = TblTag.objects.filter(markup_type_id=2, tag_language_id=1).all()
         part_of_speeches = {}
         for item in part_of_speeches_data:
-            part_of_speeches[str(item.tag_text)] = item
-        # print(part_of_speeches)
+            tag_name = item.tag_text_abbrev if item.tag_text_abbrev else item.tag_text
+            part_of_speeches[str(tag_name)] = item
+        # print(part_of_speeches.keys())
 
         # бежим по предложениям: для каждого предложения делаем тегирование, мапим с токенами и записываем теги
         time = datetime.now()
@@ -491,7 +512,7 @@ def process_part_of_speech(query):
             map_result, error_score = _map_lists(tagger_tokens, sentence_tokens, 0, 0)
             # print(map_result)
             if error_score > 0:
-                print(error_score)
+                print(f"Ошибка разбора предложения {sentence['id_sentence']} RUTagger: {error_score}")
             # if error_score > 0:
             #     print(ret_code.stdout)
             #     print("=================")
@@ -500,7 +521,7 @@ def process_part_of_speech(query):
             # 5. Удаляем все токены частеречной разметки этого предложения
             deleted_count = TblMarkup.objects.filter(sentence_id=sentence['id_sentence'],
                                                      tag_id__markup_type_id=2).delete()
-            print("Deleted " + str(deleted_count))
+            # print("Deleted " + str(deleted_count))
             # 6. Добавляем новые токены частеречной разметки
             map_result = _convert_tags(map_result)
 
@@ -533,10 +554,20 @@ def process_part_of_speech(query):
 def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index):
     ret = []
     error_count = 0
+
     if sentence_index >= len(sentence_tokens):
         return ret, error_count + len(tagger_tokens) - tagger_index
 
     while tagger_index < len(tagger_tokens):
+        # убираем пустые токены
+        while True:
+            if sentence_tokens[sentence_index]["text"] != "-EMPTY-":
+                break
+            sentence_index += 1
+            if sentence_index >= len(sentence_tokens):
+                return ret, error_count + len(tagger_tokens) - tagger_index
+
+        # если токены совпадают, то все ок
         if sentence_tokens[sentence_index]["text"] == tagger_tokens[tagger_index][0]:
             part = tagger_tokens[tagger_index][1]
             ret.append((sentence_tokens[sentence_index]["id_token"], part))
@@ -544,12 +575,16 @@ def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index):
             sentence_index += 1
         elif sentence_index + 1 < len(sentence_tokens) and sentence_tokens[sentence_index + 1]["text"] == "." and \
                 sentence_tokens[sentence_index]["text"] + "." == tagger_tokens[tagger_index][0]:
+            # если токен с точкой, а в тексте он без точки, то тоже все ок
             part = tagger_tokens[tagger_index][1]
             ret.append((sentence_tokens[sentence_index]["id_token"], part))
             # TODO: вставить часть речи точки
             tagger_index += 1
             sentence_index += 2
         else:
+            # если слишком много ошибок маппинга, то не глядим дальше
+            if error_count > 5:
+                return ret, error_count
             # print(f"Process {tagger_index} in {len(tagger_tokens)}")
             # print(tagger_tokens)
             # print(sentence_tokens)
