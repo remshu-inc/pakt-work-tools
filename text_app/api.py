@@ -374,7 +374,8 @@ def _convert_tags(rftagger_map):
             result.append((item[0], "VAFIN"))
         elif item[1].startswith("VFIN.Mod"):
             result.append((item[0], "VMFIN"))
-        elif item[1].startswith("VFIN.Sein") or item[1].startswith("VFIN.Haben") or item[1].startswith("VFIN.Full"):  # Other: VFIN.Sein.1.Sg.Past.Ind
+        elif item[1].startswith("VFIN.Sein") or item[1].startswith("VFIN.Haben") or item[1].startswith(
+                "VFIN.Full"):  # Other: VFIN.Sein.1.Sg.Past.Ind
             result.append((item[0], "VVFIN"))
         elif item[1].startswith("VINF.Aux"):
             result.append((item[0], "VAINF"))
@@ -402,12 +403,15 @@ def process_part_of_speech(query):
     Функция обработки запроса на обновление частей речи.
     """
     if query.method == 'POST':
-        # TODO: проверка прав на выполнение операции
 
         data = json.loads(query.body.decode('utf-8'))
         language = data.get("language")
         text_type = data.get("text_type")
         text_id = data.get("text_id")
+
+        # Информация о пользователе
+        if query.user is not None:
+            user = query.user
 
         if language is None or text_type is None or text_id is None:
             return JsonResponse({'status': 'false',
@@ -435,16 +439,14 @@ def process_part_of_speech(query):
             }, status=404)
 
         # TODO: вставить привязку к таблицам типов тегов и языка
-        part_of_speeches_data = TblTag.objects.filter(markup_type_id=2, tag_language_id=1).values(
-            "id_tag",
-            "tag_text"
-        ).all()
+        part_of_speeches_data = TblTag.objects.filter(markup_type_id=2, tag_language_id=1).all()
         part_of_speeches = {}
         for item in part_of_speeches_data:
-            part_of_speeches[str(item["tag_text"])] = item["id_tag"]
+            part_of_speeches[str(item.tag_text)] = item
         # print(part_of_speeches)
 
         # бежим по предложениям: для каждого предложения делаем тегирование, мапим с токенами и записываем теги
+        time = datetime.now()
         for sentence in sentences:
             with open(data_dir + "/input.txt", "w", encoding="UTF-8") as input_file:
                 input_file.write(sentence['text'].replace('-EMPTY-', '') + "\n")
@@ -461,6 +463,7 @@ def process_part_of_speech(query):
 
             # 2. Удаляем строки из точек и запятых
             tags = re.sub("\n[.]?\n", "\n", ret_code.stdout)
+
             with open(data_dir + "/tags.txt", "w", encoding="UTF-8") as input_file:
                 input_file.write(tags)
 
@@ -486,19 +489,40 @@ def process_part_of_speech(query):
                 'text',
             ).order_by('order_number').all())
             map_result, error_score = _map_lists(tagger_tokens, sentence_tokens, 0, 0)
-            #print(map_result)
-            print(error_score)
+            # print(map_result)
+            if error_score > 0:
+                print(error_score)
+            # if error_score > 0:
+            #     print(ret_code.stdout)
+            #     print("=================")
+            #     print(sentence['text'].replace('-EMPTY-', ''))
+            #     print(sentence_tokens)
             # 5. Удаляем все токены частеречной разметки этого предложения
             deleted_count = TblMarkup.objects.filter(sentence_id=sentence['id_sentence'],
-                                                     tag_id__markup_type_id=2).all()  # TODO: DELETE!!!!
-            #print("Deleted " + str(deleted_count))
+                                                     tag_id__markup_type_id=2).delete()
+            print("Deleted " + str(deleted_count))
+            # 6. Добавляем новые токены частеречной разметки
             map_result = _convert_tags(map_result)
-            # for item in map_result:
-            #     if item[1] in part_of_speeches.keys():
-            #         print("token_id=" + str(item[0]) + "; tag_id=" + str(part_of_speeches[item[1]]))
-            #     else:
-            #         print("Unknown tag: " + item[1])
 
+            text_sentence = TblSentence.objects.get(id_sentence=sentence['id_sentence'])
+            for item in map_result:
+                # print(f"token_id={item[0]}, tag_id={item[1]}")
+                text_token = TblToken.objects.get(id_token=item[0])
+                markup = TblMarkup(
+                    token= text_token,
+                    tag=part_of_speeches[item[1]],
+                    sentence=text_sentence,
+                    user=user,
+                    change_date = time,
+                    comment="авторазметка RFTagger"
+                )
+                markup.save()
+                token_markup = TblTokenMarkup(
+                    position=0,
+                    token=text_token,
+                    markup=markup
+                )
+                token_markup.save()
         return HttpResponse()
 
     # TODO: сделать отображение таблицы частей речи для GET запроса
@@ -526,20 +550,20 @@ def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index):
             tagger_index += 1
             sentence_index += 2
         else:
-            print(f"Process {tagger_index} in {len(tagger_tokens)}")
-            print(tagger_tokens)
-            print(sentence_tokens)
-            print(f"Test with tagger={tagger_index} and sentence={sentence_index}")
+            # print(f"Process {tagger_index} in {len(tagger_tokens)}")
+            # print(tagger_tokens)
+            # print(sentence_tokens)
+            # print(f"Test with tagger={tagger_index} and sentence={sentence_index}")
             ret1, err1 = _map_lists(tagger_tokens, sentence_tokens, tagger_index + 1, sentence_index)
             ret2, err2 = _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index + 1)
             if err1 > err2:
-                print("NOT FOUND: " + sentence_tokens[sentence_index]["text"] + " in sentence tokens")
+                # print("NOT FOUND: " + sentence_tokens[sentence_index]["text"] + " in sentence tokens")
                 error_count += err2 + 1
                 ret.extend(ret2)
             else:
-                print("NOT FOUND: " + tagger_tokens[tagger_index][0] + " in tagger tokens")
+                # print("NOT FOUND: " + tagger_tokens[tagger_index][0] + " in tagger tokens")
                 error_count += err1 + 1
                 ret.extend(ret1)
-            print(f"Return {ret}, {error_count}")
+            # print(f"Return {ret}, {error_count}")
             return ret, error_count
     return ret, error_count
