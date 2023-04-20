@@ -403,6 +403,10 @@ def _convert_tags(rftagger_map):
             result.append((item[0], "VVIMP"))
         elif item[1].startswith("VPP.Full"):
             result.append((item[0], "VVPP"))
+        elif item[1].startswith("VPP.Aux"):
+            result.append((item[0], "VAPP"))
+        elif item[1].startswith("VPP.Mod"):
+            result.append((item[0], "VMPP"))
         elif item[1].startswith("SYM.Pun.Comma"):
             result.append((item[0], "$,"))
         elif item[1].startswith("SYM.Other.XY"):
@@ -551,7 +555,7 @@ def process_part_of_speech(query):
     return HttpResponse()
 
 
-def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index):
+def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index, error_score=0):
     ret = []
     error_count = 0
 
@@ -583,14 +587,14 @@ def _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index):
             sentence_index += 2
         else:
             # если слишком много ошибок маппинга, то не глядим дальше
-            if error_count > 5:
+            if error_count + error_score > 5:
                 return ret, error_count
             # print(f"Process {tagger_index} in {len(tagger_tokens)}")
             # print(tagger_tokens)
             # print(sentence_tokens)
             # print(f"Test with tagger={tagger_index} and sentence={sentence_index}")
-            ret1, err1 = _map_lists(tagger_tokens, sentence_tokens, tagger_index + 1, sentence_index)
-            ret2, err2 = _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index + 1)
+            ret1, err1 = _map_lists(tagger_tokens, sentence_tokens, tagger_index + 1, sentence_index, error_score + 1)
+            ret2, err2 = _map_lists(tagger_tokens, sentence_tokens, tagger_index, sentence_index + 1, error_score + 1)
             if err1 > err2:
                 # print("NOT FOUND: " + sentence_tokens[sentence_index]["text"] + " in sentence tokens")
                 error_count += err2 + 1
