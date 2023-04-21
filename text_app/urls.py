@@ -24,4 +24,5 @@ urlpatterns = [
          name='author_edit'),
     path('corpus/<str:language>/<str:text_type>/<int:text_id>/show_raw', views.show_raw,
          name='show_raw'),
+    path('part_of_speech', api.process_part_of_speech, name="part_of_speech")
 ]
