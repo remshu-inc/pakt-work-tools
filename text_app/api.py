@@ -397,6 +397,8 @@ def _convert_tags(rftagger_map):
             result.append((item[0], "VAINF"))
         elif item[1].startswith("VINF.Mod"):
             result.append((item[0], "VMINF"))
+        elif item[1].startswith("VINF.Full.zu") or item[1].startswith("VINF.Sein.zu") or item[1].startswith("VINF.Haben.zu"):
+            result.append((item[0], "VVIZU"))
         elif item[1].startswith("VINF.Full") or item[1].startswith("VINF.Sein") or item[1].startswith("VINF.Haben"):
             result.append((item[0], "VVINF"))
         elif item[1].startswith("VIMP.Full"):
