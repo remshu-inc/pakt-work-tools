@@ -482,7 +482,7 @@ def process_part_of_speech(query):
             # 1. Токенизация
             ret_code = subprocess.run(["perl", settings.RFTAGGER_PATH + "/cmd/tokenize.perl", "-a "
                                        + settings.RFTAGGER_PATH + "/lib/german-abbreviations", data_dir + "/input.txt"],
-                                      check=True, cwd=settings.RFTAGGER_PATH, capture_output=True, text=True)
+                                      check=True, cwd=settings.RFTAGGER_PATH, capture_output=True, text=True, errors='backslashreplace')
             if ret_code.returncode != 0:
                 return JsonResponse({'status': 'false',
                                      'message': "Ошибка запуска таггера: " + ret_code.stderr},
