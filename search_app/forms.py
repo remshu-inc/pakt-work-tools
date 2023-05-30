@@ -14,8 +14,8 @@ class StatisticForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         groups = TblGroup.objects.filter(language_id = language_id).order_by('-enrollement_date').values('id_group', 'group_name', 'enrollement_date')
+        options = []
         if groups.exists():
-            options = []        
             for group in groups:
                 options.append(
                     (

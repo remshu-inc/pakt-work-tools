@@ -71,6 +71,9 @@ def index(request):
                        for index in range(len(metrics))]
         out_time = metrics[0]['metric_update_time']
 
+    if len(out_metrics) == 0:  # если метрики еще не созданы
+        out_metrics = [0, 0]
+
     return render(request, "index.html", context={
         'tokens_count': {1: out_metrics[0], 2: out_metrics[1]},
         'update_time': out_time.strftime("%d.%m.%Y %H:%M:%S")
