@@ -145,7 +145,7 @@ class CQLTestCase(TestCase):
         Проверка получения статистик анонимом
         """
         resp = self.client.get('/search/statistic')
-        self.assertEqual(resp.status_code, 301)  # должен быть редирект на страницу авторизации
+        self.assertEqual(resp.status_code, 403)  # запрещено!
 
     def test_search_stat_teacher(self):
         """

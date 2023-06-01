@@ -1,6 +1,5 @@
 import re
 import urllib
-from datetime import timedelta
 from os import remove
 from wsgiref.util import FileWrapper
 
@@ -310,7 +309,7 @@ def text(request, text_id=None):
     )
 
     if len(text_obj) == 0:
-        return render(request, "corpus.html", context={'error_search': 'Text not Found'})
+        return render(request, "corpus.html", context={'error_search': 'Text not Found'}, status=404)
 
     text_obj = text_obj[0]
     text_data = re.sub(" -EMPTY- ", " ", text_obj['text'])
@@ -324,7 +323,7 @@ def text(request, text_id=None):
 
 
 def get_stat(request):
-    if request.user.is_teacher():
+    if hasattr(request.user, 'is_teacher') and request.user.is_teacher():
         if request.method != 'POST':
             return (render(request, 'stat_form.html',
                            {'right': True, 'form': StatisticForm(request.user.language_id), 'no_data': False}))
@@ -352,7 +351,7 @@ def get_stat(request):
                     return render(request, 'stat_form.html',
                                   {'right': True, 'form': StatisticForm(request.user.language_id), 'no_data': True})
     else:
-        return render(request, 'stat_form.html', {'right': False, 'no_data': False})
+        return render(request, 'stat_form.html', {'right': False, 'no_data': False}, status=403)
 
 
 def get_error_stats(request_data):

@@ -43,3 +43,37 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password2"})
         self.assertEqual(resp.status_code, 200)  # возвращает обратно на форму
+
+    def test_anon_logout(self):
+        """
+        Проверка выхода анонима
+        """
+        resp = self.client.get('/logout/')
+        self.assertEqual(resp.status_code, 302)  # редирект на домашнюю страницу
+
+    def test_user_logout(self):
+        """
+        Проверка выхода залогиненого пользователя
+        """
+        resp = self.client.post('/login/', data={"login": "root", "password": "password"})
+        self.assertEqual(resp.status_code, 302)
+
+        resp = self.client.get('/logout/')
+        self.assertEqual(resp.status_code, 302)  # редирект на домашнюю страницу
+
+    def test_manage_page(self):
+        """
+        Проверка открытия страницы управления
+        """
+        resp = self.client.get('/manage/')
+        self.assertEqual(resp.status_code, 302)  # редирект на страницу авторизации
+
+    def test_teacher_manage_page(self):
+        """
+        Проверка открытия страницы управления учителем
+        """
+        resp = self.client.post('/login/', data={"login": "root", "password": "password"})
+        self.assertEqual(resp.status_code, 302)
+
+        resp = self.client.get('/manage/')
+        self.assertEqual(resp.status_code, 200)

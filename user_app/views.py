@@ -1,5 +1,7 @@
 from urllib import request
 from django.contrib.auth import login, logout
+from django.contrib.auth.models import AnonymousUser
+
 from .login import MyBackend
 # from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
@@ -219,8 +221,13 @@ def log_out(request):
     return redirect('home')
 
 
-# * Teacher management page
 def manage(request):
+    """
+    Teacher management page
+    """
+    if isinstance(request.user, AnonymousUser):
+        return redirect('login')
+
     teacher = request.user.is_teacher()
     student = request.user.is_student()
 
@@ -255,7 +262,7 @@ def manage(request):
                            'superuser': check_is_superuser(request.user.id_user)
                        }
                        ))
-
+    return redirect('home')
 
 # * Group creation page
 def _symbol_check(name: str) -> bool:
