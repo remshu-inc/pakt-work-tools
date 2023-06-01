@@ -81,3 +81,9 @@ mysqldump -uuser -ppassword database_name --no-tablespaces --complete-insert --n
 ```
 mysql -uuser -ppassword database_name < dump.sql
 ```
+
+### Запуск тестов с оценкой покрытия
+```shell
+coverage run --source='.' manage.py test --keepdb
+coverage html --omit="search_app/*"
+```
