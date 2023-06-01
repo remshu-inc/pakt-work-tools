@@ -327,7 +327,7 @@ class CQLTestCase(TestCase):
                                                                  "course_number": 3})
         self.assertEqual(resp.status_code, 200)
 
-    def test_teacher_group_add_students(self):
+    def test_teacher_group_add_unknown_students(self):
         """
         Проверка добавления студентов в группу учителем
         """
@@ -337,3 +337,25 @@ class CQLTestCase(TestCase):
 
         resp = self.client.post('/manage/group_modify/1/', data={"add_studs": True, "studs": [1, 2, 3]})
         self.assertEqual(resp.status_code, 400)
+
+    def test_teacher_group_add_students(self):
+        """
+        Проверка добавления студентов в группу учителем
+        """
+        resp = self.client.post('/login/', data={"login": "root", "password": "password"})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.headers['Location'], '/corpus/')
+
+        resp = self.client.post('/manage/group_creation/', data={"group_name": "test_group", "year": 2020,
+                                                                 "course_number": 2})
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.post('/manage/signup/', data={"login": "user1", "password": "testpass1",
+                                                         "birthdate": "2000-01-01", 'gender': "1", 'course_number': 2,
+                                                         'group': 1,
+                                                         "last_name": "test_stud_last", "name": "test_stud_name"})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.headers['Location'], '/corpus/')
+
+        resp = self.client.post('/manage/group_modify/1/', data={"add_studs": True, "studs": [1]})
+        self.assertEqual(resp.status_code, 200)
