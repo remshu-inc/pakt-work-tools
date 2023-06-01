@@ -29,12 +29,12 @@ class CQLTestCase(TestCase):
         TblGroup.objects.create(id_group=1, group_name="test_group", enrollement_date="2020-01-01", course_number=1,
                                 language=TblLanguage.objects.get(id_language=1))
 
-        TblRights.objects.create(id_right=1, name="Просмотр текстов")
-        TblRights.objects.create(id_right=2, name="Загрузка текста")
-        TblRights.objects.create(id_right=3, name="Удаление текстов")
-        TblRights.objects.create(id_right=4, name="Изменение метаданных")
-        TblRights.objects.create(id_right=5, name="Аннотирование")
-        TblRights.objects.create(id_right=6, name="Суперпользователь")
+        TblRights.objects.create(id_right=1, name="view")
+        TblRights.objects.create(id_right=2, name="load")
+        TblRights.objects.create(id_right=3, name="delete")
+        TblRights.objects.create(id_right=4, name="metadata")
+        TblRights.objects.create(id_right=5, name="annotate")
+        TblRights.objects.create(id_right=6, name="superuser")
 
     def test_login_form(self):
         """
