@@ -4,7 +4,7 @@
 
 from django.test import TestCase
 
-from right_app.models import TblRights
+from right_app.models import TblRights, TblUserRights
 from user_app.login import MyBackend
 from user_app.models import TblLanguage, TblUser, TblTeacher, TblGroup
 
@@ -35,6 +35,17 @@ class CQLTestCase(TestCase):
         TblRights.objects.create(id_right=4, name="metadata")
         TblRights.objects.create(id_right=5, name="annotate")
         TblRights.objects.create(id_right=6, name="superuser")
+
+    def tearDown(self) -> None:
+        """
+        Удаление данных из БД
+        """
+        TblGroup.objects.all().delete()
+        TblUserRights.objects.all().delete()
+        TblTeacher.objects.all().delete()
+        TblUser.objects.all().delete()
+        TblLanguage.objects.all().delete()
+        super().tearDown()
 
     def test_login_form(self):
         """
@@ -260,3 +271,69 @@ class CQLTestCase(TestCase):
 
         resp = self.client.post('/manage/group_creation/', data={"group_name": "test_group", "year": 2020, "course_number": 2})
         self.assertEqual(resp.status_code, 200)
+
+    def test_anon_group_selection_form(self):
+        """
+        Проверка формы просмотра групп анонимом
+        """
+        resp = self.client.get('/manage/group_modify/')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_teacher_group_selection_form(self):
+        """
+        Проверка формы просмотра групп учителем
+        """
+        resp = self.client.post('/login/', data={"login": "root", "password": "password"})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.headers['Location'], '/corpus/')
+
+        resp = self.client.get('/manage/group_modify/')
+        self.assertEqual(resp.status_code, 200)
+
+    def test_anon_group_modify_form(self):
+        """
+        Проверка формы просмотра одной группы анонимом
+        """
+        resp = self.client.get('/manage/group_modify/1/')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_teacher_group_modify_form(self):
+        """
+        Проверка формы просмотра одной группы учителем
+        """
+        resp = self.client.post('/login/', data={"login": "root", "password": "password"})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.headers['Location'], '/corpus/')
+
+        resp = self.client.get('/manage/group_modify/1/')
+        self.assertEqual(resp.status_code, 200)
+
+    def test_anon_group_modify(self):
+        """
+        Проверка редактирования одной группы анонимом
+        """
+        resp = self.client.post('/manage/group_modify/1/')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_teacher_group_modify(self):
+        """
+        Проверка редактирования метаданных одной группы учителем
+        """
+        resp = self.client.post('/login/', data={"login": "root", "password": "password"})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.headers['Location'], '/corpus/')
+
+        resp = self.client.post('/manage/group_modify/1/', data={"group_info_modify": True, "group_name": "test_group2", "year": 2021,
+                                                                 "course_number": 3})
+        self.assertEqual(resp.status_code, 200)
+
+    def test_teacher_group_add_students(self):
+        """
+        Проверка добавления студентов в группу учителем
+        """
+        resp = self.client.post('/login/', data={"login": "root", "password": "password"})
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.headers['Location'], '/corpus/')
+
+        resp = self.client.post('/manage/group_modify/1/', data={"add_studs": True, "studs": [1, 2, 3]})
+        self.assertEqual(resp.status_code, 400)

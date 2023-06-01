@@ -370,7 +370,7 @@ def group_creation(request):
 
 # * Group selection page
 def group_selection(request):
-    if request.user.is_teacher():
+    if hasattr(request.user, 'is_teacher') and request.user.is_teacher():
         groups = TblGroup.objects.filter(
             language_id=request.user.language_id).order_by('-enrollement_date')
         if groups.exists():
@@ -389,13 +389,13 @@ def group_selection(request):
                 'right': True,
                 'groups_exist': False,
                 'groups': []
-            }))
+            }, status=404))
     else:
         return (render(request, 'group_select.html', context={
             'right': False,
             'groups_exist': False,
             'groups': []
-        }))
+        }, status=403))
 
     # * Group modify
 
@@ -437,7 +437,7 @@ def _get_group_students(group_id: int, in_: bool) -> list:
 
 
 def group_modify(request, group_id):
-    if request.user.is_teacher():
+    if hasattr(request.user, 'is_teacher') and request.user.is_teacher():
         groups = TblGroup.objects.filter(id_group=group_id).values(
             'enrollement_date', 'group_name', 'course_number')
         if groups.exists():
@@ -450,7 +450,7 @@ def group_modify(request, group_id):
             return (render(request, 'group_modify.html', context={
                 'right': True,
                 'exist': False
-            }))
+            }, status=404))
         if request.method != 'POST':
 
             # * Page Creation
@@ -506,7 +506,7 @@ def group_modify(request, group_id):
                             'group_students': students_in,
                             'del_std_form': GroupModifyStudent(students_in),
                             'add_std_form': GroupModifyStudent(students_out),
-                            'data_form': GroupModifyForm(year, group_name, course_number)}))
+                            'data_form': GroupModifyForm(year, group_name, course_number)}, status=400))
                 else:
                     return (render(request, 'group_modify.html', context={
                         'right': True,
@@ -516,7 +516,7 @@ def group_modify(request, group_id):
                         'group_students': students_in,
                         'del_std_form': GroupModifyStudent(students_in),
                         'add_std_form': GroupModifyStudent(students_out),
-                        'data_form': GroupModifyForm(year, group_name, course_number)}))
+                        'data_form': GroupModifyForm(year, group_name, course_number)}, status=400))
 
         elif 'add_studs' in request.POST:
             form = GroupModifyStudent(students_out, request.POST or None)
@@ -546,7 +546,7 @@ def group_modify(request, group_id):
                     'data_form': GroupModifyForm(year, group_name, course_number)}))
             else:
                 return (render(request, 'group_modify.html', context={
-                    'right': False}))
+                    'right': False}, status=400))
 
         elif 'del_studs' in request.POST:
             form = GroupModifyStudent(students_in, request.POST or None)
@@ -585,17 +585,17 @@ def group_modify(request, group_id):
 
         elif 'del_group' in request.POST:
             TblGroup.objects.filter(id_group=group_id).delete()
-            return (redirect('group_selection'))
+            return redirect('group_selection')
 
         else:
             return (render(request, 'group_modify.html', context={
                 'right': False
-            }))
+            }, status=403))
 
     else:
         return (render(request, 'group_modify.html', context={
             'right': False
-        }))
+        }, status=403))
 
 
 def tasks_info(request, user_id):
