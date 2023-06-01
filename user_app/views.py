@@ -278,12 +278,12 @@ def _symbol_check(name: str) -> bool:
     bad_symbols = punctuation + ' \t\n'
     for symbol in name:
         if symbol not in bad_symbols:
-            return (True)
-    return (False)
+            return True
+    return False
 
 
 def group_creation(request):
-    if request.user.is_teacher():
+    if hasattr(request.user, "is_teacher") and request.user.is_teacher():
         if request.method != 'POST':
             return (render(request, 'group_creation_form.html',
                            {
@@ -335,7 +335,7 @@ def group_creation(request):
                                                'bad_year': False,
                                                'exist': True,
                                                'success': False,
-                                           }))
+                                           }, status=400))
                     else:
                         return (render(request, 'group_creation_form.html',
                                        {
@@ -345,7 +345,7 @@ def group_creation(request):
                                            'bad_year': True,
                                            'exist': False,
                                            'success': False,
-                                       }))
+                                       }, status=400))
             else:
                 return (render(request, 'group_creation_form.html',
                                {
@@ -355,7 +355,7 @@ def group_creation(request):
                                    'bad_year': False,
                                    'exist': False,
                                    'success': False,
-                               }))
+                               }, status=400))
     else:
         return (render(request, 'group_creation_form.html',
                        {
@@ -365,7 +365,7 @@ def group_creation(request):
                            'bad_year': False,
                            'exist': False,
                            'success': False,
-                       }))
+                       }, status=403))
 
 
 # * Group selection page
