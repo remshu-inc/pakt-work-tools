@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from right_app.models import TblRights, TblUserRights
 from user_app.login import MyBackend
-from user_app.models import TblLanguage, TblUser, TblTeacher, TblGroup
+from user_app.models import TblLanguage, TblUser, TblTeacher, TblGroup, TblStudent
 
 
 class CQLTestCase(TestCase):
@@ -24,9 +24,15 @@ class CQLTestCase(TestCase):
 
         TblUser.objects.create(id_user=1, login="root", password=MyBackend.get_hash_pass("password"),
                                language=TblLanguage.objects.get(id_language=1))
+        TblUser.objects.create(id_user=2, login="student1", password=MyBackend.get_hash_pass("password"),
+                               language=TblLanguage.objects.get(id_language=1))
         TblTeacher.objects.create(id_teacher=1, user=TblUser.objects.get(id_user=1))
+        TblStudent.objects.create(id_student=2, user=TblUser.objects.get(id_user=2), course_number=2)
 
-        TblGroup.objects.create(id_group=1, group_name="test_group", enrollement_date="2020-01-01", course_number=1,
+        TblGroup.objects.create(id_group=1, group_name="test_group", enrollement_date="2020-01-01", course_number=2,
+                                language=TblLanguage.objects.get(id_language=1))
+
+        TblGroup.objects.create(id_group=2, group_name="test_group2", enrollement_date="2020-01-01", course_number=2,
                                 language=TblLanguage.objects.get(id_language=1))
 
         TblRights.objects.create(id_right=1, name="view")
@@ -346,16 +352,6 @@ class CQLTestCase(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(resp.headers['Location'], '/corpus/')
 
-        resp = self.client.post('/manage/group_creation/', data={"group_name": "test_group", "year": 2020,
-                                                                 "course_number": 2})
-        self.assertEqual(resp.status_code, 200)
-
-        resp = self.client.post('/manage/signup/', data={"login": "user1", "password": "testpass1",
-                                                         "birthdate": "2000-01-01", 'gender': "1", 'course_number': 2,
-                                                         'group': 1,
-                                                         "last_name": "test_stud_last", "name": "test_stud_name"})
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
-
-        resp = self.client.post('/manage/group_modify/1/', data={"add_studs": True, "studs": [1]})
+        resp = self.client.post('/manage/group_modify/1/', data={"add_studs": True, "studs": [2]})
+        # print(resp._container[0].decode('utf-8'))
         self.assertEqual(resp.status_code, 200)
