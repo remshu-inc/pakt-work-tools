@@ -1,25 +1,27 @@
 # from django.views import generic
 # from .models import TblText
-
-from .models import TblReason, TblGrade, TblTextGroup, TblTextType, TblText, TblSentence, TblMarkup, TblTag, TblTokenMarkup, TblToken
-from user_app.models import TblLanguage, TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
-from text_app.models import TblTextGroup
-from django.db.models import F, Q
-from django.db import connection
-from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify, AuthorModify
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
-from copy import deepcopy
-from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, check_permissions_edit_text, check_is_superuser
 import datetime
-from log_app.views import log_text
-
 import os
+
+from django.core.exceptions import FieldError
+from django.db import connection
+from django.db.models import Q
+from django.shortcuts import render, redirect
+
+from right_app.views import check_permissions_work_with_annotations, check_permissions_show_text, \
+    check_is_superuser
+from text_app.models import TblTextGroup
+from user_app.models import TblLanguage, TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup
+from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify, AuthorModify
+from .models import TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, \
+    TblTokenMarkup, TblToken
+
 os.environ['NLTK_DATA'] = '/var/www/lingo/nltk_data'
 # Test
 
 ASSESSMENT_CHOICES = {TblText.TASK_RATES[i][0]: TblText.TASK_RATES[i][1]
                       for i in range(len(TblText.TASK_RATES))}
+
 
 # Test
 
@@ -39,13 +41,13 @@ def show_files(request, language=None, text_type=None):
     else:
         form_search = False
 
-    #! --------------------------------------------
-    #! Переделать
-    lang_query = TblLanguage.objects.filter(language_name = language).all().values('id_language')
-    languages = [1,2] if not lang_query.exists() else [lang_query[0]['id_language']]
-    students = TblStudent.objects.filter(user_id__language_id__in = languages).all()\
-        .order_by('user_id__last_name','user_id__name','user_id__patronymic')
-    #!---------------------------------------------
+    # ! --------------------------------------------
+    # ! Переделать
+    lang_query = TblLanguage.objects.filter(language_name=language).all().values('id_language')
+    languages = [1, 2] if not lang_query.exists() else [lang_query[0]['id_language']]
+    students = TblStudent.objects.filter(user_id__language_id__in=languages).all() \
+        .order_by('user_id__last_name', 'user_id__name', 'user_id__patronymic')
+    # !---------------------------------------------
 
     all_students = []
     count = 1
@@ -57,7 +59,7 @@ def show_files(request, language=None, text_type=None):
         except:
             count += 1
 
-    if language == None:
+    if language is None:
         try:
             # Определение сортировки
             order_by = 'language_name'
@@ -73,15 +75,23 @@ def show_files(request, language=None, text_type=None):
 
             list_language = TblLanguage.objects.all().order_by(order_by)
 
-            return render(request, "corpus.html", context={'list_language': list_language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students})
+            return render(request, "corpus.html",
+                          context={'list_language': list_language, 'form_search': form_search, 'order_by': order_by,
+                                   'reverse': not reverse, 'all_students': all_students})
 
         # except TblLanguage.DoesNotExist:
+        except FieldError:
+            return render(request, "corpus.html",
+                          context={'form_search': form_search, 'error': True, 'text_html': 'Unknown sort type'},
+                          status=400)
         # TODO: прописать исключение для каждой ошибки?
         except:
-            return render(request, "corpus.html", context={'error': True, 'text_html': '<div id = "Text_found_err">404 Not Found<\div>'})
+            return render(request, "corpus.html",
+                          context={'form_search': form_search, 'error': True, 'text_html': '<div id = "Text_found_err">404 Not Found<\div>'},
+                          status=404)
 
     # Для выбора типа текста
-    elif text_type == None:
+    elif text_type is None:
         order_by = 'text_type_name'
         reverse = False
         if request.GET:
@@ -95,16 +105,23 @@ def show_files(request, language=None, text_type=None):
 
         language_object = TblLanguage.objects.filter(language_name=language)
         if len(language_object) == 0:
-            return render(request, "corpus.html", context={'error': True, 'text_html': 'Language not found'})
+            return render(request, "corpus.html", context={'form_search': form_search, 'error': True, 'text_html': 'Language not found'}, status=404)
         else:
             language_id = language_object.first().id_language
 
-        list_text_type = TblTextType.objects.filter(
-            language_id=language_id).order_by(order_by)
+        try:
+            list_text_type = TblTextType.objects.filter(
+                language_id=language_id).order_by(order_by)
+        except FieldError:
+            return render(request, "corpus.html",
+                          context={'form_search': form_search, 'error': True, 'text_html': 'Sort type not found'},
+                          status=404)
         if len(list_text_type) == 0:
-            return render(request, "corpus.html", context={'error': True, 'text_html': 'Text type not found'})
+            return render(request, "corpus.html", context={'form_search': form_search, 'error': True, 'text_html': 'Text type not found'}, status=404)
         else:
-            return render(request, "corpus.html", context={'list_text_type': list_text_type, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students})
+            return render(request, "corpus.html",
+                          context={'list_text_type': list_text_type, 'form_search': form_search, 'order_by': order_by,
+                                   'reverse': not reverse, 'all_students': all_students})
 
     # Для выбора текста
     else:
@@ -121,35 +138,47 @@ def show_files(request, language=None, text_type=None):
 
         language_object = TblLanguage.objects.filter(language_name=language)
         if len(language_object) == 0:
-            return (render(request, "corpus.html", context={'error': True, 'text_html': 'Language not found'}))
+            return render(request, "corpus.html", context={'form_search': form_search,'error': True, 'text_html': 'Language not found'}, status=404)
         else:
             language_id = language_object.first().id_language
 
         text_type_object = TblTextType.objects.filter(
             language_id=language_id, text_type_name=text_type)
         if len(text_type_object) == 0:
-            return (render(request, "corpus.html", context={'error': True, 'text_html': 'Text type not found'}))
+            return render(request, "corpus.html", context={'form_search': form_search,'error': True, 'text_html': 'Text type not found'}, status=404)
         else:
             text_type_id = text_type_object.first().id_text_type
 
-        if check_permissions_show_text(request.user.id_user):
-            list_text = TblText.objects.filter(
-                language_id=language_id, text_type_id=text_type_id).order_by(order_by)
-        else:
-            list_text = TblText.objects.filter(
-                language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user).order_by(order_by)
+        try:
+            if check_permissions_show_text(request.user.id_user):
+                list_text = TblText.objects.filter(
+                    language_id=language_id, text_type_id=text_type_id).order_by(order_by)
+            else:
+                list_text = TblText.objects.filter(
+                    language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user).order_by(order_by)
+        except FieldError:
+            return render(request, "corpus.html",
+                          context={'form_search': form_search, 'error': True, 'text_html': 'Sort type not found'},
+                          status=404)
 
         list_text_and_user = []
-        for text in list_text:
-            user = TblUser.objects.filter(id_user=text.user_id).first()
-            if user.name == 'empty':
-                list_text_and_user.append([text, ''])
-            else:
-                list_text_and_user.append(
-                    [text, user.last_name + ' ' + user.name])
-        return (render(request, "corpus.html", context={'work_with_file': True, 'list_text_and_user': list_text_and_user, 'language_selected': language, 'form_search': form_search, 'order_by': order_by, 'reverse': not reverse, 'all_students': all_students}))
+        try:
+            for text in list_text:
+                user = TblUser.objects.filter(id_user=text.user_id).first()
+                if user.name == 'empty':
+                    list_text_and_user.append([text, ''])
+                else:
+                    list_text_and_user.append(
+                        [text, user.last_name + ' ' + user.name])
+        except FieldError:
+            return render(request, "corpus.html",
+                          context={'form_search': form_search, 'error': True, 'text_html': 'Sort type not found'},
+                          status=404)
 
-    return (render(request, "corpus.html", context={'text_html': '<div id = "Text_found_err">404 Not Found<\div>'}))
+        return (render(request, "corpus.html",
+                       context={'work_with_file': True, 'list_text_and_user': list_text_and_user,
+                                'language_selected': language, 'form_search': form_search, 'order_by': order_by,
+                                'reverse': not reverse, 'all_students': all_students}))
 
 
 def corpus_search(request):
@@ -195,11 +224,12 @@ def corpus_search(request):
         form_search = SearchTextForm()
         return (render(request, "corpus_search.html", context={'form_search': form_search}))
 
-    return (render(request, "corpus_search.html", context={'form_search': form_search, 'list_text': list_text, 'order_by': order_by, 'reverse': not reverse}))
+    return (render(request, "corpus_search.html",
+                   context={'form_search': form_search, 'list_text': list_text, 'order_by': order_by,
+                            'reverse': not reverse}))
 
 
 def new_text(request, language=None, text_type=None):
-
     # Проверка на выбранный язык и тип текста
     if language != None and text_type != None:
 
@@ -287,9 +317,11 @@ def new_text(request, language=None, text_type=None):
 
         form_text = TextCreationForm(
             custom_user, language_object[0], text_type_objects[0])
-        return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': student})
+        return render(request, 'new_text.html',
+                      {'form_text': form_text, 'student_groups': student_groups, 'student': student})
 
-    return render(request, 'new_text.html', {'form_text': form_text, 'student_groups': student_groups, 'student': request.POST['student']})
+    return render(request, 'new_text.html',
+                  {'form_text': form_text, 'student_groups': student_groups, 'student': request.POST['student']})
 
 
 def delete_text(request):
@@ -306,7 +338,7 @@ def delete_text(request):
         return redirect('home')
     elif not check_is_superuser(request.user.id_user):
         return redirect('home')
-    
+
     print('1111')
 
     if request.method == 'POST':
@@ -383,9 +415,9 @@ def _get_text_info(text_id: int):
     if group_number.exists():
         group_number = group_number.values(
             'group_id__group_name', 'group_id__enrollement_date')[0]
-        group_number = group_number['group_id__group_name']+' ('\
-            + str(group_number['group_id__enrollement_date'].year)+' / ' +\
-            str(group_number['group_id__enrollement_date'].year+1)+')'
+        group_number = group_number['group_id__group_name'] + ' (' \
+                       + str(group_number['group_id__enrollement_date'].year) + ' / ' + \
+                       str(group_number['group_id__enrollement_date'].year + 1) + ')'
 
     else:
         group_number = 'Отсутствует'
@@ -393,28 +425,32 @@ def _get_text_info(text_id: int):
     raw_info = _drop_none(
         raw_info, ['assessment', 'pos_check', 'error_tag_check'])
 
-    raw_info['assessment'] = False if not raw_info['assessment']\
-        or raw_info['assessment'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['assessment']]
+    raw_info['assessment'] = False if not raw_info['assessment'] \
+                                      or raw_info['assessment'] not in ASSESSMENT_CHOICES.keys() else \
+    ASSESSMENT_CHOICES[raw_info['assessment']]
 
-    raw_info['completeness'] = 'Не указано' if not raw_info['completeness']\
-        or raw_info['completeness'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['completeness']]
+    raw_info['completeness'] = 'Не указано' if not raw_info['completeness'] \
+                                               or raw_info['completeness'] not in ASSESSMENT_CHOICES.keys() else \
+    ASSESSMENT_CHOICES[raw_info['completeness']]
 
-    raw_info['structure'] = 'Не указано' if not raw_info['structure']\
-        or raw_info['structure'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['structure']]
+    raw_info['structure'] = 'Не указано' if not raw_info['structure'] \
+                                            or raw_info['structure'] not in ASSESSMENT_CHOICES.keys() else \
+    ASSESSMENT_CHOICES[raw_info['structure']]
 
-    raw_info['coherence'] = 'Не указано' if not raw_info['coherence']\
-        or raw_info['coherence'] not in ASSESSMENT_CHOICES.keys() else ASSESSMENT_CHOICES[raw_info['coherence']]
+    raw_info['coherence'] = 'Не указано' if not raw_info['coherence'] \
+                                            or raw_info['coherence'] not in ASSESSMENT_CHOICES.keys() else \
+    ASSESSMENT_CHOICES[raw_info['coherence']]
 
-    assessment_name = str(raw_info['teacher_id__user_id__name']) + ' ' +\
-        str(raw_info['teacher_id__user_id__last_name'])
+    assessment_name = str(raw_info['teacher_id__user_id__name']) + ' ' + \
+                      str(raw_info['teacher_id__user_id__last_name'])
     assessment_name = 'Не указано' if assessment_name == 'Не указано Не указано' else assessment_name
 
-    pos_name = str(raw_info['pos_check_user_id__name']) + ' ' +\
-        str(raw_info['pos_check_user_id__last_name'])
+    pos_name = str(raw_info['pos_check_user_id__name']) + ' ' + \
+               str(raw_info['pos_check_user_id__last_name'])
     pos_name = 'Не указано' if pos_name == 'Не указано Не указано' else pos_name
 
-    error_name = str(raw_info['error_tag_check_user_id__name']) + ' ' +\
-        str(raw_info['error_tag_check_user_id__last_name'])
+    error_name = str(raw_info['error_tag_check_user_id__name']) + ' ' + \
+                 str(raw_info['error_tag_check_user_id__last_name'])
     error_name = 'Не указано' if error_name == 'Не указано Не указано' else error_name
 
     return ({
@@ -430,7 +466,7 @@ def _get_text_info(text_id: int):
         'author_name':
             str(raw_info['user_id__name']) + '  '
             + str(raw_info['user_id__last_name'])
-            + ' ('+str(raw_info['user_id__login'])+')',
+            + ' (' + str(raw_info['user_id__login']) + ')',
         'group_number': group_number,
 
         # Мета. информация
@@ -516,7 +552,7 @@ def assessment_form(request, text_id=1, **kwargs):
                     form.instance.error_tag_check_date = datetime.date.today()  # .strftime('%Y-%M-%d')
 
                 form.save()
-            return (redirect(request.path[:request.path.rfind('/')+1]))
+            return (redirect(request.path[:request.path.rfind('/') + 1]))
         else:
             form = AssessmentModify(initial_values, request.user.is_teacher())
             return (render(request, 'assessment_form.html', {
@@ -527,11 +563,12 @@ def assessment_form(request, text_id=1, **kwargs):
     else:
         return (render(request, 'assessment_form.html', {'right': False}))
 
+
 # Form for meta modify
 
 
 def meta_form(request, text_id=1, **kwargs):
-    if request.user.id_user == TblText.objects\
+    if request.user.id_user == TblText.objects \
             .filter(id_text=text_id).values('user_id')[0]['user_id']:
 
         initial_values = TblText.objects.filter(id_text=text_id).values(
@@ -551,7 +588,7 @@ def meta_form(request, text_id=1, **kwargs):
 
             if form.is_valid():
                 form.save()
-            return (redirect(request.path[:request.path.rfind('/')+1]))
+            return (redirect(request.path[:request.path.rfind('/') + 1]))
         else:
             form = MetaModify(initial_values)
             return (render(request, 'meta_form.html', {
@@ -560,6 +597,7 @@ def meta_form(request, text_id=1, **kwargs):
             }))
     else:
         return render(request, 'meta_form.html', {'right': False})
+
 
 def show_text(request, text_id=1, language=None, text_type=None):
     if not hasattr(request.user, 'id_user'):
@@ -678,14 +716,14 @@ def author_form(request, text_id=1, **kwargs):
     creator = TblText.objects.filter(id_text=text_id).all()
 
     if request.user.is_teacher():
-        labels = TblStudentGroup.objects.all().filter(student_id__user_id__language_id=request.user.language_id)\
+        labels = TblStudentGroup.objects.all().filter(student_id__user_id__language_id=request.user.language_id) \
             .order_by(
-                'student_id__user_id__last_name',
-                'student_id__user_id__name',
-                'student_id__user_id__patronymic',
-                'group_id__group_name',
-                '-group_id__enrollement_date'
-        )\
+            'student_id__user_id__last_name',
+            'student_id__user_id__name',
+            'student_id__user_id__patronymic',
+            'group_id__group_name',
+            '-group_id__enrollement_date'
+        ) \
             .values(
             'student_id__user_id',
             'group_id',
@@ -699,13 +737,13 @@ def author_form(request, text_id=1, **kwargs):
         if labels.exists():
             for label in labels:
                 options.append(
-                    (str(label['student_id__user_id'])+' '+str(label['group_id']),
-                     str(label['student_id__user_id__last_name'])+' ' +
-                     str(label['student_id__user_id__name'])+' ' +
-                     str(label['student_id__user_id__patronymic'])+' Логин: ' +
-                     str(label['student_id__user_id__login'])+' Группа: ' +
+                    (str(label['student_id__user_id']) + ' ' + str(label['group_id']),
+                     str(label['student_id__user_id__last_name']) + ' ' +
+                     str(label['student_id__user_id__name']) + ' ' +
+                     str(label['student_id__user_id__patronymic']) + ' Логин: ' +
+                     str(label['student_id__user_id__login']) + ' Группа: ' +
                      str(label['group_id__group_name']) + ' (' +
-                     str(label['group_id__enrollement_date'].year)+')')
+                     str(label['group_id__enrollement_date'].year) + ')')
                 )
         else:
             no_error = False
@@ -722,14 +760,14 @@ def author_form(request, text_id=1, **kwargs):
                     'group_id__group_name',
                     'group_id__enrollement_date')[0]
 
-                initial = (str(student_id['user_id'])+' '
+                initial = (str(student_id['user_id']) + ' '
                            + str(current_group['group_id']),
-                           str(student_id['user_id__last_name'])+' ' +
-                           str(student_id['user_id__name'])+' ' +
-                           str(student_id['user_id__patronymic'])+' Логин: ' +
-                           str(student_id['user_id__login'])+' Группа: ' +
+                           str(student_id['user_id__last_name']) + ' ' +
+                           str(student_id['user_id__name']) + ' ' +
+                           str(student_id['user_id__patronymic']) + ' Логин: ' +
+                           str(student_id['user_id__login']) + ' Группа: ' +
                            str(current_group['group_id__group_name']) + ' (' +
-                           str(current_group['group_id__enrollement_date'].year)+')'
+                           str(current_group['group_id__enrollement_date'].year) + ')'
                            )
             else:
                 initial = ('   ', 'Отсутствует')
@@ -741,9 +779,9 @@ def author_form(request, text_id=1, **kwargs):
             user_id=creator.values('user_id')[0]['user_id'])
 
         if student_id.exists():
-            labels = TblStudentGroup.objects.\
-                filter(student_id=student_id.values('id_student')[0]['id_student']).\
-                order_by('group_id__group_name', '-group_id__enrollement_date').\
+            labels = TblStudentGroup.objects. \
+                filter(student_id=student_id.values('id_student')[0]['id_student']). \
+                order_by('group_id__group_name', '-group_id__enrollement_date'). \
                 values('group_id', 'group_id__group_name',
                        'group_id__enrollement_date')
 
@@ -751,7 +789,7 @@ def author_form(request, text_id=1, **kwargs):
                 for label in labels:
                     options.append((
                         label['group_id'],
-                        str(label['group_id__group_name'])+' '
+                        str(label['group_id__group_name']) + ' '
                         + str(label['group_id__enrollement_date'].year)
                     ))
             else:
@@ -761,7 +799,7 @@ def author_form(request, text_id=1, **kwargs):
                 current_group = current_group.values(
                     'group_id', 'group_id__group_name', 'group_id__enrollement_date')[0]
                 initial = (str(current_group['group_id']),
-                           str(current_group['group_id__group_name'])+' '
+                           str(current_group['group_id__group_name']) + ' '
                            + str(current_group['group_id__enrollement_date'].year))
             else:
                 initial = (' ', 'Отсутствует')
@@ -787,8 +825,8 @@ def author_form(request, text_id=1, **kwargs):
             value = form.cleaned_data['user']
 
             if request.user.is_teacher():
-                if value and ' ' in value\
-                        and value.split(' ')[0].isnumeric()\
+                if value and ' ' in value \
+                        and value.split(' ')[0].isnumeric() \
                         and value.split(' ')[1].isnumeric():
 
                     user_id = int(value.split(' ')[0])
@@ -855,16 +893,16 @@ def show_raw(request, text_id: int, **kwargs):
     header = ''
 
     if author_id.exists() and (request.user.is_teacher() or request.user.id_user == author_id[0]['user_id']):
-        sentences = TblSentence.objects\
-            .filter(text_id=text_id)\
-            .order_by('order_number')\
+        sentences = TblSentence.objects \
+            .filter(text_id=text_id) \
+            .order_by('order_number') \
             .values('text').all()
         language = author_id[0]['language_id__language_name']
         text_type = author_id[0]['text_type_id__text_type_name']
         header = author_id[0]['header']
         if sentences.exists():
             output = [
-                [i+1, sentence['text'].replace('-EMPTY-', '')] for i, sentence in enumerate(sentences)]
+                [i + 1, sentence['text'].replace('-EMPTY-', '')] for i, sentence in enumerate(sentences)]
     else:
         right = False
 
