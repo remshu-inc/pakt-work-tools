@@ -138,38 +138,47 @@ def show_files(request, language=None, text_type=None):
 
         language_object = TblLanguage.objects.filter(language_name=language)
         if len(language_object) == 0:
-            return (render(request, "corpus.html", context={'error': True, 'text_html': 'Language not found'}))
+            return render(request, "corpus.html", context={'form_search': form_search,'error': True, 'text_html': 'Language not found'}, status=404)
         else:
             language_id = language_object.first().id_language
 
         text_type_object = TblTextType.objects.filter(
             language_id=language_id, text_type_name=text_type)
         if len(text_type_object) == 0:
-            return (render(request, "corpus.html", context={'error': True, 'text_html': 'Text type not found'}))
+            return render(request, "corpus.html", context={'form_search': form_search,'error': True, 'text_html': 'Text type not found'}, status=404)
         else:
             text_type_id = text_type_object.first().id_text_type
 
-        if check_permissions_show_text(request.user.id_user):
-            list_text = TblText.objects.filter(
-                language_id=language_id, text_type_id=text_type_id).order_by(order_by)
-        else:
-            list_text = TblText.objects.filter(
-                language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user).order_by(order_by)
+        try:
+            if check_permissions_show_text(request.user.id_user):
+                list_text = TblText.objects.filter(
+                    language_id=language_id, text_type_id=text_type_id).order_by(order_by)
+            else:
+                list_text = TblText.objects.filter(
+                    language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user).order_by(order_by)
+        except FieldError:
+            return render(request, "corpus.html",
+                          context={'form_search': form_search, 'error': True, 'text_html': 'Sort type not found'},
+                          status=404)
 
         list_text_and_user = []
-        for text in list_text:
-            user = TblUser.objects.filter(id_user=text.user_id).first()
-            if user.name == 'empty':
-                list_text_and_user.append([text, ''])
-            else:
-                list_text_and_user.append(
-                    [text, user.last_name + ' ' + user.name])
+        try:
+            for text in list_text:
+                user = TblUser.objects.filter(id_user=text.user_id).first()
+                if user.name == 'empty':
+                    list_text_and_user.append([text, ''])
+                else:
+                    list_text_and_user.append(
+                        [text, user.last_name + ' ' + user.name])
+        except FieldError:
+            return render(request, "corpus.html",
+                          context={'form_search': form_search, 'error': True, 'text_html': 'Sort type not found'},
+                          status=404)
+
         return (render(request, "corpus.html",
                        context={'work_with_file': True, 'list_text_and_user': list_text_and_user,
                                 'language_selected': language, 'form_search': form_search, 'order_by': order_by,
                                 'reverse': not reverse, 'all_students': all_students}))
-
-    return (render(request, "corpus.html", context={'text_html': '<div id = "Text_found_err">404 Not Found<\div>'}))
 
 
 def corpus_search(request):
