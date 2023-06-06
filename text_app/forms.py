@@ -1,3 +1,9 @@
+'''
+Project: pakt-work-tools
+File name: urls.py
+Description: Перечень форм для функций работы с текстами
+'''
+
 from email.policy import default
 from faulthandler import disable
 from django import forms
@@ -8,17 +14,26 @@ from right_app.views import check_permissions_new_text, check_permissions_work_w
 
 
 class TextTypeChoiceField(forms.ModelChoiceField):
+    '''
+    Неявная форма выбора типа текста
+    '''
     def label_from_instance(self, obj):
         return super().label_from_instance(obj)
         # return "TblLanguage #%s) %s" % (obj.id_language, obj.language_name)
 
 
 class DateInput(forms.DateInput):
+    """
+    Поле выбора даты (???)
+    """
     input_type = 'date'
 
 
 class TextCreationForm(forms.ModelForm):
-
+    """
+    Форма создания нового текста
+    """
+    # Фиксация даты создания и даты последнего изменения
     create_date = forms.DateField(
         initial=datetime.date.today, widget=DateInput(attrs={'class': 'form-control'}))
     modified_date = forms.DateField(
@@ -26,7 +41,12 @@ class TextCreationForm(forms.ModelForm):
     # asd = forms.Model
 
     class Meta:
+        """
+        Описание полей информации о тексте
+        """
+        # Модель используемой таблицы БД
         model = TblText
+        # Названия полей
         fields = (
             'header',
             'user',
@@ -42,8 +62,14 @@ class TextCreationForm(forms.ModelForm):
             'self_rating',
             'student_assesment'
         )
-
-        widgets = {
+        # Описание виджетов полей
+        """
+            - Формат выбора пользователя определяется при инициализации 
+            родительского класса
+            - Выбор языка и типа текста происходит на основе скрытых полей
+            (значения для них передается в URL запроса)
+        """
+        widgets   = {
             'header': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 14}),
             'emotional': forms.Select(attrs={'class': 'form-control'}),
@@ -55,16 +81,31 @@ class TextCreationForm(forms.ModelForm):
         }
 
     def __init__(self, user=None, language=None, text_type=None, *args, **kwargs):
+        """
+            Инициализация формы создания текста
+        Args:
+            user (_type_, optional): Объект пользователя загружающего работу (не обязательно автора).
+            language (_type_, optional): Название языкового корпуса (~язык текста).
+            text_type (_type_, optional): Название типа загружаемого текста.
+        """
+        #? Знаю что это необходимо, но вот суть не ясна (???)
         super(TextCreationForm, self).__init__(*args, **kwargs)
         if user != None and language != None and text_type != None:
 
-            # Если у пользователя нет прав загружать текст от чужого лица
+            """ 
+            Определение id автора работы
+            Если загружающий пользователь не имеет права выбора автора, то 
+            сам загружающий и фиксируется как автор 
+            """
             user_object = TblUser.objects.filter(id_user=user.id_user)
             self.fields['user'] = forms.ModelChoiceField(
                 queryset=user_object, widget=forms.Select(attrs={'class': 'form-control'}))
             self.fields['user'].initial = user_object[0]
             self.fields['user'].widget.attrs['readonly'] = "readonly"
 
+            """
+            Поулчение id  языка текста по названию
+            """
             language_object = TblLanguage.objects.filter(
                 language_name=language)
             self.fields['language'] = forms.ModelChoiceField(
@@ -72,6 +113,9 @@ class TextCreationForm(forms.ModelForm):
             self.fields['language'].initial = language_object[0]
             self.fields['language'].widget.attrs['readonly'] = "readonly"
 
+            """
+            Поулчение id  типа текста по названию
+            """
             text_type_object = TblTextType.objects.filter(
                 text_type_name=text_type, language_id=language_object[0].id_language)
             self.fields['text_type'] = forms.ModelChoiceField(
@@ -80,6 +124,9 @@ class TextCreationForm(forms.ModelForm):
             self.fields['text_type'].widget.attrs['readonly'] = "readonly"
 
     def save(self, commit=True):
+        """
+        Создание записи в БД
+        """
         text = super().save(commit=False)
 
         if commit:
@@ -89,6 +136,15 @@ class TextCreationForm(forms.ModelForm):
 
 
 def get_annotation_form(Grades, Reasons):
+    """
+    Генерация формы создания
+    Args:
+        Grades (_type_): _description_
+        Reasons (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     grades = [('0', 'Не указано')]
     for element in Grades:
         grades.append((element["id_grade"], element["grade_name"]))
