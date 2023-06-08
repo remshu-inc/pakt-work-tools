@@ -7,7 +7,7 @@ from grading_module import GrossModel
 if __name__ == "__main__":
     # файл с данными для обучения
     fileName = 'data.csv'
-    df = pd.read_csv(fileName, sep=';')
+    df = pd.read_csv(fileName, sep=';', lineterminator='\n')
     # создание модели
     myModel = GrossModel(model_type='CrossEncoder2', score=[0.98, 0.93, 0.87])
     myModel.load_data(fileName)
@@ -28,8 +28,8 @@ if __name__ == "__main__":
     y_test = []  ## результаты на обучающей выборке для каждой эпохи
     y_train = []  ## результаты на тестовой выборке для каждой эпохи
     # расчет метрик до обучения
-    r_matrix_train, r_train = myModel.get_accuracy_m(train_sent, train_correct, train_level)
-    r_matrix_test, r_test = myModel.get_accuracy_m(test_sent, test_correct, test_level)
+    r_matrix_train, r_train = myModel.get_accuracy_m([train_sent, train_correct, train_level])
+    r_matrix_test, r_test = myModel.get_accuracy_m([test_sent, test_correct, test_level])
     print('Эпоха 0')
     print('Тестовая: ' + str(round(r_test, 4)) + '; Обучающая: ' + str(round(r_train, 4)))
     print(r_matrix_test)
@@ -42,8 +42,8 @@ if __name__ == "__main__":
         print('Эпоха ' + str(i + 1))
         myModel.fit(num_epochs=1, learning_rate=lr)
         # расчет метрик после обучения на одной эпохе
-        r_matrix_train, r_train = myModel.get_accuracy_m(train_sent, train_correct, train_level)
-        r_matrix_test, r_test = myModel.get_accuracy_m(test_sent, test_correct, test_level)
+        r_matrix_train, r_train = myModel.get_accuracy_m([train_sent, train_correct, train_level])
+        r_matrix_test, r_test = myModel.get_accuracy_m([test_sent, test_correct, test_level])
         print('Тестовая: ' + str(round(r_test, 4)) + '; Обучающая: ' + str(round(r_train, 4)))
         print(r_matrix_test)
         result.append((0, r_test, r_train))
