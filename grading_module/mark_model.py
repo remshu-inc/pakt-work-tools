@@ -1,6 +1,10 @@
 """
 Класс для модели выставления оценки за текст
 """
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from matplotlib import pyplot as plt
 
 
 class MarkModel:

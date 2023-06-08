@@ -1,13 +1,17 @@
 """
 Класс для модели определения грубости ошибки
 """
+import json
 import math
+import time
 
 import pandas as pd
 import torch
 from sentence_transformers import SentenceTransformer, util, losses, CrossEncoder, InputExample
-from torch.utils.data import DataLoader
-from transformers import BertForSequenceClassification, BertTokenizer, DistilBertTokenizer
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
+from transformers import BertForSequenceClassification, BertTokenizer, DistilBertTokenizer, AdamW
 
 
 class GrossModel:
@@ -441,7 +445,7 @@ class GrossModel:
         modeldata["score3"] = self.score[3]
         modeldata["device"] = self.devicename
 
-        if (self.modeltype == 'CosMeasure'):
+        if self.modeltype == 'CosMeasure':
             self.model_cos.save(self.model_save_path)
             with open(self.model_save_path + "/modeldata.json", "w") as file_write:
                 file_write.write(json.dumps(modeldata))

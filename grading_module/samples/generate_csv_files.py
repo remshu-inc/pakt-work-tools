@@ -1,7 +1,7 @@
 """
 Пример генерации файлов с исходными данными для обучения
 """
-from grading_module import GrossModelDataTo_scv
+from grading_module.common import GrossModelDataTo_scv
 from pakt_work_tools.settings import DATABASES
 
 if __name__ == "__main__":

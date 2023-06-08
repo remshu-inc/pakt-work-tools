@@ -2,7 +2,7 @@ import time
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from grading_module import GrossModel
+from grading_module.common import GrossModel
 
 if __name__ == "__main__":
     # файл с данными для обучения
