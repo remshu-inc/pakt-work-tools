@@ -1,21 +1,10 @@
 ﻿# -*- coding: utf-8 -*-
-"""
-Модуль построения оценок
-Включает 
-- два класса для описания моделей нейронных сетей
-- функции для преобразования данных
-- функции для загрузки моделей
-"""
-import re
 
+import re
 import mysql.connector
 import pandas as pd
 
 from grading_module.gross_model import GrossModel
-
-
-# from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator
-# from sentence_transformers.cross_encoder.evaluation import CESoftmaxAccuracyEvaluator
 
 
 # функция формирования на основе базы данных корпуса массива исходных данных для обучения искусственной нейронной сети для определения грубости ошибки
@@ -221,8 +210,8 @@ def MarkModelDataTo_scv(file, user, password, host, database):
 # функция для определения грубости ошибки
 def GetGrossError(textError, textCorrect):
     # Входные данные - два предложения
-    model = GrossModel(model_type='CrossEncoder', score=[0.98, 0.93, 0.87])
-    model.load_model(pathname='mymodel')
+    model = GrossModel(modeltype='CrossEncoder', score=[0.98, 0.93, 0.87])
+    model.load_model(pathname='model_gross')
     res = model.predict([[textError], [textCorrect]])
     del model
     return res[0][2:]
@@ -232,13 +221,8 @@ def GetGrossError(textError, textCorrect):
 ###@tf.function
 def GetTextMark(Val, model=None):
     # Val - список списков
-    # model - ранее построенная модель или пусто
-    if model is None:
-        #        model = MarkModel()
-        #        res = model.predict(Val)
-        #        del model
-        return -1
-    else:
-        model = model
-        res = model.predict(Val)
+    from grading_module.mark_model import MarkModel
+    model = MarkModel(modelpath = 'model_mark')
+    res = model.predict(Val)
+    del model
     return res
