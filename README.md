@@ -93,6 +93,15 @@ mysqldump -uuser -ppassword database_name --no-tablespaces --complete-insert --n
 mysql -uuser -ppassword database_name < dump.sql
 ```
 
+### *Ошибка запуска вирт.окружения:*
+CategoryInfo          : Ошибка безопасности: (:) [], PSSecurityException
+FullyQualifiedErrorId : UnauthorizedAccess
+
+Решение проблемы:
+- Открываем терминал PowerShell от админа.
+- Вставляем и запускаем - Set-ExecutionPolicy RemoteSigned
+- На вопрос отвечаем - A
+
 ### Запуск тестов с оценкой покрытия
 ```shell
 coverage run --source='.' manage.py test --keepdb

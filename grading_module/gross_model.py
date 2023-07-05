@@ -19,12 +19,12 @@ class GrossModel:
     Класс для модели определения грубости ошибки
     """
 
-    def __init__(self, model_type='CosMeasure', score=0):
+    def __init__(self, modeltype='CosMeasure', score=0):
         # score = 0 - значения по умолчанию,
         # score = [1,2,3] - список из трех убывающих значений для грубости 1, 2, 3
-        if model_type not in ['CosMeasure', 'CrossEncoder', 'CrossEncoder2', 'BERTModel', 'distilBERTModel']:
+        if modeltype not in ['CosMeasure', 'CrossEncoder', 'CrossEncoder2', 'BERTModel', 'distilBERTModel']:
             raise AttributeError("Неизвестная модель")
-        self.modeltype = model_type
+        self.modeltype = modeltype
         self.Cosmodel = 'symanto/sn-xlm-roberta-base-snli-mnli-anli-xnli'
         self.Crossmodel = 'dbmdz/convbert-base-german-europeana-cased'
         self.Crossmodel2 = 'ml6team/cross-encoder-mmarco-german-distilbert-base'
@@ -121,7 +121,9 @@ class GrossModel:
     def load_data(self, file, testpart=0.1, train_batch_size=16):
         # функция загружает данные для дообучения модели
         self.train_batch_size = train_batch_size
-        df = pd.read_csv(file, sep=';', lineterminator='\n')
+        if (self.modeltype == 'BERTModel') or (self.modeltype == 'distilBERTModel'):
+            testpart=0.1
+        df = pd.read_csv(file, sep=';')
         numIndex = math.ceil(df.shape[0] * (1 - testpart))
         self.test_shape = df.shape[0] - numIndex
         print(
@@ -203,7 +205,7 @@ class GrossModel:
             return 1
         return 0
 
-    def fit(self, num_epochs=2, learning_rate=2e-4, path='n'):
+    def fit(self, num_epochs=2, learning_rate=2e-4):
         # функция дообучения модели
         def multi_acc(y_pred, y):
             # функция расчета метрики accuracy
@@ -214,7 +216,6 @@ class GrossModel:
             return 0
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
-        self.save_path = path
         self.warmup_steps = math.ceil(len(self.train_dataloader) * self.num_epochs * 0.1)
 
         if self.modeltype == 'CosMeasure':
@@ -436,26 +437,31 @@ class GrossModel:
             acur = (acc[0][0] + acc[1][1] + acc[2][2]) / (sum(acc[0]) + sum(acc[1]) + sum(acc[2]))
             return (acc, acur)
 
-    def save_model(self):
+    def save_model(self, pathname='grossmodel'):
         # функция сохранения модели на диске
         modeldata = {}
         modeldata["modelType"] = self.modeltype
-        modeldata["score1"] = self.score[1]
-        modeldata["score2"] = self.score[2]
-        modeldata["score3"] = self.score[3]
         modeldata["device"] = self.devicename
-
-        if self.modeltype == 'CosMeasure':
-            self.model_cos.save(self.model_save_path)
-            with open(self.model_save_path + "/modeldata.json", "w") as file_write:
-                file_write.write(json.dumps(modeldata))
-            return (1)
-        if (self.modeltype == 'CrossEncoder') or (self.modeltype == 'CrossEncoder2'):
-            self.model_cross.save(self.model_save_path)
-            with open(self.model_save_path + "/modeldata.json", "w") as file_write:
+        if (self.modeltype == 'BERTModel') or (self.modeltype == 'distilBERTModel'):
+            self.model_bert.save_pretrained(pathname)
+            with open(pathname + "/modeldata.json", "w") as file_write:
                 file_write.write(json.dumps(modeldata))
             return 1
-        return 0
+        else:
+            modeldata["score1"] = self.score[1]
+            modeldata["score2"] = self.score[2]
+            modeldata["score3"] = self.score[3]
+
+            if self.modeltype == 'CosMeasure':
+                self.model_cos.save(pathname)
+                with open(pathname + "/modeldata.json", "w") as file_write:
+                    file_write.write(json.dumps(modeldata))
+                return (1)
+            if (self.modeltype == 'CrossEncoder') or (self.modeltype == 'CrossEncoder2'):
+                self.model_cross.save(pathname)
+                with open(pathname + "/modeldata.json", "w") as file_write:
+                    file_write.write(json.dumps(modeldata))
+                return 1
 
     def load_model(self, pathname='grossmodel'):
         # функция загрузки модели с диска
@@ -463,17 +469,24 @@ class GrossModel:
             modeldata = json.load(read_file)
 
         self.modeltype = modeldata["modelType"]
-        self.score[1] = modeldata["score1"]
-        self.score[2] = modeldata["score2"]
-        self.score[3] = modeldata["score3"]
         self.devicename = modeldata["device"]
         self.device = torch.device(self.devicename)
+        if (self.modeltype == 'CosMeasure') or (self.modeltype == 'CrossEncoder') or (self.modeltype == 'CrossEncoder2'):
+            self.score[1] = modeldata["score1"]
+            self.score[2] = modeldata["score2"]
+            self.score[3] = modeldata["score3"]
 
         if self.modeltype == 'CosMeasure':
             self.model_cos = SentenceTransformer(pathname)
             return 1
         if (self.modeltype == 'CrossEncoder') or (self.modeltype == 'CrossEncoder2'):
             self.model_cross = CrossEncoder(pathname, num_labels=1)
+            return 1
+        if self.modeltype == 'BERTModel':
+            self.model_bert = BertForSequenceClassification.from_pretrained(pathname, num_labels=3).to(self.device)
+            return 1
+        if self.modeltype == 'distilBERTModel':
+            self.model_bert = BertForSequenceClassification.from_pretrained(pathname, num_labels=3).to(self.device)
             return 1
         return 0
 
