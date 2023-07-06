@@ -126,6 +126,14 @@ mysqldump -uuser -ppassword database_name --no-tablespaces --complete-insert --n
 mysql -uuser -ppassword database_name < dump.sql
 ```
 
+### Создание Python пакета
+Библиотека (модуль аннотирования корпуса) содержит setup.py скрипт для создания python пакета.
+Команда создания пакета:
+```shell
+python setup.py bdist_wheel --universal
+```
+После выполнения команды создается каталог dist с пакетом pakt_wor_tools-...-any.whl, который можно использовать для установки библиотеки.
+
 ### *Ошибка запуска вирт.окружения:*
 CategoryInfo          : Ошибка безопасности: (:) [], PSSecurityException
 FullyQualifiedErrorId : UnauthorizedAccess
