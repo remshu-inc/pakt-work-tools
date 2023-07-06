@@ -44,6 +44,11 @@
 ### Модуль построения оценок
 Документация и скрипты обучения и использования модуля построения оценок размещены в [каталоге модуля](grading_module).
 
+<<<<<<< HEAD
+___
+## __Установка__
+### Подготовка
+=======
 ### Выгрузка предобученных моделей
 Документация и примеры скриптов выгрузки предобученных моделей размещены в [каталоге модуля построения оценок](grading_module).
 Текущая версия предобученной модели определения грубости ошибки размещена в [Hugging Face](https://huggingface.co/remshu-inc/mencoder).
@@ -59,72 +64,139 @@
 
 ## Установка
 **Пре-установка**
+>>>>>>> 4d907a051cad63d99421b5379225c2ba232911e0
 1. Установите [GIT](https://git-scm.com/downloads)
 2. Установите [Python3](https://www.python.org/downloads/)
-3. Установите и настройте [MySQL Server](https://dev.mysql.com/downloads/mysql/)
+3. Установите и настройте [MySQL Server ](https://dev.mysql.com/downloads/mysql/) или [MariaDB](https://mariadb.org/download/)
+	
+	1. В системе _PAKT_, по умолчанию используются стандартные настройки подключения к _MySQL_/_MariaDB_. В случае их изменения - внесите корректировки в соответсвующие настройки сервиса (см. раздел `Установка` - `п. 2.5`).
+	2. Обязательно запомните пароль для `root` пользователя созданного при установке выбранной СУБД.
 
 
-**Установка**
-1. Создайте папку для проекта
-2. Установите виртуальное окружение `pip install virtualenv`
-3. Создайте виртуальное окружение pakt `python -m venv pakt`
-4. Создайте пустую базу данных без структуры
-5. Запустите виртуальное окружение
-(Для Windows:`.\pakt\Scripts\Activate.ps1`)
-6. Склонируйте проект с git
-`git clone https://github.com/remshu/pakt-work-tools.git` и перейдите в папку
-7. Установите все требуемые библиотеки
-`pip install -r requirements.txt`
-8. Создайте необходимые директории `python create_folders.py`
-9. Выберите или задайте путь к папкам временных файлов в `pakt_work_tools\settings.py`, раздел `Other settings`
-```
-#Other settings
+### Установка
+1. __Разворачивание системы__
+	1. Создайте папку для проекта
+	2. Создайте виртуальное окружение:
 
-SEARCH_TMP_FOLDER_LOCAL = 'search_app/tmp/'
-SEARCH_TMP_FOLDER_SERVER = 'var/www/lingo/pakt-work-tools/search_app/tmp/'
-SEARCH_TMP_FOLDER = SEARCH_TMP_FOLDER_SERVER
-```
-10. Измените данные для работы с БД в `pakt_work_tools\settings.py`
-```
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'name',
-        'USER': 'root',
-        'PASSWORD': 'password',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'CHARSET': 'utf8mb4',
-    }
-}
-```
- * ENGINE - Встроенная сервернная база данных для использования(оставить как есть)
- * NAME - Имя созданной базы данных из пункта 4
- * USER - Имя пользователя, используемое при установке и настройки системы управления базами данных
- * PASSWORD - Пароль пользователя, используемый при установке и настройки системы управления базами данных
- * HOST - Хост, который используется при подключении к базе данных(по умолчанию: 127.0.0.1)
- * PORT - Порт, используемый при установке и настройки системы управления базами данных(по умолчанию: 3306)
-11. Создание миграций:
-	1. Если папка `migrations` пуста или отсутствует:
-    	1. `python manage.py makemigrations text_app`
-		2. `python manage.py makemigrations user_app`
-		3. `python manage.py makemigrations right_app`
-		4. `python manage.py makemigrations search_app`
-	2. Иначе выполните скрипт `python drop_migrations.py` и выполните пункт 11.1
-12. Запустите миграцию
-`python manage.py migrate`
-13. При наличии дампа базы данных восстановите его в подключенную к сервису базу данных
-14. Запустите сервер `python manage.py runserver`
+		> python -m venv pakt
+
+	3. Запустите виртуальное окружение:
+		
+		1. Linux:
+			> source .\pakt\bin\activate
+
+		2. Windows (PowerShell):
+			> .\pakt/scripts/Activate.ps1
+	4. Склонируйте код проекта из репозитория:
+		> git clone `https://github.com/remshu/pakt-work-tools.git`	
+	5. Перейдите в появившуюся папку `pakt-work-tools`
+	6. Установите все требуемые библиотеки для _Python_:
+		> pip install  -r requirements.txt 
+
+	7. Создайте необходимые директории:
+		> python create_folders.py
+2. __Создание базы данных и подключение__
+
+	(_используемые команды и методы работают как с MySQL, так и с MariaDB_)
+	1. Перейдите в консоль взаимодействия с СУБД 
+		
+		1. MySQL CommandLine - 
+			запустите программу и введите пароль `root` - пользователя  
+		2. Терминал Linux - вызовите команду:
+			
+			> mysql -uroot -p
+
+			и введите пароль `root` - пользователя
+
+		3. Windows PowerShell - если `mysql` внесена в `PATH`, то аналогично п. 2.1.2 иначе, перейдите в  директорию установки СУБД, перейдите в папку `bin` и выполните команду:
+			> .\mysql -uroot -p
+	2. Создайте нового пользователя `lingo`, пароль можно указать произвольно (__замена логина недопустима__):
+		> CREATE USER lingo IDENTIFIED BY 'password';
+	3. Создайте новую базу данных:
+		>CREATE DATABASE lingo;
+		
+		_Имя базы данных может быть изменено, однако, обязательно внесите изменения в настройки сервиса (см. `Установка` - п. 2.5)_
+	4. Выдайте права новому пользователю:
+		>GRANT ALL PRIVILEGES ON lingo.* TO lingo;
+	5. Настройка параметров подключения
+	 	
+		1. Перейдите в директорию хранения исходного кода системы `pakt-work-tools`
+		2. Текстовым редактором откройте файл `pakt-work-tools/settings.py`
+		3. Перейдите к объявлению объекта `DATABASES`:
+			```Python
+			DATABASES = {
+				'default': {
+					'ENGINE': 'django.db.backends.mysql',
+					'NAME': 'DATABASE_NAME',
+					'USER': 'lingo',
+					'PASSWORD': 'PASSWORD',
+					'HOST': '127.0.0.1',
+					'PORT': '3306',
+					'CHARSET': 'utf8mb4',
+				}
+			}
+			```
+		4. Укажите название созданной базы данных вместо `DATABASE_NAME` (по умолчанию `lingo`)
+		5. Укажите пароль созданного пользователя `lingo` вместо значения `PASSWORD`
+		6. Если при установке СУБД вы изменяли какие-либо стандартные настройки, их также необходимо изменить и здесь. Описание настроек:
+			- ENGINE - Встроенная сервернная база данных для использования(оставить как есть)
+			- NAME - Имя используемой БД
+			- USER - Имя пользователя
+			- PASSWORD - Пароль пользователя
+			- HOST - Хост, который используется при подключении к базе данных(по умолчанию: 127.0.0.1)
+			- PORT - Порт, используемый при установке и настройки системы управления базами данных(по умолчанию: 3306)
+
+	6. Создание миграций:
+		1. Перейдите в корневую директорию сервиса
+		2. Запустите скрипт
+			> python create_migrations.py
+		3. Если во время выполнения не было отображено ошибок или предупреждений введите __Y__  после того как скрипт запросит вашего решения. Иначе, проверьте корректность установки/подключения базы данных, а также убедитесь в том, что она не содержит каких-либо таблиц.
+
+3. __Восстановление базы данных из дампа__
+	
+	* __Важно__: для успешного развертывания дампа с последующем подключением к системе, `.sql` файл самого дампа должен быть создан в соответствии с инструкцией `Дополнительно` - `Создание дампа для pakt-work-tools`. Также, при выполнении описанных ниже действий работа сервиса должна быть остановлена.
+	1. Если ваша база данных пуста и в ней отсутсвуют таблицы (т.е. после успешного выполнения пункта 2), то выполните следующую команду (предварительно перейдя к директории хранения `mysql` если она не занесена в `PATH`, см.  п. 1.3):
+		> mysql -ulingo -p lingo < PATH_TO_DUMP_FILE
+	
+		где `PATH_TO_DUMP_FILE` является путём к самому `.sql` файлу дампа.
+		
+		_Обратите внимание, что импорт данных из дампа требует наличия прав Администратора, в случае работы в WIndows OS, рекомендуется проводить данную операцию через командную строку (cmd) запущенную от имени администратора_
+	2. Если ваша база данных `lingo` не пуста:
+		1. Перейдите в консоль СУБД и выполните команды:
+		 	> drop database lingo;
+		 
+		 	> create database lingo;
+		
+		2. Перейдите в корневую директорию сервиса и выполните скрипт:	
+			> python drop_migrations.py
+		3. Выполните все действия из `Установка` - п. 2.6.
+		4. Выполните действия из первого пункта данного раздела.
+
+4. __Запуск сервиса__
+	
+	 - После выполнения всех пунктов раздела установка, для запуска сервиса достаточно перейти в корневую директорию и запустить скрипт:
+
+	 	> python manage.py runserver
+
+	- __Важно__ все указанные скрипты необходимо выполнять в виртуальном окружении созданном в `Установка` - п. 1.
+
+5. __Удаление сервиса__
+	
+	1. Перейдите в консоль управления СУБД с правами `root`-пользователя:
+		
+		1. Удалите базу данных:
+			> drop database lingo;
+		2. Удалите пользователя:
+			> drop user lingo;
+	3. Удалите папку содержащую проект и виртуальное окружение
+	4. Удалите [MySQL](https://dev.mysql.com/doc/workbench/en/wb-windows-uninstalling.html)/[MariaDB](https://mariadb.com/kb/en/uninstall-or-delete-mariadb-completely-for-re-installation/)
+
 
 ## ***Дополнительно***
-### *Создание корректного дампа базы данных:*
-```
-mysqldump -uuser -ppassword database_name --no-tablespaces --complete-insert --no-create-info --lock-tables=True --routines --ignore-table=lingo.auth_group --ignore-table=lingo.auth_group_permissions --ignore-table=lingo.auth_permission --ignore-table=lingo.django_admin_log --ignore-table=lingo.django_content_type --ignore-table=lingo.django_migrations --ignore-table=lingo.django_session  > dump.sql
-```
-### *Восстановление дампа базы данных:*
-```
-mysql -uuser -ppassword database_name < dump.sql
-```
+- Создание дампа для pakt-work-tools 
+	```
+	mysqldump -ulingo -p lingo --no-tablespaces --complete-insert --no-create-info --lock-tables=True --routines --ignore-table=lingo.auth_group --ignore-table=lingo.auth_group_permissions --ignore-table=lingo.auth_permission --ignore-table=lingo.django_admin_log --ignore-table=lingo.django_content_type --ignore-table=lingo.django_migrations --ignore-table=lingo.django_session  > dump.sql
+	```
 
 ### Создание Python пакета
 Библиотека (модуль аннотирования корпуса) содержит setup.py скрипт для создания python пакета.
