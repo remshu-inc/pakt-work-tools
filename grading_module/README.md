@@ -7,6 +7,16 @@
 
 и шесть функций (находятся в модуле "grading_module.common").
 
+## Создание Python пакета
+Библиотека (модуль построения оценок) содержит setup.py скрипт для создания python пакета.
+Команда создания пакета:
+```shell
+python setup.py bdist_wheel --universal
+```
+После выполнения команды создается каталог dist с пакетом grading_module-...-any.whl, который можно использовать для установки библиотеки.
+
+
+
 ## Описание класса GrossModel
 
 *Class GrossModel(modeltype = \'CosMeasure\', score = 0)*
