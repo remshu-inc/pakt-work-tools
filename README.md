@@ -44,7 +44,6 @@
 ### Модуль построения оценок
 Документация и скрипты обучения и использования модуля построения оценок размещены в [каталоге модуля](grading_module).
 
-<<<<<<< HEAD
 ___
 ## __Установка__
 ### Подготовка
@@ -64,7 +63,6 @@ ___
 
 ## Установка
 **Пре-установка**
->>>>>>> 4d907a051cad63d99421b5379225c2ba232911e0
 1. Установите [GIT](https://git-scm.com/downloads)
 2. Установите [Python3](https://www.python.org/downloads/)
 3. Установите и настройте [MySQL Server ](https://dev.mysql.com/downloads/mysql/) или [MariaDB](https://mariadb.org/download/)
