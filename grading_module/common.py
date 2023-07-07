@@ -226,3 +226,34 @@ def GetTextMark(Val, model=None):
     res = model.predict(Val)
     del model
     return res
+
+# функция выгрузки предобученной модели для определения грубости ошибки в заданную папку
+def getGrossModel(pathname):
+    import os
+    import shutil
+    from huggingface_hub import snapshot_download
+    folder_from = snapshot_download(repo_id="remshu-inc/mencoder")
+    os.mkdir(pathname)
+    folder_to = pathname
+
+    for f in os.listdir(folder_from):
+        # print(f)
+        if os.path.isfile(os.path.join(folder_from, f)):
+            shutil.copyfile(os.path.join(folder_from, f), os.path.join(folder_to,f))
+
+# функция выгрузки предобученной модели для определения оценки текста в заданную папку
+def getMarkModel(pathname):
+    import os
+    import shutil
+    from huggingface_hub import snapshot_download
+    folder_from = snapshot_download(repo_id="remshu-inc/mmark")
+    os.mkdir(pathname)
+    folder_to = pathname
+
+    for f in os.listdir(folder_from):
+        # print(f)
+        if os.path.isfile(os.path.join(folder_from, f)):
+            shutil.copyfile(os.path.join(folder_from, f), os.path.join(folder_to,f))
+        if os.path.isdir(os.path.join(folder_from, f)):
+            os.system(f'rd /S /Q {folder_to}\\{f}')
+            shutil.copytree(os.path.join(folder_from, f), os.path.join(folder_to, f))

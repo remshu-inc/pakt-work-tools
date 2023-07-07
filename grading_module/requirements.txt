@@ -4,3 +4,4 @@ transformers
 tensorflow
 sentence-transformers
 mysql-connector-python
+huggingface_hub

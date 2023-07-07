@@ -5,7 +5,7 @@
 * класс MarkModel предназначен для работы с моделью для формирования оценки
 текста (находится в модуле "grading_module.mark_model");
 
-и шесть функций (находятся в модуле "grading_module.common").
+и восемь функций (находятся в модуле "grading_module.common").
 
 ## Создание Python пакета
 Библиотека (модуль построения оценок) содержит setup.py скрипт для создания python пакета.
@@ -173,6 +173,10 @@ python setup.py bdist_wheel --universal
 
 **GetTextMark**(Val) -- функция для формирования оценки текста. Параметры: *Val* --список списков со статистикой ошибок в тексте в формате \[\[\<список статистики ошибок для первого текста\>\],...\]. <Список статистики ошибок для текста> в формате:
 «gram», «leks», «punkt», «orpho», «diskurs», «skips», «extra», «g1», «g2», «g3», «numtoken». Возвращает список оценок.
+
+**getGrossModel**(pathname) -- функция для выгрузки предобученной модели для определения грубости ошибки в заданную папку. Параметры: *pathname* -- имя папки, в котурую будет сохранена модель.
+
+**getMarkModel**(pathname) -- функция для выгрузки предобученной модели для определения оценки текста в заданную папку. Параметры: *pathname* -- имя папки, в котурую будет сохранена модель.
 
 # Сценарии работы с библиотекой
 
@@ -361,18 +365,19 @@ print([[res[i][2],res[i][4],res[i][5]] for i in  range(len(res))])
 ### Использование предобученной модели для получения грубости ошибки
 
 Предобученная модель основана на кросс-энкодере.
+Предобученная модель находится по адресу https://huggingface.co/remshu-inc/mencoder.
 
 Алгоритм:
 * Создать в рабочей папке папку с именем "model_gross".
-* Скачать предобученную модель с сайта [Hugging Face](https://huggingface.co/remshu-inc/mencoder) или файл с архивом "mencoder.zip" с сайта https://pact.ai.petrsu.ru/models/.
-* Разместить модель в папке model_gross. Если модель скачана в виде архива, то распаковать архив "mencoder.zip" в папку "model_gross".
-* Импортировать функцию GetGrossError из модуля grading_module.common.
+* Импортировать функции GetGrossError и getGrossModel из модуля grading_module.common.
+* Вызвать функцию getGrossModel() с параметром "model_gross".
 * Вызвать функцию GetGrossError() с данными: предложение с ошибками, правильное предложение.
 
 #### Сценарий 1.7 -- Получение уровней грубости ошибок для предобученной модели
 
 ```
-from grading_module.common import GetGrossError
+from grading_module.common import GetGrossError, getGrossModel
+getGrossModel('model_gross')
 GetGrossError('Jetzt muss man sich auf Abende und die Wochenenden undkonzentrieren.', 'Jetzt muss man sich auf Abende und die Wochenenden konzentrieren.')
 ```
 
@@ -480,18 +485,19 @@ print(myModel.predict([[1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 ### Использование предобученной модели для получения оценки
 
 Предобученная модель содержит 10 входных нейронов и нормируется на количество токенов в предложении.
-
+Предобученная модель находится по адресу https://huggingface.co/remshu-inc/mmark.
 
 Алгоритм:
 * Создать в рабочей папке папку с именем "model_mark".
-* Скачать предобученную модель с сайта [Hugging Face](https://huggingface.co/remshu-inc/mmark) или файл с архивом предобученной модели "mmark.zip" с сайта https://pact.ai.petrsu.ru/models/.
-* Разместить модель в папке model_mark. Если модель скачана в виде архива, то распаковать архив "mmark.zip" в папку "model_mark".
-* Импортировать функцию GetTextMark из модуля grading_module.common.
+* Импортировать функции GetTextMark и getMarkModel из модуля grading_module.common.
+* Вызвать функцию getMarkModel () с параметром "model_mark".
 * Вызвать функцию GetTextMark() с данными о тексте.
+
 
 #### Сценарий 2.8 -- Получение оценки по предобученной модели
 ```
-from grading_module.common import GetTextMark
+from grading_module.common import GetTextMark, getMarkModel
+getMarkModel('model_mark')
 # получить оценку для одного текста
 print(GetTextMark([[1,1,0,0,0,0,0,1,1,0,512]]))
 # получить оценку для нескольких текстов
