@@ -176,6 +176,14 @@ ___
 	 	> python manage.py runserver
 
 	- __Важно__ все указанные скрипты необходимо выполнять в виртуальном окружении созданном в `Установка` - п. 1.
+	- Пример удачного запуска:
+	```console
+ 	System check identified no issues (0 silenced).
+	July 01, 2023 - 07:36:35
+	Django version 4.0.3, using settings 'pakt_work_tools.settings'
+	Starting development server at http://127.0.0.1:8000/
+	Quit the server with CTRL-BREAK.
+ 	```
 
 5. __Удаление сервиса__
 	
