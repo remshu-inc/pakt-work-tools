@@ -21,8 +21,7 @@ from hashlib import sha512
 from django.http import JsonResponse
 from django.db.models import Count, Value, IntegerField, F
 import json
-from django.views.generic import View
-from text_app.models import TblTag, TblMarkup
+from text_app.models import TblTag, TblMarkup, TblGrade, TblEmotional
 #----------------------------
 
 def signup(request):
@@ -653,367 +652,1400 @@ def tasks_info(request, user_id):
         }))
 
 #* Dashboard (Polina Osipova)
-def DFS(v, c, h, data):
+def get_data_errors_DFS(v, d, level, level_input, h, flags_levels, data):
     h[v] = 1
-    c += data[v]["count_data"]
+    level += 1
+
     for i in range(len(data)):
-        if data[i]["tag__tag_parent"] == data[v]["tag__id_tag"]:
-            if h[i] == 0:
-                c = DFS(i, c, h, data)
+        if data[i]["tag__tag_parent"] == data[v]["tag__id_tag"] and h[i] == 0:
+            c = get_data_errors_DFS(i, d, level, level_input, h, flags_levels, data)
+            d = c
 
-    return c
+    if level > level_input:
+        return data[v]["count_data"] + d
+    else:
+        flags_levels[v] = True
+        data[v]["count_data"] += d
+        return 0
 
 
-def data_group_by_parent_id(data):
+def get_data_errors(data_count_errors, level):
+    list_tags_id_in_markup = []
+    for data in data_count_errors:
+        list_tags_id_in_markup.append(data["tag__id_tag"])
+
+    data_tags_not_in_errors = list(TblTag.objects.annotate(tag__id_tag=F('id_tag'), tag__tag_parent=F('tag_parent'),
+                                                           tag__tag_language=F('tag_language'),
+                                                           tag__tag_text=F('tag_text'),
+                                                           tag__tag_text_russian=F('tag_text_russian')).values(
+        'tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text', 'tag__tag_text_russian').filter(
+        Q(markup_type=1) & ~Q(id_tag__in=list_tags_id_in_markup)).annotate(
+        count_data=Value(0, output_field=IntegerField())))
+
+    data = data_count_errors + data_tags_not_in_errors
+
     n = len(data)
     h = [0 for i in range(n)]
+    flags_levels = [False for i in range(n)]
 
     for i in range(n):
         if h[i] == 0 and data[i]["tag__tag_parent"] == None:
-            c = 0
-            c = DFS(i, c, h, data)
-            data[i]["count_data"] = c
+            c = get_data_errors_DFS(i, 0, -1, level, h, flags_levels, data)
 
-    data_group = []
-    for el in data:
-        if el["tag__tag_parent"] == None:
-            data_group.append(el)
+    data_grouped = []
+    for i in range(n):
+        if flags_levels[i]:
+            if data[i]["tag__tag_parent"] == None:
+                data[i]["tag__tag_parent"] = -1
+            data_grouped.append(data[i])
 
-    return data_group
-
-
-def get_data_errors(data_count_errors):
-    list_tag_id_in_markup = []
-    for data in data_count_errors:
-        list_tag_id_in_markup.append(data["tag__id_tag"])
-
-    data_tags_not_in_errors = list(
-        TblTag.objects.values('id_tag', 'tag_parent', 'tag_language', 'tag_text', 'tag_text_russian').filter(
-            Q(markup_type=1) & ~Q(id_tag__in=list_tag_id_in_markup)).annotate(
-            count_data=Value(0, output_field=IntegerField()), tag__id_tag=F('id_tag'), tag__tag_parent=F('tag_parent'),
-            tag__tag_language=F('tag_language'), tag__tag_text=F('tag_text'),
-            tag__tag_text_russian=F('tag_text_russian')))
-
-    data = data_count_errors + data_tags_not_in_errors
-    data = data_group_by_parent_id(data)
+    data = sorted(data_grouped, key=lambda d: d['tag__id_tag'])
 
     return data
 
 
-class DiagramView(View):
-    def get(self, request):
-        if request.user.is_teacher():
+def get_levels_DFS(v, level, max_level, h, tags):
+    h[v] = 1
+    level += 1
+
+    for i in range(len(tags)):
+        if tags[i]["tag_parent"]==tags[v]["id_tag"] and h[i]==0:
+            max_level = get_levels_DFS(i, level, max_level, h, tags)
+
+    if max_level < level:
+        max_level = level
+
+    return max_level
+
+
+def get_levels():
+    tags = list(TblTag.objects.values('id_tag', 'tag_parent').filter(markup_type=1))
+
+    n = len(tags)
+    h = [0 for i in range(n)]
+    max_level = 0
+
+    for i in range(n):
+        if h[i]==0 and tags[i]["tag_parent"]==None:
+            level = get_levels_DFS(i, 0, -1, h, tags)
+            if level > max_level:
+                max_level = level
+
+    levels = [i for i in range(max_level)]
+
+    return levels
+
+
+def list_charts(request):
+    if request.user.is_teacher():
+        return render(request, 'dashboards.html', context = {'right':True})
+    else:
+        return render(request, 'dashboards.html', context = {'right':False})
+
+
+def chart_errors_types(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
             languages = list(TblLanguage.objects.values())
             text_types = list(TblTextType.objects.values())
-            groups = list(TblGroup.objects.values('group_name').distinct().order_by('group_name'))
+            groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
             enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
             courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
+            for date in enrollement_date:
+                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
+                                            + str(date['enrollement_date'].year+1)
+
             data_count_errors = list(
                 TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                          'tag__tag_text_russian').filter(tag__markup_type=1).annotate(
                     count_data=Count('tag__id_tag')))
-            data = get_data_errors(data_count_errors)
+            data = get_data_errors(data_count_errors, 0)
+            levels = get_levels()
 
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    tag__markup_type=1).annotate(count_data=Count('grade__id_grade')))
-
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'data_type_errors': data, 'list_languages': languages, 'list_text_types': text_types,
-                                    'list_groups': groups, 'list_courses': courses, 'list_texts': texts,
-                                    'data_grade_errors': data_grade, 'enrollement_date': enrollement_date}, status=200)
-
-            return render(request, 'dashboard.html', context = {'right':True})
+            return render(request, 'dashboard_error_types.html', {'right': True, 'languages': languages,
+                                                           'courses': courses, 'groups': groups,
+                                                           'enrollement_date': enrollement_date,
+                                                           'texts': texts, 'text_types': text_types,
+                                                           'levels': levels, 'data': data})
         else:
-            return render(request, 'dashboard.html', context = {'right':False})
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            text = list_filter['text']
+            surname = list_filter['surname']
+            name = list_filter['name']
+            patronymic = list_filter['patronymic']
+            course = list_filter['course']
+            groups = list_filter['groups']
+            level = int(list_filter['level'])
+            date = list_filter['date']
 
-    def post(self, request):
-        list_filter = json.loads(request.body)
-        text_types_id = list_filter['text_type_id']
-        text = list_filter['text']
-        surname = list_filter['surname']
-        name = list_filter['name']
-        patronymic = list_filter['patronymic']
-        course = list_filter['course']
-        groups = list_filter['groups']
-        date = list_filter['date']
+            if surname and name and patronymic and text and text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
 
-        if surname and name and patronymic and text and text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+            elif surname and name and patronymic and text:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic and text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and text and text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__header=text) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and text:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__header=text)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif surname and name and text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif surname and name:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and text_types_id and text:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif course and text:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif groups and text and text_types_id:
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
                         sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('tag__id_tag')))
+                        count_data=Count('tag__id_tag')))
 
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
-                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('grade__id_grade')))
+            elif groups and text:
+                year = date[:4]
+                group_date = year + '-09-01'
 
-        elif surname and name and patronymic and text:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
                         sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
 
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
-                        sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
+            elif groups and text_types_id:
+                year = date[:4]
+                group_date = year + '-09-01'
 
-        elif surname and name and patronymic and text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
                         sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
-                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+            elif groups:
+                year = date[:4]
+                group_date = year + '-09-01'
 
-        elif surname and name and patronymic:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(
-                        sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(
-                        sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('grade__id_grade')))
-
-        elif surname and name and text and text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text) & Q(
-                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text) & Q(
-                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
-
-        elif surname and name and text:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text)).annotate(
-                    count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__header=text)).annotate(
-                    count_data=Count('grade__id_grade')))
-
-        elif surname and name and text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('grade__id_grade')))
-
-        elif surname and name:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name)).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
-                        sentence__text_id__user__name=name)).annotate(count_data=Count('grade__id_grade')))
-
-        elif course and text_types_id and text:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
-                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
-                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('grade__id_grade')))
-
-        elif course and text:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
-                        sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
-                        sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
-
-        elif course and text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
-                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
-                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
-
-        elif course:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
-                    count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
-                    count_data=Count('grade__id_grade')))
-
-        elif groups and text and text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
-                    sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
                         sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                            date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
-                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date)).annotate(
+                        count_data=Count('tag__id_tag')))
 
-        elif groups and text:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
-                    count_data=Count('tag__id_tag')))
+            elif text_types_id and text:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif text:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__header=text)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            else:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(tag__markup_type=1).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            data = get_data_errors(data_count_errors, level)
+
+            return JsonResponse({'data_type_errors': data}, status=200)
+    else:
+        return render(request, 'dashboard_error_types.html', context={'right': False})
+
+
+def chart_grade_errors(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+            groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
+            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+            texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
+
+            for date in enrollement_date:
+                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
+                                            + str(date['enrollement_date'].year+1)
 
             data_grade = list(
                 TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                            date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
+                    Q(tag__markup_type=1) & Q(grade__id_grade__isnull=False)).annotate(
                     count_data=Count('grade__id_grade')))
 
-        elif groups and text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                            date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('grade__id_grade')))
-
-        elif groups:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                    sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                        date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
-                            date, "%Y-%m-%d"))).annotate(count_data=Count('grade__id_grade')))
-
-        elif text_types_id and text:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id) & Q(
-                        sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id) & Q(
-                        sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
-
-        elif text_types_id:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id)).annotate(
-                    count_data=Count('grade__id_grade')))
-
-        elif text:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__header=text)).annotate(
-                    count_data=Count('tag__id_tag')))
-
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    Q(tag__markup_type=1) & Q(sentence__text_id__header=text)).annotate(
-                    count_data=Count('grade__id_grade')))
-
+            return render(request, 'dashboard_error_grade.html', {'right': True, 'languages': languages,
+                                                                        'courses': courses, 'groups': groups,
+                                                                        'enrollement_date': enrollement_date,
+                                                                        'texts': texts, 'text_types': text_types,
+                                                                        'data':  data_grade})
         else:
-            data_count_errors = list(
-                TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
-                                         'tag__tag_text_russian').filter(tag__markup_type=1).annotate(
-                    count_data=Count('tag__id_tag')))
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            text = list_filter['text']
+            surname = list_filter['surname']
+            name = list_filter['name']
+            patronymic = list_filter['patronymic']
+            course = list_filter['course']
+            groups = list_filter['groups']
+            date = list_filter['date']
 
-            data_grade = list(
-                TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
-                    tag__markup_type=1).annotate(count_data=Count('grade__id_grade')))
+            if surname and name and patronymic and text and text_types_id:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('grade__id_grade')))
 
-        data = get_data_errors(data_count_errors)
+            elif surname and name and patronymic and text:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
 
-        return JsonResponse({'data_type_errors': data, 'data_grade_errors': data_grade}, status=200)
+            elif surname and name and patronymic and text_types_id:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
+            elif surname and name and patronymic:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('grade__id_grade')))
+
+            elif surname and name and text and text_types_id:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__header=text) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
+            elif surname and name and text:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__header=text)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            elif surname and name and text_types_id:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            elif surname and name:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name)).annotate(count_data=Count('grade__id_grade')))
+
+            elif course and text_types_id and text:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            elif course and text:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
+
+            elif course and text_types_id:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
+            elif course:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            elif groups and text and text_types_id:
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            elif groups and text:
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
+
+            elif groups and text_types_id:
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
+
+            elif groups:
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            elif text_types_id and text:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
+
+            elif text_types_id:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            elif text:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__header=text)).annotate(
+                        count_data=Count('grade__id_grade')))
+
+            else:
+                data_grade = list(
+                    TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
+                        tag__markup_type=1).annotate(count_data=Count('grade__id_grade')))
+
+            return JsonResponse({'data_grade_errors': data_grade}, status=200)
+    else:
+        return render(request, 'dashboard_error_grade.html', context = {'right':False})
+
+def chart_types_grade_errors(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+            groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
+            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+            texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
+
+            for date in enrollement_date:
+                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
+                                            + str(date['enrollement_date'].year+1)
+
+            grades = list(TblGrade.objects.values('id_grade', 'grade_name', 'grade_language'))
+
+            data = []
+            for grade in grades:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(grade=grade["id_grade"])).annotate(
+                        count_data=Count('tag__id_tag')))
+                data_errors = get_data_errors(data_count_errors, 0)
+                data.append(data_errors)
+
+            levels = get_levels()
+
+            return render(request, 'dashboard_error_types_grade.html', {'right': True, 'languages': languages,
+                                                                        'courses': courses, 'groups': groups,
+                                                                        'enrollement_date': enrollement_date,
+                                                                        'texts': texts, 'text_types': text_types,
+                                                                        'levels': levels, 'data': data,
+                                                                        'grades': grades})
+        else:
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            text = list_filter['text']
+            surname = list_filter['surname']
+            name = list_filter['name']
+            patronymic = list_filter['patronymic']
+            course = list_filter['course']
+            groups = list_filter['groups']
+            date = list_filter['date']
+            level = int(list_filter['level'])
+
+            grades = list(TblGrade.objects.values('id_grade', 'grade_name', 'grade_language'))
+
+            data = []
+            for grade in grades:
+
+                if surname and name and patronymic and text and text_types_id:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                                sentence__text_id__user__patronymic=patronymic) & Q(sentence__text_id__header=text) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif surname and name and patronymic and text:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                                sentence__text_id__user__patronymic=patronymic) & Q(
+                                sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+                elif surname and name and patronymic and text_types_id:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                                sentence__text_id__user__patronymic=patronymic) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif surname and name and patronymic:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                                sentence__text_id__user__patronymic=patronymic)).annotate(
+                            count_data=Count('tag__id_tag')))
+
+                elif surname and name and text and text_types_id:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                                sentence__text_id__header=text) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif surname and name and text:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                                sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+                elif surname and name and text_types_id:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif surname and name:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__last_name=surname) & Q(
+                                sentence__text_id__user__name=name)).annotate(count_data=Count('tag__id_tag')))
+
+                elif course and text_types_id and text:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__course_number=course) & Q(
+                                sentence__text_id__header=text) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif course and text:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__course_number=course) & Q(
+                                sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+                elif course and text_types_id:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__course_number=course) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif course:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__course_number=course)).annotate(
+                            count_data=Count('tag__id_tag')))
+
+                elif groups and text and text_types_id:
+                    group_number = int(groups)
+                    year = date[:4]
+                    group_date = year + '-09-01'
+
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                    group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif groups and text:
+                    group_number = int(groups)
+                    year = date[:4]
+                    group_date = year + '-09-01'
+
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                    group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
+                            count_data=Count('tag__id_tag')))
+
+                elif groups and text_types_id:
+                    group_number = int(groups)
+                    year = date[:4]
+                    group_date = year + '-09-01'
+
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                    group_date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                            count_data=Count('tag__id_tag')))
+
+                elif groups:
+                    group_number = int(groups)
+                    year = date[:4]
+                    group_date = year + '-09-01'
+
+
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                    group_date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
+
+                elif text_types_id and text:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__text_type=text_types_id) & Q(
+                                sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+                elif text_types_id:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+                elif text:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
+                                sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+                else:
+                    data_count_errors = list(
+                        TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                                 'tag__tag_text_russian').filter(
+                            Q(tag__markup_type=1) & Q(grade=grade["id_grade"])).annotate(
+                            count_data=Count('tag__id_tag')))
+
+                data_errors = get_data_errors(data_count_errors, level)
+                data.append(data_errors)
+
+            return JsonResponse({'data': data}, status=200)
+    else:
+        return render(request, 'dashboard_error_types_grade.html', context={'right': False})
+
+def chart_student_dynamics(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+            tags = list(TblTag.objects.values('id_tag', 'tag_language', 'tag_text', 'tag_text_russian').filter(
+                markup_type=1).order_by('id_tag'))
+
+            return render(request, 'dashboard_student_dynamics.html', {'right': True, 'languages': languages,
+                                                                        'text_types': text_types, 'tags': tags})
+        else:
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            surname = list_filter['surname']
+            name = list_filter['name']
+            patronymic = list_filter['patronymic']
+            tag = list_filter['tag']
+            data_count_errors = []
+
+            if surname and name and patronymic and tag and text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__tag_language', 'sentence__text_id__create_date').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            tag__id_tag=tag) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('sentence__text_id__create_date')))
+
+            elif surname and name and patronymic and tag:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__tag_language', 'sentence__text_id__create_date').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(sentence__text_id__user__patronymic=patronymic) & Q(
+                            tag__id_tag=tag)).annotate(count_data=Count('sentence__text_id__create_date')))
+
+            elif surname and name and tag and text_types_id:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__tag_language', 'sentence__text_id__create_date').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(tag__id_tag=tag) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('sentence__text_id__create_date')))
+
+            elif surname and name and tag:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__tag_language', 'sentence__text_id__create_date').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name) & Q(tag__id_tag=tag)).annotate(
+                        count_data=Count('sentence__text_id__create_date')))
+
+            return JsonResponse({'data': data_count_errors}, status=200)
+    else:
+        return render(request, 'dashboard_student_dynamics.html', context={'right': False})
+
+def chart_group_errors(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+            texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
+            tags = list(TblTag.objects.values('id_tag', 'tag_language', 'tag_text', 'tag_text_russian').filter(
+                markup_type=1).order_by('id_tag'))
+            groups = list(TblGroup.objects.values('group_name', 'enrollement_date', 'language')
+                          .distinct().order_by('-enrollement_date'))
+
+            for group in groups:
+                group['enrollement_date'] = str(group['enrollement_date'].year) + ' \ ' \
+                                            + str(group['enrollement_date'].year + 1)
+
+            return render(request, 'dashboard_error_groups.html',
+                          {'right': True, 'languages': languages, 'texts': texts, 'text_types': text_types,
+                           'tags': tags, 'groups': groups})
+        else:
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            text = list_filter['text']
+            groups = list_filter['groups']
+            tag = list_filter['tag']
+
+            group_number = []
+            group_date = []
+            for group in groups:
+                idx = group.find("(")
+                number = int(group[:idx])
+                group_number.append(number)
+
+                year = group[idx + 2:idx + 6]
+                date = year + '-09-01'
+                group_date.append(datetime.strptime(date, "%Y-%m-%d"))
+
+            data = []
+
+            for i in range(len(group_number)):
+                if groups and text and tag and text_types_id:
+                    d = list(TblMarkup.objects.annotate(
+                        id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
+                        number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
+                        number=group_number[i]) & Q(date=group_date[i]) & Q(tag__id_tag=tag) & Q(
+                        sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('id_group')))
+
+                elif groups and tag and text:
+                    d = list(TblMarkup.objects.annotate(
+                        id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
+                        number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
+                        number=group_number[i]) & Q(date=group_date[i]) & Q(tag__id_tag=tag) & Q(
+                        sentence__text_id__header=text)).annotate(count_data=Count('id_group')))
+
+                elif groups and tag and text_types_id:
+                    d = list(TblMarkup.objects.annotate(
+                        id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
+                        number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
+                        number=group_number[i]) & Q(date=group_date[i]) & Q(tag__id_tag=tag) & Q(
+                        sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('id_group')))
+
+                elif groups and tag:
+                    d = list(TblMarkup.objects.annotate(
+                        id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
+                        number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
+                        number=group_number[i]) & Q(date=group_date[i]) & Q(
+                        tag__id_tag=tag)).annotate(count_data=Count('id_group')))
+                data.append(d)
+
+            data_all = []
+            for i in range(len(data)):
+                for data_item in data[i]:
+                    data_item['date'] = str(data_item['date'].year) + ' \ ' \
+                                        + str(data_item['date'].year + 1)
+                    data_all.append(data_item)
+
+            return JsonResponse({'data': data_all}, status=200)
+    else:
+        return render(request, 'dashboard_error_groups.html', context={'right': False})
+
+def chart_emotion_errors(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+            groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
+            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+            texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
+
+            for date in enrollement_date:
+                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
+                                            + str(date['enrollement_date'].year + 1)
+
+            emotions = list(TblEmotional.objects.values())
+
+            levels = get_levels()
+
+            return render(request, 'dashboard_error_emotions.html', {'right': True, 'languages': languages,
+                                                                        'courses': courses, 'groups': groups,
+                                                                        'enrollement_date': enrollement_date,
+                                                                        'texts': texts, 'text_types': text_types,
+                                                                        'levels': levels, 'emotions': emotions})
+        else:
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            text = list_filter['text']
+            surname = list_filter['surname']
+            name = list_filter['name']
+            patronymic = list_filter['patronymic']
+            course = list_filter['course']
+            groups = list_filter['groups']
+            date = list_filter['date']
+            emotions = list_filter['emotions']
+            level = int(list_filter['level'])
+
+            data_count_errors = []
+            if surname and name and patronymic and text and text_types_id and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic) & Q(sentence__text_id__header=text) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic and text and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic and text_types_id and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and text and text_types_id and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif surname and name and text and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and text_types_id and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and text_types_id and text and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif course and text and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and text_types_id and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                            'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif groups and text and text_types_id and emotions:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif groups and text and emotions:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif groups and text_types_id and emotions:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif groups and emotions:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
+
+            elif text_types_id and text and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif text_types_id and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif text and emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif emotions:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            data_errors = get_data_errors(data_count_errors, level)
+
+            return JsonResponse({'data': data_errors}, status=200)
+    else:
+        return render(request, 'dashboard_error_emotions.html', context={'right': False})
+
+
+def chart_self_asses_errors(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+            groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
+            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+            texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
+
+            for date in enrollement_date:
+                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
+                                            + str(date['enrollement_date'].year + 1)
+
+            self_asses = list(
+                TblText.objects.values('self_rating').filter(self_rating__isnull=False).distinct().order_by(
+                    'self_rating'))
+
+            self_asses_text = TblText.TASK_RATES
+
+            for asses in self_asses:
+                if asses["self_rating"] > 0:
+                    idx = asses["self_rating"]
+                    asses["self_rating_text"] = self_asses_text[idx-1][1]
+
+            levels = get_levels()
+
+            return render(request, 'dashboard_error_self_assesment.html', {'right': True, 'languages': languages,
+                                                                        'courses': courses, 'groups': groups,
+                                                                        'enrollement_date': enrollement_date,
+                                                                        'texts': texts, 'text_types': text_types,
+                                                                        'levels': levels, 'self_asses': self_asses})
+        else:
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            text = list_filter['text']
+            surname = list_filter['surname']
+            name = list_filter['name']
+            patronymic = list_filter['patronymic']
+            course = list_filter['course']
+            groups = list_filter['groups']
+            date = list_filter['date']
+            self_asses = list_filter['self_asses']
+            level = int(list_filter['level'])
+
+            data_count_errors = []
+            if surname and name and patronymic and text and text_types_id and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic) & Q(sentence__text_id__header=text) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic and text and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic and text_types_id and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and patronymic and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__user__patronymic=patronymic)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and text and text_types_id and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif surname and name and text and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and text_types_id and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(sentence__text_id__user__name=name) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif surname and name and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__last_name=surname) & Q(
+                            sentence__text_id__user__name=name)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and text_types_id and text and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif course and text and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and text_types_id and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                            'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif course and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__course_number=course)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif groups and text and text_types_id and self_asses:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif groups and text and self_asses:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif groups and text_types_id and self_asses:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif groups and self_asses:
+                group_number = int(groups)
+                year = date[:4]
+                group_date = year + '-09-01'
+
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                group_date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
+
+            elif text_types_id and text and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            elif text_types_id and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
+
+            elif text and self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
+                            sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
+
+            elif self_asses:
+                data_count_errors = list(
+                    TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
+                                             'tag__tag_text_russian').filter(
+                        Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses)).annotate(
+                        count_data=Count('tag__id_tag')))
+
+            data_errors = get_data_errors(data_count_errors, level)
+
+            return JsonResponse({'data': data_errors}, status=200)
+    else:
+        return render(request, 'dashboard_error_self_assesment.html', context={'right': False})
+
+def chart_relation_asses_sel_asses(request):
+    if request.user.is_teacher():
+        if request.method != 'POST':
+            languages = list(TblLanguage.objects.values())
+            text_types = list(TblTextType.objects.values())
+
+            return render(request, 'dashboard_relation_asses_self_asses.html', {'right': True, 'languages': languages,
+                                                                        'text_types': text_types})
+        else:
+            list_filter = json.loads(request.body)
+            text_types_id = list_filter['text_type_id']
+            surname = list_filter['surname']
+            name = list_filter['name']
+            patronymic = list_filter['patronymic']
+            # student_assesment
+
+            if surname and name and patronymic and text_types_id:
+                data_relation = list(
+                    TblText.objects.values('language', 'assessment', 'self_rating').filter(
+                        Q(user__last_name=surname) & Q(
+                            user__name=name) & Q(user__patronymic=patronymic) & Q(
+                            text_type=text_types_id)).distinct())
+
+            elif surname and name and patronymic:
+                data_relation = list(
+                    TblText.objects.values('language', 'assessment', 'self_rating').filter(
+                         Q(user__last_name=surname) & Q(
+                            user__name=name) & Q(
+                            user__patronymic=patronymic)).distinct())
+
+            elif surname and name and text_types_id:
+                data_relation = list(
+                    TblText.objects.values('language', 'assessment', 'self_rating').filter(
+                         Q(user__last_name=surname) & Q(
+                            user__name=name) & Q(
+                            text_type=text_types_id)).distinct())
+
+            else:
+                data_relation = list(
+                    TblText.objects.values('language', 'assessment', 'self_rating').filter(
+                        Q(user__last_name=surname) & Q(
+                            user__name=name)).distinct())
+
+            asses_types = TblText.TASK_RATES
+
+            for data in data_relation:
+                if data["self_rating"] > 0:
+                    idx = data["self_rating"]
+                    data["self_rating_text"] = asses_types[idx - 1][1]
+                if data["assessment"] != None:
+                    idx = data["assessment"]
+                    data["assessment_text"] = asses_types[idx - 1][1]
+
+            return JsonResponse({'relation': data_relation}, status=200)
+    else:
+        return render(request, 'dashboard_relation_asses_self_asses.html', context={'right': False})
