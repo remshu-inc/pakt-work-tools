@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{%if right%}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}">
+
+    <div class="mt-3 text-center">
+        <h1> Дэшборды </h1>
+    </div>
+
+    <div id="list_statistics">
+        <ul class="list-statictics">
+            <li class = 'statistic_name' ><a href = "{% url 'types_errors' %}" class="btn btn-primary section-row-button">
+                Статистика ошибок по типам ошибок
+            </a></li>
+            <li class = 'statistic_name' ><a href = "{% url 'grade_errors' %}" class="btn btn-primary section-row-button">
+                Статистика ошибок по грубости ошибок
+            </a></li>
+            <li class = 'statistic_name' ><a href = "{% url 'types_grade_errors' %}" class="btn btn-primary section-row-button">
+                Статистика ошибок по типам ошибок с распределением по грубости ошибок
+            </a></li>
+            <li class = 'statistic_name' ><a href = "{% url 'student_dynamics' %}" class="btn btn-primary section-row-button">
+                Динамика студента (по текстам)
+            </a></li>
+            <li class = 'statistic_name' ><a href = "{% url 'groups_errors' %}" class="btn btn-primary section-row-button">
+                Статистика ошибок в группах
+            </a></li>
+            <li class = 'statistic_name' ><a href = "{% url 'emotions_errors' %}" class="btn btn-primary section-row-button">
+                Статистика ошибок по эмоциям
+            </a></li>
+<!--            <li class = 'statistic_name' ><a href = "{% url 'self_assesment_errors' %}" class="btn btn-primary section-row-button">-->
+<!--                Статистика ошибок по самооценке-->
+<!--            </a></li>-->
+<!--            <li class = 'statistic_name' ><a href = "{% url 'relation_assesment_self_assesment' %}" class="btn btn-primary section-row-button">-->
+<!--                Взаимосвязь оценки и самооценивания-->
+<!--            </a></li>-->
+        </ul>
+    </div>
+{%else%}
+Недостаточно прав
+{%endif%}
+{% endblock content%}
