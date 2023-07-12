@@ -13,5 +13,14 @@ urlpatterns = [
     path('manage/group_modify/<int:group_id>/', views.group_modify, name = 'group_modify'),
     # path('manage/group_modify/<int:group_id>', views.group_selection, name = 'group_selection'),
     path('manage/tasks_info/<int:user_id>', views.tasks_info, name = 'tasks_info'),
-    path('manage/dashboard/', views.DiagramView.as_view(), name='dashboard'),
+    path('manage/dashboards/', views.list_charts, name='dashboards'),
+    path('manage/dashboards/types_errors/', views.chart_errors_types, name='types_errors'),
+    path('manage/dashboards/grade_errors/', views.chart_grade_errors, name='grade_errors'),
+    path('manage/dashboards/types_grade_errors/', views.chart_types_grade_errors, name='types_grade_errors'),
+    path('manage/dashboards/student_dynamics/', views.chart_student_dynamics, name='student_dynamics'),
+    path('manage/dashboards/errors_groups/', views.chart_group_errors, name='groups_errors'),
+    path('manage/dashboards/errors_emotions/', views.chart_emotion_errors, name='emotions_errors'),
+    path('manage/dashboards/errors_student_assesment/', views.chart_self_asses_errors, name='self_assesment_errors'),
+    path('manage/dashboards/relation_assesment_student_assesment/', views.chart_relation_asses_sel_asses,
+         name='relation_assesment_self_assesment')
 ]
