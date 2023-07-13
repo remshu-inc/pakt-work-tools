@@ -309,7 +309,7 @@ def text(request, text_id=None):
     )
 
     if len(text_obj) == 0:
-        return render(request, "corpus.html", context={'error_search': 'Text not Found'}, status=404)
+        return render(request, "search_text.html", context={'error_search': 'Text not Found'}, status=404)
 
     text_obj = text_obj[0]
     text_data = re.sub(" -EMPTY- ", " ", text_obj['text'])

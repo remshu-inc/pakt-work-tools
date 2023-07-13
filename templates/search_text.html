@@ -3,6 +3,9 @@
 <!-- Main page content -->
 {% block indexContent %}
 <div class="container col-md-10">
+	{% if error_search %}
+	<h1 class="text-danger text-center">{{ error_search }}</h1>
+	{% endif %} {% if text %}
 	<div class="d-flex justify-content-between pe-md-5 gap-3">
 		<h1 class="fs-1 text-primary align-self-center">{{ text_path }}</h1>
 		{% if user.is_authenticated %}
@@ -29,5 +32,6 @@
 		{% endif %}
 	</div>
 	<div class="main-text fs-5 my-4">{{text}}</div>
+	{% endif %}
 </div>
 {% endblock indexContent %}
