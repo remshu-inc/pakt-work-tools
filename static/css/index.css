@@ -60,3 +60,14 @@
 .table th {
 	padding: 8px 16px;
 }
+
+/* Search result styles */
+.search-result-card {
+	border-left: 5px solid var(--bs-primary);
+	box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.search-result-card:hover {
+	border-left: 8px solid var(--bs-primary);
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}

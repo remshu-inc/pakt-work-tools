@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
+
+<div class="container-sm">
+    <main>
+        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+
+        <div><a href="{% url 'cql_faq' %}">FAQ по CQL</a></div>
+        <form action="{% url 'search' %}" method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="corpus_search" class="form-control non-round" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
+
+                <button type="submit" class="btn btn-outline-secondary non-round" id="button-addon2">Поиск</button>
+            </div>
+        </form>
+
+        <div class="search_list mt-5">
+            {% if error_search %}
+            <div class="search_result mt-3">
+                <h1 style="color: red;">{{ error_search }}</h1>
+            </div>
+            {% endif %}
+
+            {% if count_search %}
+            <div>Всего результатов: {{ count_search }}</div>
+            {% endif %}
+
+            {% if list_search %}
+            {% for search in list_search  %}
+            <div class="search_result mt-3">
+                <div class="row">
+                    <div class="col-1">
+                        {{ forloop.counter }}
+                    </div>
+                    <div class="col">
+                        <div class="search_header">
+                            <a href="{% url 'text' text_id=search.text_id %}">{{ search.language }}/{{ search.text_type }}/{{ search.header }}</a>
+                            {% if search.create_date != None %}
+                            , {{ search.create_date }}
+                            {% endif %}
+                            {% if is_registered %}
+                            [<a href="{% url 'text_view' language=search.language text_type=search.text_type text_id=search.text_id %}">Разбор</a>]
+                            {% endif %}
+                        </div>
+                        <div class="search_text">
+                            {% for token in search.tokens  %}
+                                {% if token.primary %}
+                                    <span style="color: red;">
+                                        {{ token.text }}
+                                    </span>
+                                {% else %}
+                                    {{ token.text }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        <div>
+
+        </div>
+
+    </main>
+</div>
+
+{%endblock%}

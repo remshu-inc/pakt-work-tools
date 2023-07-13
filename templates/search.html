@@ -1,74 +1,55 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "index.html" %}
 
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
+<!-- Main page content -->
+{% block indexContent %}
+<div class="container col-md-10 mx-auto">
+	<!-- Error label -->
+	{% if error_search %}
+	<h1 class="text-danger text-center">{{ error_search }}</h1>
+	{% endif %}
 
-<div class="container-sm">
-    <main>
-        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+	<!-- Result -->
+	{% if count_search %}
+	<span class="text-secondary fs-4 mb-4">Всего результатов: {{ count_search }}</span>
+	{% endif %}
 
-        <div><a href="{% url 'cql_faq' %}">FAQ по CQL</a></div>
-        <form action="{% url 'search' %}" method="post">
-            {% csrf_token %}
-            <div class="input-group">
-                <input type="text" name="corpus_search" class="form-control non-round" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
+	<!-- List -->
+	{% if list_search %}
+	<div class="d-flex flex-column gap-2 my-3">
+		{% for search in list_search %}
+		<!-- Result card -->
+		<div class="card rouded-4 p-3 search-result-card">
+			<div class="row">
+				<div class="col-auto text-secondary">{{ forloop.counter }}</div>
+				<div class="col">
+					<div class="d-flex justify-content-between align-items-start">
+						<div class="mb-1">
+							<a href="{% url 'text' text_id=search.text_id %}" class="link-primary text-decoration-none">
+								{{ search.language }} / {{ search.text_type }} / {{ search.header }}
+							</a>
 
-                <button type="submit" class="btn btn-outline-secondary non-round" id="button-addon2">Поиск</button>
-            </div>
-        </form>
-
-        <div class="search_list mt-5">
-            {% if error_search %}
-            <div class="search_result mt-3">
-                <h1 style="color: red;">{{ error_search }}</h1>
-            </div>
-            {% endif %}
-
-            {% if count_search %}
-            <div>Всего результатов: {{ count_search }}</div>
-            {% endif %}
-
-            {% if list_search %}
-            {% for search in list_search  %}
-            <div class="search_result mt-3">
-                <div class="row">
-                    <div class="col-1">
-                        {{ forloop.counter }}
-                    </div>
-                    <div class="col">
-                        <div class="search_header">
-                            <a href="{% url 'text' text_id=search.text_id %}">{{ search.language }}/{{ search.text_type }}/{{ search.header }}</a>
-                            {% if search.create_date != None %}
-                            , {{ search.create_date }}
-                            {% endif %}
-                            {% if is_registered %}
-                            [<a href="{% url 'text_view' language=search.language text_type=search.text_type text_id=search.text_id %}">Разбор</a>]
-                            {% endif %}
-                        </div>
-                        <div class="search_text">
-                            {% for token in search.tokens  %}
-                                {% if token.primary %}
-                                    <span style="color: red;">
-                                        {{ token.text }}
-                                    </span>
-                                {% else %}
-                                    {{ token.text }}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-
-        </div>
-
-    </main>
+							{% if search.create_date != None %}
+							<span class="text-secondary">: {{ search.create_date }} </span>{% endif %}
+						</div>
+						{% if is_registered %}
+						<a
+							class="btn btn-secondary px-1 py-0 ms-5 h-auto"
+							href="{% url 'text_view' language=search.language text_type=search.text_type text_id=search.text_id %}"
+						>
+							<small> Разбор </small>
+						</a>
+						{% endif %}
+					</div>
+					<div class="search_text">
+						{% for token in search.tokens %} {% if token.primary %}
+						<span class="text-success"><b>{{ token.text }}</b></span>
+						{% else %} {{ token.text }} {% endif %} {% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+	{% endif %}
 </div>
-
-{%endblock%}
+{% endblock indexContent %}
