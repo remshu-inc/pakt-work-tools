@@ -1,46 +1,33 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "index.html" %}
 
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
-
-<div class="container-sm">
-    <main>
-        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
-
-        <div><a href="{% url 'cql_faq' %}">FAQ по CQL</a><a href="{% url 'tag_list' %}" style="margin-left:15px;">Справочник тегов</a></div>
-        <form action="{% url 'search' %}" method="post">
-            {% csrf_token %}
-            <div class="input-group">
-                <input type="text" name="corpus_search" class="form-control non-round" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
-
-                <button type="submit" class="btn btn-outline-secondary non-round" id="button-addon2">Поиск</button>
-            </div>
-        </form>
-
-        <div class="search_list mt-5">
-            {% if error_search %}
-            <div class="search_result mt-3">
-                <h1 style="color: red;">{{ error_search }}</h1>
-            </div>
-            {% endif %}
-
-            {% if user.is_authenticated %}
-            <a href="{% url 'text_view' language=language_name text_type=text_type_name text_id=text_id %}" style='text-decoration: none;'>
-                <h1>{{ text_path }}</h1>
-            </a>
-            {% else %}
-            <h1>{{ text_path }}</h1>
-            {% endif %}
-
-            <div class="main-text mt-5">{{text}}</div>
-        </div>
-
-        <div>
-
-        </div>
-
-    </main>
+<!-- Main page content -->
+{% block indexContent %}
+<div class="container col-md-10">
+	<div class="d-flex justify-content-between pe-md-5 gap-3">
+		<h1 class="fs-1 text-primary align-self-center">{{ text_path }}</h1>
+		{% if user.is_authenticated %}
+		<a
+			class="fs-3 link-primary"
+			href="{% url 'text_view' language=language_name text_type=text_type_name text_id=text_id %}"
+			title="Разбор текста"
+		>
+			<svg
+				class="bi"
+				xmlns="http://www.w3.org/2000/svg"
+				height="64"
+				stroke="currentColor"
+				fill="none"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-width="1.5"
+					d="M22 7V6c0-1.89 0-2.83-.59-3.41C20.83 2 19.9 2 18 2h-2c-1.89 0-2.83 0-3.41.59C12 3.17 12 4.1 12 6v12c0 1.89 0 2.83.59 3.41.58.59 1.52.59 3.41.59h2c1.89 0 2.83 0 3.41-.59.59-.58.59-1.52.59-3.41v-7M12 12h2m-2-6h2m-2 12h2m-2-3h3m-3-6h3M2 6V5a3 3 0 0 1 6 0v1M2 6s1.13 1 3 1c1.88 0 3-1 3-1M2 6v4.55M8 6v9.2c0 .62 0 .93-.04 1.23a5 5 0 0 1-.25 1.06c-.1.29-.24.57-.52 1.13l-1.18 2.36m0 0-.29.57a.8.8 0 0 1-1.44 0l-.3-.57m2.03 0H4m0 0L2.8 18.62c-.28-.56-.42-.84-.52-1.13a5 5 0 0 1-.25-1.06C2 16.13 2 15.82 2 15.2v-.87"
+				/>
+			</svg>
+		</a>
+		{% endif %}
+	</div>
+	<div class="main-text fs-5 my-4">{{text}}</div>
 </div>
-
-{%endblock%}
+{% endblock indexContent %}
