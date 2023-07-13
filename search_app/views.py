@@ -73,7 +73,7 @@ def index(request):
     if len(out_metrics) == 0:  # если метрики еще не созданы
         out_metrics = [0, 0]
 
-    return render(request, "index.html", context={
+    return render(request, "home.html", context={
         'tokens_count': {1: out_metrics[0], 2: out_metrics[1]},
         'update_time': out_time.strftime("%d.%m.%Y %H:%M:%S")
     })

@@ -1,0 +1,62 @@
+.main .search-bar {
+	height: 56px;
+}
+
+.main .search-bar > input {
+	border-top-left-radius: 32px;
+	border-bottom-left-radius: 32px;
+	padding: 0 24px;
+}
+
+.main .search-bar .search-btn {
+	border-top-right-radius: 32px;
+	border-bottom-right-radius: 32px;
+	display: flex;
+	width: auto;
+	align-items: center;
+	justify-content: center;
+	padding-right: 24px;
+}
+
+.main .btn {
+	font-family: 'Rubik', sans-serif;
+}
+
+.main .btn:hover {
+	background-color: var(--bs-primary);
+}
+
+.main .btn:focus {
+	box-shadow: none;
+}
+
+.bi {
+	max-height: 1.5em !important;
+}
+
+@media screen and (max-width: 576px) {
+	.main .btn {
+		width: max-content;
+	}
+}
+
+/* Home page styles */
+.card-rounded {
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.card-rounded .card-header {
+	border-top-left-radius: 12px;
+	border-top-right-radius: 12px;
+}
+
+/* Info page styles */
+
+.table td {
+	padding: 6px 16px;
+}
+
+.table th {
+	padding: 8px 16px;
+}
