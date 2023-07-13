@@ -1,0 +1,56 @@
+<nav class="navbar navbar-light bg-light">
+  <div class="container-fluid">
+
+    <ul class="nav">
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">ПАКТ</a>
+      </li>
+
+      {% if user.is_authenticated %}
+      <li class="nav-item">
+        <a class="nav-link active" aria-current="page" href="{% url 'corpus' %}">Корпус</a>
+      </li>
+      {% endif %}
+
+      {% if user.is_authenticated %}
+      <!-- <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">Files</a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="">New File</a></li>
+          <li><a class="dropdown-item" href="#">Edit File</a></li>
+          <li><a class="dropdown-item" href="#">Delete File</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Another</a></li>
+        </ul>
+      </li> -->
+      {% endif %}
+
+    </ul>
+
+    {% if user.is_authenticated %}
+    <ul class="nav">
+
+      {% if user.is_teacher or user.is_student%}
+      {% comment %} <li class="nav-item">
+        <a class="nav-link" href="{% url 'signup' %}">Регистрация студента</a>
+      </li> {% endcomment %}
+      {% comment %} <li class="nav-item">
+        <a class="nav-link" href="{% url 'statistic' %}">Статистика</a>
+      </li>  {% endcomment %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'manage' %}">Управление</a>
+      {% endif %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'logout' %}">Выход({{ user }})</a>
+      </li>
+    </ul>
+    {% else %}
+    <ul class="nav">
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'login' %}">Вход</a>
+      </li>
+    </ul>
+    {% endif %}
+
+  </div>
+</nav>
