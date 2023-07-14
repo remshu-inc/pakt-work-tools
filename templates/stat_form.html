@@ -1,36 +1,50 @@
 {% extends "base.html" %}
+
+<!-- Styles -->
+{% load static %} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/statistic.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
 {% block content %}
+<main class="container d-flex flex-column my-5 align-items-center">
+	<h2 class="text-primary text-center">Загрузка статистики</h2>
+	<form method="POST" novalidate class="my-4 d-flex flex-column">
+		{% comment %} {% csrf_token %} {% endcomment %}
+		<div class="row d-flex align-items-center">
+			<label class="form-label col-auto" for="group-choice">Группа</label>
+			<div class="col">{{form.group}}</div>
+		</div>
+		<button
+			type="submit"
+			class="btn btn-primary w-50 mx-auto mt-4"
+			onclick="document.getElementById('warning-message')?.remove();"
+		>
+			Скачать
+		</button>
+		<button type="button" class="btn btn-secondary w-50 mx-auto mt-4" onclick="history.back()">Назад</button>
+	</form>
 
-{%if right%}
-<div class="container">
-    <main class="d-flex justify-content-center align-items-center">
-
-        <div class="row">
-            <div class="col-12">
-                <div class="col-12">
-                    <h1 class="mt-3 text-center">Загрузка cтатистики</h1>
-                </div>
-            <form method="POST" novalidate>
-                        <div class = 'mb-3'>
-                            {% comment %} {% csrf_token %} {% endcomment %}
-                            <label>Выбор группы</label>
-                            <div>{{form.group}}</div>
-                        </div>
-                        
-
-                        <input type="submit" value="Скачать" class = 'col-12 mt-2 btn shadow-none update-button', style = 'width:100px;' onclick = "document.getElementById('warning-message').style.visibility = 'hidden';">
-            </form>
-            <button class = 'col-12 mt-2 btn shadow-none decline-button' style = 'width:100px;' onclick="history.back()">Назад</button>
-        </div>
-    </div>
-    </main>
-    {%if no_data%}
-    <div class="alert alert-danger" role="alert" id = 'warning-message'>
-        Результат запроса пуст, попробуйте изменить запрос.
-      </div>
-    {%endif%}
-</div>
-{%else%}
-Сервис недоступен (Недостаточно прав)
-{%endif%}
-{%endblock%}
+	{%if no_data%}
+	<div class="alert alert-danger fs-6 mt-5" role="alert" id="warning-message">
+		<svg
+			class="bi me-2"
+			xmlns="http://www.w3.org/2000/svg"
+			stroke="currentColor"
+			height="32"
+			fill="none"
+			viewBox="0 0 24 24"
+		>
+			<path stroke-linecap="round" stroke-width="1" d="M12 7v6" />
+			<circle cx="12" cy="16" r="0.5" fill="currentColor" />
+			<path
+				stroke-linecap="round"
+				stroke-width="1"
+				d="M9.22 3c1.18-.67 1.95-1 2.78-1 1.11 0 2.13.6 4.16 1.8l.68.4c2.03 1.21 3.05 1.81 3.6 2.8.56.99.56 2.2.56 4.6v.8c0 2.4 0 3.61-.56 4.6-.55.99-1.57 1.59-3.6 2.8l-.68.4C14.13 21.4 13.1 22 12 22c-1.11 0-2.13-.6-4.16-1.8l-.68-.4c-2.03-1.21-3.05-1.81-3.6-2.8C3 16.01 3 14.8 3 12.4v-.8c0-2.4 0-3.61.56-4.6C4 6.22 4.72 5.68 6 4.9"
+			/>
+		</svg>
+		Не удалось загрузить статистику
+	</div>
+	{%endif%}
+</main>
+{% endblock content %}
