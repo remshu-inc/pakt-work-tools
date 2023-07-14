@@ -1,32 +1,47 @@
 {% extends "base.html" %}
+
+<!-- Styles -->
+{% load static %} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/error_stat.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
 {% block content %}
+<main class="container col-md-8 my-4">
+	<table class="table table-responsive bg-white shadow table-hover px-5 col-11">
+		<thead class="table-light">
+			<tr>
+				<th rowspan="2" class="text-secondary d-none d-sm-table-cell">ID</th>
+				<th rowspan="2">Тег ошибки</th>
+				<th colspan="3" class="text-center">Степень грубости ошибки</th>
+			</tr>
 
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
-
-<div class="container-sm">
-    <main>
-        <table border="1">
-        {% for row_item in error_data %}
-        <tr style="background-color:{{row_item.is_normal}}"><td>{{row_item.id_tag}}</td><td>{{row_item.tag_name}} ({{row_item.tag_desc}})</td>
-            {% if row_item.degree1_sample %}
-            <td><a href="{% url 'search' %}?{{row_item.degree1_sample}}">{{row_item.degree1_count}}</a></td>
-            {% else %}
-            <td>{{row_item.degree1_count}}</td>
-            {% endif %}
-            {% if row_item.degree2_sample %}
-            <td><a href="{% url 'search' %}?{{row_item.degree2_sample}}">{{row_item.degree2_count}}</a></td>
-            {% else %}
-            <td>{{row_item.degree2_count}}</td>
-            {% endif %}
-            {% if row_item.degree3_sample %}
-            <td><a href="{% url 'search' %}?{{row_item.degree3_sample}}">{{row_item.degree3_count}}</a></td>
-            {% else %}
-            <td>{{row_item.degree3_count}}</td></tr>
-            {% endif %}
-        {% endfor %}
-        </table>
-    </main>
-</div>
-
-{%endblock%}
+			<th>I</th>
+			<th>II</th>
+			<th>III</th>
+		</thead>
+		<tbody>
+			{% for row_item in error_data %}
+			<tr errorLevel="{{row_item.error_level}}">
+				<td class="text-secondary d-none d-sm-block">{{row_item.id_tag}}</td>
+				<td>{{row_item.tag_name}} ({{row_item.tag_desc}})</td>
+				{% if row_item.degree1_sample %}
+				<td>
+					<a href="{% url 'search' %}?{{row_item.degree1_sample}}">{{row_item.degree1_count}}</a>
+				</td>
+				{% else %}
+				<td>{{row_item.degree1_count}}</td>
+				{% endif %} {% if row_item.degree2_sample %}
+				<td><a href="{% url 'search' %}?{{row_item.degree2_sample}}">{{row_item.degree2_count}}</a></td>
+				{% else %}
+				<td>{{row_item.degree2_count}}</td>
+				{% endif %} {% if row_item.degree3_sample %}
+				<td><a href="{% url 'search' %}?{{row_item.degree3_sample}}">{{row_item.degree3_count}}</a></td>
+				{% else %}
+				<td>{{row_item.degree3_count}}</td>
+			</tr>
+			{% endif %} {% endfor %}
+		</tbody>
+	</table>
+</main>
+{% endblock content %}

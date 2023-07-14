@@ -356,7 +356,7 @@ def get_stat(request):
 
 def get_error_stats(request_data):
     # получаем список ошибок
-    tags = TblTag.objects.filter(tag_language_id=1)
+    tags = TblTag.objects.filter(tag_language_id=1, markup_type_id=1)
     grades = TblGrade.objects.filter(grade_language_id=1)
     grade1 = ""
     grade2 = ""
@@ -401,13 +401,13 @@ def get_error_stats(request_data):
             stat_item["degree3_sample"] = "corpus_search=" + urllib.parse.quote(
                 f"[grade=\"{grade3}\" & error=\"{tag_item.tag_text_abbrev}\"]")
 
-        stat_item['is_normal'] = "none"
+        stat_item['error_level'] = "error-level-0"
         if stat_item['degree1_count'] != 0 and stat_item['degree2_count'] != 0 and stat_item['degree3_count'] != 0:
-            stat_item['is_normal'] = "coral"
+            stat_item['error_level'] = "error-level-2" 
         elif (stat_item['degree1_count'] != 0 and stat_item['degree2_count'] != 0) or \
                 (stat_item['degree1_count'] != 0 and stat_item['degree3_count'] != 0) or \
                 (stat_item['degree2_count'] != 0 and stat_item['degree3_count'] != 0):
-            stat_item['is_normal'] = "khaki"
+            stat_item['error_level'] = "error-level-1"
 
         data.append(stat_item)
     return render(request_data, 'error_stats.html', {'error_data': data})

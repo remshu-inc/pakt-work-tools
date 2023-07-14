@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
+
+<div class="container-sm">
+    <main>
+        <table border="1">
+        {% for row_item in error_data %}
+        <tr style="background-color:{{row_item.is_normal}}"><td>{{row_item.id_tag}}</td><td>{{row_item.tag_name}} ({{row_item.tag_desc}})</td>
+            {% if row_item.degree1_sample %}
+            <td><a href="{% url 'search' %}?{{row_item.degree1_sample}}">{{row_item.degree1_count}}</a></td>
+            {% else %}
+            <td>{{row_item.degree1_count}}</td>
+            {% endif %}
+            {% if row_item.degree2_sample %}
+            <td><a href="{% url 'search' %}?{{row_item.degree2_sample}}">{{row_item.degree2_count}}</a></td>
+            {% else %}
+            <td>{{row_item.degree2_count}}</td>
+            {% endif %}
+            {% if row_item.degree3_sample %}
+            <td><a href="{% url 'search' %}?{{row_item.degree3_sample}}">{{row_item.degree3_count}}</a></td>
+            {% else %}
+            <td>{{row_item.degree3_count}}</td></tr>
+            {% endif %}
+        {% endfor %}
+        </table>
+    </main>
+</div>
+
+{%endblock%}
