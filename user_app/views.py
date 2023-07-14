@@ -181,20 +181,6 @@ def log_in(request):
     if request.method == "POST":
         form_login = LoginForm(request.POST)
 
-        # Проверка заполнености полей
-        if request.POST['login'] == '' and request.POST['password'] == '':
-            form_login.add_error('login', 'Необходимо заполнить поле')
-            form_login.add_error('password', 'Необходимо заполнить поле')
-            return render(request, 'login.html', {'form_login': form_login})
-
-        elif request.POST['login'] == '':
-            form_login.add_error('login', 'Необходимо заполнить поле')
-            return render(request, 'login.html', {'form_login': form_login})
-
-        elif request.POST['password'] == '':
-            form_login.add_error('password', 'Необходимо заполнить поле')
-            return render(request, 'login.html', {'form_login': form_login})
-
         if form_login.is_valid():
             username = form_login.cleaned_data["login"]
             password = form_login.cleaned_data["password"]

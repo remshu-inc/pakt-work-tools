@@ -118,13 +118,13 @@ class StudentGroupCreationForm(forms.ModelForm):
 
 
 class LoginForm(forms.Form):
-    login = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    login = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Логин'}))
+    password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-control',  'placeholder': 'Пароль'}))
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
-        self.fields['login'].required = False
-        self.fields['password'].required = False
+        self.fields['login'].required = True
+        self.fields['password'].required = True
 
 
 # * Group creation form
