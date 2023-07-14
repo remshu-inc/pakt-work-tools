@@ -31,3 +31,7 @@ body {
 	border-top-left-radius: 12px;
 	border-top-right-radius: 12px;
 }
+
+.table thead th {
+	border-bottom: 1px solid rgb(222, 226, 230) !important;
+}
