@@ -8,6 +8,25 @@
 <!-- Content -->
 {% block content %}
 <main class="container col-md-8 my-4">
+	<h2 class="text-primary text-center my-5">Суммарная статистика ошибок</h2>
+
+	<!-- Legend -->
+	<div class="card card-rounded p-4 my-4 d-flex gap-2 justify-content-sm-evenly shadow-sm">
+		<div class="d-flex gap-3 align-items-center text-secondary">
+			<div class="box" errorLevel="error-level-0"></div>
+			имеются ошибки одной степени грубости или теги не найдены
+		</div>
+		<div class="d-flex gap-3 align-items-center text-secondary">
+			<div class="box" errorLevel="error-level-1"></div>
+			имеются ошибки двух степеней грубости
+		</div>
+		<div class="d-flex gap-3 align-items-center text-secondary">
+			<div class="box" errorLevel="error-level-2"></div>
+			имеются ошибки трех степеней грубости
+		</div>
+	</div>
+
+	<!-- Table -->
 	<table class="table table-responsive bg-white shadow table-hover px-5 col-11">
 		<thead class="table-light">
 			<tr>
