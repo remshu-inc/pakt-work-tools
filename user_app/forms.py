@@ -123,8 +123,8 @@ class LoginForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
-        self.fields['login'].required = True
-        self.fields['password'].required = True
+        self.fields['login'].required = False
+        self.fields['password'].required = False
 
 
 # * Group creation form

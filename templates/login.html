@@ -5,10 +5,10 @@
 <main class="container d-flex flex-column align-items-center my-5">
 	<h2 class="text-primary mb-4">Авторизация</h2>
 
-	<form method="post" class="d-flex flex-column gap-3 align-items-center">
+	<form method="post" class="d-flex flex-column gap-3 align-items-center col-6 col-lg-3" novalidate>
 		{% csrf_token %}
 
-		<div class="input-group w-auto">
+		<div class="input-group">
 			<span class="input-group-text">
 				<svg
 					class="bi"
@@ -27,16 +27,16 @@
 					/>
 				</svg>
 			</span>
-			{% if not form_login.login.errors %} {{ form_login.login }} {% else %}
+			{% if not form_login.login.errors %} {{ form_login.login }}
 			<!--  -->
-			{{ form_login.login|addclass:'is-invalid' }}
+			{% else %} {{ form_login.login|addclass:'is-invalid' }} {% endif %}
+
 			<div class="invalid-feedback">
 				{% for error in form_login.login.errors %} {{ error | striptags }} {% endfor %}
 			</div>
-			{% endif %}
 		</div>
 
-		<div class="input-group w-auto">
+		<div class="input-group">
 			<span class="input-group-text">
 				<svg
 					class="bi"
@@ -68,11 +68,11 @@
 
 		<!-- Error alert -->
 		{% for error in form_login.non_field_errors %}
-		<div class="alert alert-danger my-1 w-100" role="alert">
+		<div class="alert alert-danger my-1 w-100 d-flex gap-3 align-items-center" role="alert">
 			<svg
-				class="bi me-2"
+				class="bi flex-shrink-0"
 				xmlns="http://www.w3.org/2000/svg"
-				height="1.6em"
+				height="1.6rem"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"

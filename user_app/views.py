@@ -181,6 +181,13 @@ def log_in(request):
 	if request.method == "POST":
 		form_login = LoginForm(request.POST)
 
+ 		# Проверка заполнености полей
+		if request.POST['login'] == '':
+			form_login.add_error('login', 'Пожалуйста, введите логин')
+
+		if request.POST['password'] == '':
+			form_login.add_error('password', 'Пожалуйста, введите пароль')
+	
 		if form_login.is_valid():
 			username = form_login.cleaned_data["login"]
 			password = form_login.cleaned_data["password"]
