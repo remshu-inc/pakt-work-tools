@@ -11,7 +11,7 @@
 	<!-- Search  bar -->
 	<div class="col col-md-8 col-11 mx-auto">
 		<form action="{% url 'search' %}" method="post">
-			{% csrf_token %}
+			{% comment %} {% csrf_token %} {% endcomment %}
 			<div class="input-group input-group-lg mt-5 mb-3 mx-auto search-bar">
 				<input
 					name="corpus_search"
