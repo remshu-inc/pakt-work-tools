@@ -1,0 +1,16 @@
+.manage-link {
+	width: 75%;
+	display: grid;
+	grid-template-columns: 1fr 2fr;
+	align-items: center;
+	justify-items: start;
+	gap: 1rem;
+}
+
+.manage-link .bi {
+	justify-self: end;
+}
+
+.manage-link:focus {
+	box-shadow: none;
+}

@@ -1,4 +1,6 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block link %} {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/manage.css' %}" />
+{% endblock link %}
 
 <!-- Content -->
 {% block content %}
@@ -11,7 +13,7 @@
 					data-bs-toggle="collapse"
 					href="#my-works"
 					role="button"
-					aria-expanded="false"
+					aria-expanded="true"
 					aria-controls="my-works"
 				>
 					<svg
