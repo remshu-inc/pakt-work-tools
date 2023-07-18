@@ -11,6 +11,7 @@ $('.select2').select2({
 });
 
 $(document).on('select2:open', () => {
-	console.dir(document.getElementsByClassName('select2-search__field')[0]);
-	document.getElementsByClassName('select2-search__field')[0].focus();
+	setTimeout(() => {
+		document.getElementsByClassName('select2-search__field')[0].focus();
+	}, 100);
 });
