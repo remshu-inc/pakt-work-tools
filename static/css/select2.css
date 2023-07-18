@@ -1,0 +1,7 @@
+.select2-search__field:focus {
+	box-shadow: none !important;
+}
+
+.select2-container {
+	width: 100% !important;
+}

@@ -110,7 +110,6 @@ class TblStudent(models.Model):
     # ???: поле birthdate пустое?
     birthdate = models.DateField(blank=True, null=True)
     gender = models.BooleanField(blank=True, null=True, choices=GENDER, default=0)
-    # group_number = models.IntegerField()
     course_number = models.SmallIntegerField(default=1, validators=[MaxValueValidator(5), MinValueValidator(1)], blank=False, null=False)
     deduction = models.DateField(blank=True, null=True)
 

@@ -1,5 +1,5 @@
 'use_strict';
-const passwordField = document.getElementById('id_password');
+const passwordField = document.getElementsByClassName('password-input')[0];
 
 function showPassword() {
 	if (passwordField.type === 'password') {

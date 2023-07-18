@@ -102,7 +102,7 @@ def change_password(request):
 			try:
 				user = TblUser.objects.filter(id_user=student.user_id).first()
 				all_students.append(
-					[user.id_user, user.last_name + ' ' + user.name])
+					{'id': user.id_user, 'name': (user.last_name + ' ' + user.name), 'login': user.login})
 			except:
 				count += 1
 
