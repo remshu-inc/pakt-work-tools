@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block link %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <main class="justify-content-center form-signup d-flex">
+        
+        <div class="signup-page col-4">
+            <h3 class="text-center">Регистрация студента</h3>
+            {% load filters %}
+            <div class="form-group mt-4"></div>
+                <form method="post" novalidate>
+                    {% comment %} {% csrf_token %} {% endcomment %}
+
+                    <div class="main-invalid-feedback text-center">
+                        {% for error in form_user.non_field_errors %}
+                            {{ error | striptags }}
+                        {% endfor %}
+
+                        {% for error in form_student.non_field_errors %}
+                            {{ error | striptags }}
+                        {% endfor %}
+
+                        {% for error in form_student_group.non_field_errors %}
+                            {{ error | striptags }}
+                        {% endfor %}
+                    </div>
+
+                    <div class="row mb-3 justify-content-between">
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.login.id_for_label }}" class="form-label">Логин</label>
+                            {% if not form_user.login.errors %}
+                            {{ form_user.login }}
+                            {% else %}
+                            {{ form_user.login|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.login.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.password.id_for_label }}" class="form-label">Пароль</label>
+                            {% if not form_user.password.errors %}
+                            {{ form_user.password }}
+                            {% else %}
+                            {{ form_user.password|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.password.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" value="" id="show_password" onclick="showPassword()">
+                            <label class="form-check-label" for="show_password">
+                                Показать пароль
+                            </label>
+                        </div>
+
+                        <div class="text-start ps-0 mt-1 mb-2" onclick="passwordGenerate()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-dice-5" viewBox="0 0 18 18">
+                                    <path d="M13 1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h10zM3 0a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V3a3 3 0 0 0-3-3H3z"/>
+                                    <path d="M5.5 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm8 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm-8 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm4-4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                                </svg>
+                            {% comment %} <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick="showPassword()"> {% endcomment %}
+                            <label class="form-check-label" for="password_generate">
+                                Сгенерировать пароль
+                            </label>
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.last_name.id_for_label }}" class="form-label">Фамилия</label>
+                            {% if not form_user.last_name.errors %}
+                            {{ form_user.last_name }}
+                            {% else %}
+                            {{ form_user.last_name|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.last_name.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.name.id_for_label }}" class="form-label">Имя</label>
+                            {% if not form_user.name.errors %}
+                            {{ form_user.name }}
+                            {% else %}
+                            {{ form_user.name|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.name.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input mt-3">
+                            <label for="{{ form_user.patronymic.id_for_label }}" class="form-label">Отчество</label>
+                            {% if not form_user.patronymic.errors %}
+                            {{ form_user.patronymic }}
+                            {% else %}
+                            {{ form_user.patronymic|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_user.patronymic.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input">
+                            <label for="{{ form_student.birthdate.id_for_label }}" class="form-label">Дата рождения</label>
+                            {% if not form_student.birthdate.errors %}
+                            {{ form_student.birthdate }}
+                            {% else %}
+                            {{ form_student.birthdate|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_student.birthdate.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input">
+                            <label for="{{ form_student.gender.id_for_label }}" class="form-label">Пол</label>
+                            {% if not form_student.gender.errors %}
+                            {{ form_student.gender }}
+                            {% else %}
+                            {{ form_student.gender|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_student.gender.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input">
+                            <label for="{{ form_student_group.group.id_for_label }}" class="form-label">Группа</label>
+                            {% if not form_student_group.group.errors %}
+                            {{ form_student_group.group }}
+                            {% else %}
+                            {{ form_student_group.group|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_student_group.group.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 custom-input">
+                            <label for="{{ form_student.course_number.id_for_label }}" class="form-label">Курс</label>
+                            {% if not form_student.course_number.errors %}
+                            {{ form_student.course_number }}
+                            {% else %}
+                            {{ form_student.course_number|addclass:'is-invalid' }}
+                            <div class="invalid-feedback">
+                                {% for error in form_student.course_number.errors %}
+                                    {{ error | striptags }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        
+                    </div>
+
+                    <button type="submit" class="col-12 mt-2 btn shadow-none update-button">Зарегистрировать студента</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+{%endblock%}
+
+{% block script %}
+
+<script>
+
+    function showPassword() {
+        var x = document.getElementById("id_password");
+        if (x.type === "password") {
+            x.type = "text";
+        } else {
+            x.type = "password";
+        }
+    }
+
+    function passwordGenerate() {
+        var randomstring = Math.random().toString(36).slice(-8);
+        console.log(randomstring);
+        var x = document.getElementById("id_password");
+        x.value = randomstring;
+    }
+
+</script>
+
+{% endblock %}

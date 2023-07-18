@@ -30,7 +30,7 @@
 			{% if not form_login.login.errors %} {{ form_login.login }} {% else %}
 			<!-- Invalid field -->
 			{{ form_login.login | addclass:'is-invalid' }}
-			<div class="invalid-feedback">{{ form_login.login.errors | first }}</div>
+			<div class="invalid-feedback">{{ form_login.login.errors | first | striptags }}</div>
 			{% endif %}
 		</div>
 
@@ -58,7 +58,7 @@
 			{% if not form_login.password.errors %} {{ form_login.password }} {% else %}
 			<!-- Invalid field -->
 			{{ form_login.password | addclass:'is-invalid' }}
-			<div class="invalid-feedback">{{ form_login.password.errors | first }}</div>
+			<div class="invalid-feedback">{{ form_login.password.errors | first | striptags }}</div>
 			{% endif %}
 		</div>
 

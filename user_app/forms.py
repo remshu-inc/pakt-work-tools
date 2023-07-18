@@ -4,9 +4,9 @@ from .models import TblGroup, TblStudentGroup, TblUser, TblStudent, TblTeacher
 from hashlib import sha512
 import datetime
 
-custom_default_errors = {
-    'blank': 'Необходимо заполнить поле',
-}
+# custom_default_errors = {
+#     'blank': 'Необходимо заполнить поле',
+# }
 
 
 class DateInput(forms.DateInput):
@@ -19,11 +19,12 @@ class UserCreationForm(forms.ModelForm):
         fields = ('login', 'password', 'last_name', 'name', 'patronymic')
 
         widgets = {
-            'login': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'password': forms.PasswordInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-            'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
+            'login': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'autocomplete': 'off'}),
+
+            'password': forms.PasswordInput(attrs={'class': 'form-control', 'required': 'required', 'autocomplete': 'off'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'autocomplete': 'off'}),
+            'patronymic': forms.TextInput(attrs={'class': 'form-control', 'required': 'required',  'autocomplete': 'off'}),
         }
 
         # TODO: Переписать ошибки под общие поля
@@ -44,6 +45,10 @@ class UserCreationForm(forms.ModelForm):
             'name': {
                 'required': 'Необходимо заполнить поле',
             },
+            
+			'patronymic': {
+                'required': 'Необходимо заполнить поле',
+			}
         }
 
     def save(self, commit=True):
@@ -68,7 +73,7 @@ class StudentCreationForm(forms.ModelForm):
         widgets = {
             'birthdate': DateInput(attrs={'class': 'form-control', 'required': 'required'}),
             'gender': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
-            'course_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required'}),
+            'course_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required', 'min':'1', 'max':'5'}),
         }
 
         # TODO: Переписать ошибки под общие поля
@@ -78,7 +83,9 @@ class StudentCreationForm(forms.ModelForm):
             },
 
             'course_number': {
-                'required': 'Необходимо заполнить поле',
+                'required': 'Пожалуйста, выберите номер курса',
+				'max_value': 'Номер курса должен быть числом от 1 до 5',
+                'min_value': 'Номер курса должен быть числом от 1 до 5'
             },
         }
 
@@ -104,7 +111,7 @@ class StudentGroupCreationForm(forms.ModelForm):
         # TODO: Переписать ошибки под общие поля
         error_messages = {
             'group': {
-                'required': 'Необходимо заполнить поле',
+                'required': 'Пожалуйста, выберите группу',
             },
         }
 

@@ -40,21 +40,7 @@ def signup(request):
 		form_student = StudentCreationForm(request.POST)
 		form_student_group = StudentGroupCreationForm(request.POST)
 
-		# Проверка заполнености полей
-		if request.POST['login'] == '' and request.POST['password'] == '':
-			form_user.add_error('login', 'Необходимо заполнить поле')
-			form_user.add_error('password', 'Необходимо заполнить поле')
-			return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student,
-												   'form_student_group': form_student_group})
-		elif request.POST['login'] == '':
-			form_user.add_error('login', 'Необходимо заполнить поле')
-			return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student,
-												   'form_student_group': form_student_group})
-		elif request.POST['password'] == '':
-			form_user.add_error('password', 'Необходимо заполнить поле')
-			return render(request, 'signup.html', {'form_user': form_user, 'form_student': form_student,
-												   'form_student_group': form_student_group})
-
+		
 		# Дописать валидацию для form_student_group.is_valid()
 		if form_user.is_valid() and form_student.is_valid():
 			# Save StudentGroup
