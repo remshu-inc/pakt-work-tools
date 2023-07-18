@@ -27,7 +27,7 @@ class StatisticForm(forms.Form):
             # print(options)
 
         self.fields['group'] = forms.ChoiceField(choices=options)
-        self.fields['group'].widget.attrs.update({'class': 'form-control', 'id': 'group-choice'})
+        self.fields['group'].widget.attrs.update({'class': 'form-control'})
         
         # year_ = datetime.today().year
         # month_ = datetime.today().month 

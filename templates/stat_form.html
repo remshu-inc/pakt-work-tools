@@ -7,7 +7,7 @@
 	<form method="POST" novalidate class="my-4 d-flex flex-column">
 		{% comment %} {% csrf_token %} {% endcomment %}
 		<div class="row d-flex align-items-center">
-			<label class="form-label col-auto" for="group-choice">Группа</label>
+			<label class="form-label col-auto" for="{{ form.group.id_for_label }}">Группа</label>
 			<div class="col">{{form.group}}</div>
 		</div>
 		<button

@@ -27,13 +27,11 @@
 					/>
 				</svg>
 			</span>
-			{% if not form_login.login.errors %} {{ form_login.login }}
-			<!--  -->
-			{% else %} {{ form_login.login|addclass:'is-invalid' }} {% endif %}
-
-			<div class="invalid-feedback">
-				{% for error in form_login.login.errors %} {{ error | striptags }} {% endfor %}
-			</div>
+			{% if not form_login.login.errors %} {{ form_login.login }} {% else %}
+			<!-- Invalid field -->
+			{{ form_login.login | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form_login.login.errors | first }}</div>
+			{% endif %}
 		</div>
 
 		<div class="input-group">
@@ -58,11 +56,9 @@
 				</svg>
 			</span>
 			{% if not form_login.password.errors %} {{ form_login.password }} {% else %}
-			<!--  -->
-			{{ form_login.password|addclass:'is-invalid' }}
-			<div class="invalid-feedback">
-				{% for error in form_login.password.errors %} {{ error | striptags }} {% endfor %}
-			</div>
+			<!-- Invalid field -->
+			{{ form_login.password | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form_login.password.errors | first }}</div>
 			{% endif %}
 		</div>
 
