@@ -21,9 +21,9 @@ class UserCreationForm(forms.ModelForm):
         widgets = {
             'login': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'autocomplete': 'off'}),
 
-            'password': forms.PasswordInput(attrs={'class': 'form-control', 'required': 'required', 'autocomplete': 'new-password'}),
+            'password': forms.PasswordInput(attrs={'class': 'form-control password-input', 'required': 'required', 'autocomplete': 'new-password'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'off'}),
-            'name': forms.TextInput(attrs={'class': 'form-control password-input', 'required': 'required', 'autocomplete': 'off'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'autocomplete': 'off'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control', 'required': 'required',  'autocomplete': 'off'}),
         }
 
@@ -45,10 +45,6 @@ class UserCreationForm(forms.ModelForm):
             'name': {
                 'required': 'Необходимо заполнить поле',
             },
-            
-			'patronymic': {
-                'required': 'Необходимо заполнить поле',
-			}
         }
 
     def save(self, commit=True):

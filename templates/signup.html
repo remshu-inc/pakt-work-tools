@@ -13,9 +13,7 @@
 
 		<!-- Login -->
 		<label for="{{ form_user.login.id_for_label }}" class="form-label">
-			Логин {% if not form_user.login.errors %} {{ form_user.login }}
-			<div class="valid-feedback">Looks good!</div>
-			{% else %}
+			Логин {% if not form_user.login.errors %} {{ form_user.login }} {% else %}
 			<!-- Invalid field -->
 			{{ form_user.login | addclass:'is-invalid' }}
 			<div class="invalid-feedback">{{ form_user.login.errors | first | striptags }}</div>

@@ -119,17 +119,17 @@ def signup_teacher(request):
 	if request.method == 'POST':
 		form_user = UserCreationForm(request.POST)
 
-		# Проверка заполнености полей
-		if request.POST['login'] == '' and request.POST['password'] == '':
-			form_user.add_error('login', 'Необходимо заполнить поле')
-			form_user.add_error('password', 'Необходимо заполнить поле')
-			return render(request, 'signup_teacher.html', {'form_user': form_user})
-		elif request.POST['login'] == '':
-			form_user.add_error('login', 'Необходимо заполнить поле')
-			return render(request, 'signup_teacher.html', {'form_user': form_user})
-		elif request.POST['password'] == '':
-			form_user.add_error('password', 'Необходимо заполнить поле')
-			return render(request, 'signup_teacher.html', {'form_user': form_user})
+		# # Проверка заполнености полей
+		# if request.POST['login'] == '' and request.POST['password'] == '':
+		# 	form_user.add_error('login', 'Необходимо заполнить поле')
+		# 	form_user.add_error('password', 'Необходимо заполнить поле')
+		# 	return render(request, 'signup_teacher.html', {'form_user': form_user})
+		# elif request.POST['login'] == '':
+		# 	form_user.add_error('login', 'Необходимо заполнить поле')
+		# 	return render(request, 'signup_teacher.html', {'form_user': form_user})
+		# elif request.POST['password'] == '':
+		# 	form_user.add_error('password', 'Необходимо заполнить поле')
+		# 	return render(request, 'signup_teacher.html', {'form_user': form_user})
 
 		if form_user.is_valid():
 			# Save User
