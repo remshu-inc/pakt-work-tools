@@ -69,7 +69,7 @@ class StudentCreationForm(forms.ModelForm):
         widgets = {
             'birthdate': DateInput(attrs={'class': 'form-control', 'required': 'required'}),
             'gender': forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
-            'course_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required', 'min':'1', 'max':'5'}),
+            'course_number': forms.NumberInput(attrs={'class': 'form-control', 'required': 'required', 'min':'1', 'max':'10'}),
         }
 
         # TODO: Переписать ошибки под общие поля
@@ -80,8 +80,8 @@ class StudentCreationForm(forms.ModelForm):
 
             'course_number': {
                 'required': 'Пожалуйста, выберите номер курса',
-				'max_value': 'Номер курса должен быть числом от 1 до 5',
-                'min_value': 'Номер курса должен быть числом от 1 до 5'
+				'max_value': 'Некорректный номер курса',
+                'min_value': 'Некорректный номер курса'
             },
         }
 
@@ -149,7 +149,7 @@ class GroupCreationForm(forms.ModelForm):
 
         widgets = {
             'group_name': forms.TextInput(attrs={'class': 'form-control', 'max-length': '256', 'autocomplete':'off'}),
-            'course_number': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5})
+            'course_number': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 10})
 		}
 
         error_messages = {
@@ -159,8 +159,8 @@ class GroupCreationForm(forms.ModelForm):
             
             'course_number': {
                 'required': 'Выберите номер курса',
-                'min_value': 'Номер курса должен быть числом от 1 до 5',
-                'max_value': 'Номер курса должен быть числом от 1 до 5'
+                'min_value': 'Некорректный номер курса',
+                'max_value': 'Некорректный номер курса'
             },
         }
 

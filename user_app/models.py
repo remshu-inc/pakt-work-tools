@@ -110,7 +110,7 @@ class TblStudent(models.Model):
     # ???: поле birthdate пустое?
     birthdate = models.DateField(blank=True, null=True)
     gender = models.BooleanField(blank=True, null=True, choices=GENDER, default=0)
-    course_number = models.SmallIntegerField(default=1, validators=[MaxValueValidator(5), MinValueValidator(1)], blank=False, null=False)
+    course_number = models.SmallIntegerField(default=1, validators=[MaxValueValidator(10), MinValueValidator(1)], blank=False, null=False)
     deduction = models.DateField(blank=True, null=True)
 
     def __str__(self):
@@ -129,7 +129,7 @@ class TblGroup(models.Model):
     group_name = models.CharField(max_length=256)
     enrollement_date = models.DateField(blank=True, null=True)
     course_number = models.SmallIntegerField(blank=False, null=False, default=1, validators=[
-        MaxValueValidator(5),
+        MaxValueValidator(10),
         MinValueValidator(1)
     ])
     language = models.ForeignKey(TblLanguage, on_delete=models.PROTECT, default=1)
