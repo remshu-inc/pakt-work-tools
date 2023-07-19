@@ -31,7 +31,7 @@ from text_app.models import TblTag, TblMarkup
 def signup(request):
 	try:
 		if not request.user.is_teacher():
-			return redirect('home')
+			return render(request, 'access_denied.html')
 	except:
 		return redirect('home')
 
@@ -77,7 +77,8 @@ def signup(request):
 def change_password(request):
 	try:
 		if not request.user.is_teacher():
-			return redirect('home')
+			return render(request, 'access_denied.html')
+
 	except:
 		return redirect('home')
 
@@ -111,25 +112,14 @@ def change_password(request):
 
 def signup_teacher(request):
 	try:
-		if not request.user.is_teacher():
-			return redirect('home')
+		if not (request.user.is_teacher() and check_is_superuser(request.user.id_user)):
+			return render(request, 'access_denied.html')
+
 	except:
 		return redirect('home')
 
 	if request.method == 'POST':
 		form_user = UserCreationForm(request.POST)
-
-		# # Проверка заполнености полей
-		# if request.POST['login'] == '' and request.POST['password'] == '':
-		# 	form_user.add_error('login', 'Необходимо заполнить поле')
-		# 	form_user.add_error('password', 'Необходимо заполнить поле')
-		# 	return render(request, 'signup_teacher.html', {'form_user': form_user})
-		# elif request.POST['login'] == '':
-		# 	form_user.add_error('login', 'Необходимо заполнить поле')
-		# 	return render(request, 'signup_teacher.html', {'form_user': form_user})
-		# elif request.POST['password'] == '':
-		# 	form_user.add_error('password', 'Необходимо заполнить поле')
-		# 	return render(request, 'signup_teacher.html', {'form_user': form_user})
 
 		if form_user.is_valid():
 			# Save User
@@ -311,15 +301,7 @@ def group_creation(request):
 								   'success': False,
 							   }, status=400))
 	else:
-		return (render(request, 'group_creation_form.html',
-					   {
-						   'right': False,
-						   'form': GroupCreationForm(),
-						   'bad_name': False,
-						   'bad_year': False,
-						   'exist': False,
-						   'success': False,
-					   }, status=403))
+		return render(request, 'access_denied.html')
 
 
 # * Group selection page
@@ -345,15 +327,10 @@ def group_selection(request):
 				'groups': []
 			}, status=404))
 	else:
-		return (render(request, 'group_select.html', context={
-			'right': False,
-			'groups_exist': False,
-			'groups': []
-		}, status=403))
-
-	# * Group modify
+		return render(request, 'access_denied.html')
 
 
+# * Group modify
 def _get_group_students(group_id: int, in_: bool) -> list:
 	language_id = TblGroup.objects.filter(
 		id_group=group_id).values('language_id')[0]['language_id']
@@ -547,9 +524,8 @@ def group_modify(request, group_id):
 			}, status=403))
 
 	else:
-		return (render(request, 'group_modify.html', context={
-			'right': False
-		}, status=403))
+		return render(request, 'access_denied.html')
+
 
 
 def tasks_info(request, user_id):
@@ -620,9 +596,8 @@ def tasks_info(request, user_id):
 			'tasks': out
 		}))
 	else:
-		return (render(request, 'tasks_list.html', context={
-			'right': False
-		}))
+		return render(request, 'access_denied.html')
+
 
 # * Dashboard (Polina Osipova)
 
