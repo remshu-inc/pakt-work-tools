@@ -31,7 +31,7 @@ from text_app.models import TblTag, TblMarkup
 def signup(request):
 	try:
 		if not request.user.is_teacher():
-			return render(request, 'access_denied.html')
+			return render(request, 'access_denied.html', status=403)
 	except:
 		return redirect('home')
 
@@ -77,7 +77,7 @@ def signup(request):
 def change_password(request):
 	try:
 		if not request.user.is_teacher():
-			return render(request, 'access_denied.html')
+			return render(request, 'access_denied.html', status=403)
 
 	except:
 		return redirect('home')
@@ -113,7 +113,7 @@ def change_password(request):
 def signup_teacher(request):
 	try:
 		if not (request.user.is_teacher() and check_is_superuser(request.user.id_user)):
-			return render(request, 'access_denied.html')
+			return render(request, 'access_denied.html', status=403)
 
 	except:
 		return redirect('home')
@@ -173,7 +173,7 @@ def log_in(request):
 			# Если пользваотель существует
 			if user:
 				login(request, user)
-				return redirect('corpus')
+				return redirect('home')
 
 			# Иначе выдать ошибку
 			else:
@@ -229,7 +229,7 @@ def _symbol_check(name: str) -> bool:
 def group_creation(request):
 	try:
 		if not request.user.is_teacher():
-			return render(request, 'access_denied.html')
+			return render(request, 'access_denied.html', status=403)
 	except:
 		return redirect('home')
 
@@ -266,29 +266,19 @@ def group_creation(request):
 
 # * Group selection page
 def group_selection(request):
-	if hasattr(request.user, 'is_teacher') and request.user.is_teacher():
-		groups = TblGroup.objects.filter(
-			language_id=request.user.language_id).order_by('-enrollement_date')
-		if groups.exists():
-			groups = groups.values()
-			for index in range(len(groups)):
-				groups[index]['enrollement_date'] = str(groups[index]['enrollement_date'].year) \
-					+ ' /  ' + str(groups[index]['enrollement_date'].year + 1)
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
+	
+	groups = TblGroup.objects.filter(
+		language_id=request.user.language_id).order_by('-enrollement_date', 'course_number', 'group_name').values()
 
-			return (render(request, 'group_select.html', context={
-				'right': True,
-				'groups_exist': True,
-				'groups': groups
-			}))
-		else:
-			return (render(request, 'group_select.html', context={
-				'right': True,
-				'groups_exist': False,
-				'groups': []
-			}, status=404))
-	else:
-		return render(request, 'access_denied.html')
+	for index in range(len(groups)):
+		groups[index]['enrollement_date'] = str(groups[index]['enrollement_date'].year) \
+			+ ' /  ' + str(groups[index]['enrollement_date'].year + 1)
 
+	return (render(request, 'group_select.html', context={'groups': groups}))
+
+		
 
 # * Group modify
 def _get_group_students(group_id: int, in_: bool) -> list:
