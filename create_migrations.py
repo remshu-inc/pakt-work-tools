@@ -7,5 +7,5 @@ for app in APPS:
 
 next_step = input('Продолжить? (Y/N)')
 
-if next_step == 'Y':
+if next_step.lower() == 'y':
     os.system("python manage.py migrate")

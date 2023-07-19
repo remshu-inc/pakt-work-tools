@@ -149,7 +149,7 @@
 	<!-- Login / logout for sm+ screens outside menu-->
 	<div class="login-btn fs-5 d-sm-block d-none">
 		{% if user.is_authenticated %}
-		<a class="nav-link icon-link" href="{% url 'logout' %}">
+		<a class="nav-link icon-link" href="{% url 'logout' %}" title="Выход">
 			{{user.name}} {{user.last_name}}
 			<svg
 				class="bi"

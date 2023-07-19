@@ -63,7 +63,7 @@ def signup(request):
 			student_group.student_id = student.id_student
 			student_group.save()
 
-			return redirect('corpus')
+			return redirect('manage')
 
 	else:
 		form_user = UserCreationForm()
@@ -151,7 +151,7 @@ def signup_teacher(request):
 			right_five = TblUserRights(user_id=user.id_user, right_id=5)
 			right_five.save()
 
-			return redirect('corpus')
+			return redirect('manage')
 
 	else:
 		form_user = UserCreationForm()
