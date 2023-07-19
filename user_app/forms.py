@@ -130,20 +130,48 @@ class LoginForm(forms.Form):
         self.fields['password'].required = False
 
 
-# * Group creation form
-
-class GroupCreationForm(forms.Form):
+def get_default_year():
     default = datetime.datetime.now()
     if 0 < default.month < 9:
         default = default.year - 1
     else:
-        default = default.year
+        default = default.year    
+    return default
 
-    group_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), max_length=256)
-    year = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}),
-                           initial=str(default),
-                           max_length=4)
-    course_number = forms.IntegerField(widget=forms.NumberInput())
+
+# * Group creation form
+class GroupCreationForm(forms.ModelForm):
+    year = forms.IntegerField(widget=forms.NumberInput(attrs={'id':'year-input', 'class': 'form-control', 'min': '1900', 'max': '9999', 'value': get_default_year(), 'autocomplete':'off'}))
+
+    class Meta:
+        model = TblGroup
+        fields = ('group_name', 'course_number')
+
+        widgets = {
+            'group_name': forms.TextInput(attrs={'class': 'form-control', 'max-length': '256', 'autocomplete':'off'}),
+            'course_number': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5})
+		}
+
+        error_messages = {
+            'group_name': {
+                'required': 'Введите название группы',
+            },
+            
+            'course_number': {
+                'required': 'Выберите номер курса',
+                'min_value': 'Номер курса должен быть числом от 1 до 5',
+                'max_value': 'Номер курса должен быть числом от 1 до 5'
+            },
+        }
+
+    def save(self, commit=True):
+        group = super().save(commit=False)
+
+        if commit:
+            group.save()
+
+        return group
+
 
 
 class GroupModifyForm(forms.Form):

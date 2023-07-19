@@ -227,82 +227,42 @@ def _symbol_check(name: str) -> bool:
 
 
 def group_creation(request):
-	if hasattr(request.user, "is_teacher") and request.user.is_teacher():
-		if request.method != 'POST':
-			return (render(request, 'group_creation_form.html',
-						   {
-							   'right': True,
-							   'form': GroupCreationForm(),
-							   'bad_name': False,
-							   'bad_year': False,
-							   'exist': False,
-							   'success': False,
-						   }))
-		else:
-			form = GroupCreationForm(request.POST or None)
-			if form.is_valid():
-				group_name = str(form.cleaned_data['group_name'])
-				year = str(form.cleaned_data['year'])
-				course_number = int(form.cleaned_data['course_number'])
+	try:
+		if not request.user.is_teacher():
+			return render(request, 'access_denied.html')
+	except:
+		return redirect('home')
 
-				if _symbol_check(group_name):
-					if year.isnumeric() and 999 < int(year) < datetime.now().year + 1:
+	if request.method == 'POST':
+		form_group = GroupCreationForm(request.POST)
+				
+		if not _symbol_check(request.POST['group_name']):
+				form_group.add_error('group_name', 'Ошибка в названии группы (должна присутствовать хотя бы одна буква или цифра)')
 
-						enrollement_date = datetime(int(year), 9, 1)
-						valid_sample = TblGroup.objects.filter(Q(group_name=group_name)
-															   & Q(enrollement_date=enrollement_date)).values(
-							'id_group').all()
+		year = request.POST['year']
+		if not (year.isnumeric() and 999 < int(year) < datetime.now().year + 1):
+			form_group.add_error('year', 'Неверно указан год')
 
-						if not valid_sample.exists():
-							new_row = TblGroup(
-								group_name=group_name,
-								enrollement_date=enrollement_date,
-								language_id=request.user.language_id,
-								course_number=course_number)
-							new_row.save()
+		if form_group.is_valid():
+			group_name = form_group.cleaned_data['group_name']
+			enrollment_date = datetime(int(form_group.cleaned_data["year"]), 9, 1)
+			if TblGroup.objects.filter(Q(group_name=group_name)
+										& Q(enrollement_date=enrollment_date)).values('id_group').all().exists():
+				form_group.add_error(None, 'Такая группа уже существует')
+				return render(request, 'group_creation.html', {'form': form_group})
 
-							return (render(request, 'group_creation_form.html',
-										   {
-											   'right': True,
-											   'form': GroupCreationForm(),
-											   'bad_name': False,
-											   'bad_year': False,
-											   'exist': False,
-											   'success': True,
-										   }))
-						else:
-							return (render(request, 'group_creation_form.html',
-										   {
-											   'right': True,
-											   'form': GroupCreationForm(),
-											   'bad_name': False,
-											   'bad_year': False,
-											   'exist': True,
-											   'success': False,
-										   }, status=400))
-					else:
-						return (render(request, 'group_creation_form.html',
-									   {
-										   'right': True,
-										   'form': GroupCreationForm(),
-										   'bad_name': False,
-										   'bad_year': True,
-										   'exist': False,
-										   'success': False,
-									   }, status=400))
-			else:
-				return (render(request, 'group_creation_form.html',
-							   {
-								   'right': True,
-								   'form': GroupCreationForm(),
-								   'bad_name': True,
-								   'bad_year': False,
-								   'exist': False,
-								   'success': False,
-							   }, status=400))
+			group = form_group.save(commit=False)
+			group.language_id = request.user.language_id
+			group.enrollement_date = enrollment_date
+			group = group.save()
+
+			return render(request, 'group_creation.html', {'form': GroupCreationForm(), 'success': True})
+
 	else:
-		return render(request, 'access_denied.html')
+		form_group = GroupCreationForm()
 
+	return render(request, 'group_creation.html',
+				  {'form': form_group})
 
 # * Group selection page
 def group_selection(request):
