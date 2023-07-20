@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% load filters %}
+{% extends "base.html" %} {% load filters %} {% load static %}
 
 <!-- Content -->
 {% block content %}
@@ -57,9 +57,32 @@
 			</span>
 			{% if not form_login.password.errors %} {{ form_login.password }} {% else %}
 			<!-- Invalid field -->
-			{{ form_login.password | addclass:'is-invalid' }}
+			{{ form_login.password | addclass:'is-invalid' }} {% endif %}
+			<button
+				class="btn btn-outline-primary shadow-none w-auto p-1 active-primary"
+				type="button"
+				title="Показать пароль"
+				id="show_password"
+				onclick="showPassword()"
+				data-bs-toggle="button"
+			>
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					width="1.6em"
+					stroke="currentColor"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="1.5"
+						d="M9 4.46A9.84 9.84 0 0 1 12 4c4.18 0 7.03 2.5 8.73 4.7C21.57 9.8 22 10.36 22 12s-.43 2.2-1.27 3.3C19.03 17.5 16.18 20 12 20c-4.18 0-7.03-2.5-8.73-4.7C2.42 14.2 2 13.64 2 12s.42-2.2 1.27-3.3C3.76 8.08 4.33 7.43 5 6.82"
+					/>
+					<path stroke-width="1.5" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+				</svg>
+			</button>
 			<div class="invalid-feedback">{{ form_login.password.errors | first | striptags }}</div>
-			{% endif %}
 		</div>
 
 		<!-- Error alert -->
@@ -105,4 +128,6 @@
 		Если вы хотите зарегистрироваться или восстановить пароль, обратитесь к своему преподавателю.
 	</p>
 </main>
-{% endblock content %}
+{% endblock content %} {% block script %}
+<script type="text/javascript" src="{% static 'js/password_input.js' %}" defer></script>
+{% endblock %}

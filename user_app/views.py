@@ -7,7 +7,7 @@ from .login import MyBackend
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from .models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup, TblLanguage
-from .forms import UserCreationForm, StudentCreationForm, LoginForm, GroupCreationForm, GroupModifyForm, StudentGroupCreationForm
+from .forms import UserCreationForm, StudentCreationForm, LoginForm, GroupCreationForm, GroupModifyForm, StudentGroupCreationForm, ChangePasswordForm
 
 from right_app.models import TblUserRights
 from right_app.views import check_is_superuser
@@ -28,11 +28,8 @@ from text_app.models import TblTag, TblMarkup
 
 
 def signup(request):
-	try:
-		if not request.user.is_teacher():
-			return render(request, 'access_denied.html', status=403)
-	except:
-		return redirect('home')
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
 		form_user = UserCreationForm(request.POST)
@@ -74,48 +71,43 @@ def signup(request):
 
 
 def change_password(request):
-	try:
-		if not request.user.is_teacher():
-			return render(request, 'access_denied.html', status=403)
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 
-	except:
-		return redirect('home')
 
 	if request.POST:
 		user_id = request.POST['student']
-		password = request.POST['password']
+		password = str(request.POST['password'])
+		password_form = ChangePasswordForm(request.POST)
 
-		salt = 'DsaVfeqsJw00XvgZnFxlOFkqaURzLbyI'
-		hash = sha512((password + salt).encode('utf-8'))
-		hash = hash.hexdigest()
+		if password.strip() == '':
+			password_form.add_error('password', 'Пожалуйста, введите пароль')
+		
+		if password_form.is_valid():
+			salt = 'DsaVfeqsJw00XvgZnFxlOFkqaURzLbyI'
+			hash = sha512((password + salt).encode('utf-8'))
+			hash = hash.hexdigest()
 
-		TblUser.objects.filter(id_user=user_id).update(password=hash)
+			TblUser.objects.filter(id_user=user_id).update(password=hash)
 
-		return redirect('manage')
-
+			return redirect('manage')
 	else:
-		students = TblStudent.objects.all()
+		password_form = ChangePasswordForm()
 
-		all_students = []
-		count = 1
-		for student in students:
-			try:
-				user = TblUser.objects.filter(id_user=student.user_id).first()
-				all_students.append(
-					{'id': user.id_user, 'name': (user.last_name + ' ' + user.name), 'login': user.login})
-			except:
-				count += 1
+	students = []
+	for student in TblStudent.objects.all():
+		user = TblUser.objects.filter(id_user=student.user_id)
+		if user.exists():
+			user = user.first()
+			students.append(
+				{'id': user.id_user, 'name': (user.last_name + ' ' + user.name), 'login': user.login})
 
-		return render(request, 'change_password.html', {'all_students': all_students})
+	return render(request, 'change_password.html', {'students': students, 'password_form': password_form})
 
 
 def signup_teacher(request):
-	try:
-		if not (request.user.is_teacher() and check_is_superuser(request.user.id_user)):
-			return render(request, 'access_denied.html', status=403)
-
-	except:
-		return redirect('home')
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher() and check_is_superuser(request.user.id_user)):
+		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
 		form_user = UserCreationForm(request.POST)
@@ -226,11 +218,8 @@ def _symbol_check(name: str) -> bool:
 
 
 def group_creation(request):
-	try:
-		if not request.user.is_teacher():
-			return render(request, 'access_denied.html', status=403)
-	except:
-		return redirect('home')
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
 		form_group = GroupCreationForm(request.POST)

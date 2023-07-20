@@ -17,7 +17,7 @@
 		>
 			Скачать
 		</button>
-		<button type="button" class="btn btn-secondary w-50 mx-auto mt-4" onclick="history.back()">Назад</button>
+		<a type="button" class="btn btn-secondary w-50 mx-auto mt-4" href="{% url 'manage' %}">Назад</a>
 	</form>
 
 	{%if no_data%}
