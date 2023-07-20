@@ -7,8 +7,7 @@ from .login import MyBackend
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from .models import TblTeacher, TblUser, TblStudent, TblGroup, TblStudentGroup, TblLanguage
-from .forms import UserCreationForm, StudentCreationForm, LoginForm, GroupCreationForm, GroupModifyForm, \
-	GroupModifyStudent, StudentGroupCreationForm
+from .forms import UserCreationForm, StudentCreationForm, LoginForm, GroupCreationForm, GroupModifyForm, StudentGroupCreationForm
 
 from right_app.models import TblUserRights
 from right_app.views import check_is_superuser
@@ -318,164 +317,94 @@ def _get_group_students(group_id: int, in_: bool) -> list:
 
 
 def group_modify(request, group_id):
-	if hasattr(request.user, 'is_teacher') and request.user.is_teacher():
-		groups = TblGroup.objects.filter(id_group=group_id).values(
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html')
+	
+	groups = TblGroup.objects.filter(id_group=group_id).values(
 			'enrollment_date', 'group_name', 'course_number')
-		if groups.exists():
-			year = groups[0]['enrollment_date'].year
-			group_name = groups[0]['group_name']
-			course_number = groups[0]['course_number']
-			students_in = _get_group_students(group_id, True)
-			students_out = _get_group_students(group_id, False)
-		else:
-			return (render(request, 'group_modify.html', context={
-				'right': True,
-				'exist': False
+	
+	if not groups.exists():
+		return (render(request, 'group_modify.html', context={
+				'group_not_found': True
 			}, status=404))
-		if request.method != 'POST':
+	
+	year = groups[0]['enrollment_date'].year
+	group_name = groups[0]['group_name']
+	course_number = groups[0]['course_number']
+	students_in = _get_group_students(group_id, True)
+	students_out = _get_group_students(group_id, False)
 
-			# * Page Creation
-			groups = TblGroup.objects.filter(id_group=group_id).values(
-				'enrollment_date', 'group_name')
-			if groups.exists():
-				return (render(request, 'group_modify.html', context={
-					'right': True,
-					'exist': True,
-					'bad_name': False,
-					'bad_year': False,
-					'group_students': students_in,
-					'del_std_form': GroupModifyStudent(students_in),
-					'add_std_form': GroupModifyStudent(students_out),
-					'data_form': GroupModifyForm(year, group_name, course_number)}))
+	data_form = GroupModifyForm(year, group_name, course_number)
 
-		# * Modify info about group
-		elif 'group_info_modify' in request.POST:
+	if request.method == 'POST':
+		if 'group_info_modify' in request.POST:
+			data_form = GroupModifyForm(year, group_name, course_number, request.POST)
 
-			form = GroupModifyForm(
-				year, group_name, course_number, request.POST or None)
-			if form.is_valid():
-				group_name_new = str(form.cleaned_data['group_name'])
-				year_new = str(form.cleaned_data['year'])
-				course_number_new = int(form.cleaned_data['course_number'])
+			group_name_new = str(request.POST['group_name']).strip()
+			year_new = str(request.POST['year'])
+			course_number_new = str(request.POST['course_number'])
 
-				if _symbol_check(group_name_new):
-					if year_new.isnumeric() and 999 < int(year_new) < datetime.now().year + 1:
-						enrollment_date = datetime(int(year_new), 9, 1)
+			if not _symbol_check(group_name_new):
+				data_form.add_error('group_name', 'Ошибка в названии группы (должна присутствовать хотя бы одна буква или цифра)')
+			if not (year_new.isnumeric() and 1900 <= int(year_new) < datetime.now().year + 1):
+				data_form.add_error('year', 'Неверно указан год ')
+			if not (course_number_new.isnumeric() and 1 <= int(course_number_new) <= 10):
+				data_form.add_error('course_number', 'Некорректный номер курса')
 
-						group = TblGroup.objects.get(id_group=group_id)
-						group.group_name = group_name_new
-						group.enrollment_date = enrollment_date
-						group.course_number = course_number_new
-
-						group.save()
-						return (render(request, 'group_modify.html', context={
-							'right': True,
-							'exist': True,
-							'bad_name': False,
-							'bad_year': False,
-							'group_students': students_in,
-							'del_std_form': GroupModifyStudent(students_in),
-							'add_std_form': GroupModifyStudent(students_out),
-							'data_form': GroupModifyForm(year, group_name, course_number)}))
-
-					else:
-						return (render(request, 'group_modify.html', context={
-							'right': True,
-							'exist': True,
-							'bad_name': False,
-							'bad_year': True,
-							'group_students': students_in,
-							'del_std_form': GroupModifyStudent(students_in),
-							'add_std_form': GroupModifyStudent(students_out),
-							'data_form': GroupModifyForm(year, group_name, course_number)}, status=400))
+			if data_form.is_valid():
+				enrollment_date = datetime(int(data_form.cleaned_data['year']), 9, 1)
+				group_name = str(data_form.cleaned_data['group_name'])
+				if TblGroup.objects.filter(Q(group_name=group_name_new)
+										& Q(enrollment_date=enrollment_date)
+										& ~Q(id_group=group_id)).values('id_group').all().exists():
+					data_form.add_error(None, 'Такая группа уже существует')
 				else:
-					return (render(request, 'group_modify.html', context={
-						'right': True,
-						'exist': True,
-						'bad_name': True,
-						'bad_year': False,
-						'group_students': students_in,
-						'del_std_form': GroupModifyStudent(students_in),
-						'add_std_form': GroupModifyStudent(students_out),
-						'data_form': GroupModifyForm(year, group_name, course_number)}, status=400))
+					group = TblGroup.objects.get(id_group=group_id)
+					group.group_name = group_name
+					group.enrollment_date = enrollment_date
+					group.course_number = int(data_form.cleaned_data['course_number'])
+					group.save()
 
-		elif 'add_studs' in request.POST:
-			form = GroupModifyStudent(students_out, request.POST or None)
+	# Render page
+	context = {
+		'group_id': group_id,
+		'group_name': group_name,
+		'group_students': students_in,
+		'not_group_students': students_out,
+		'data_form': data_form
+	}
 
-			if form.is_valid():
-				values = [int(element)
-						  for element in form.cleaned_data['studs']]
-				# TODO: Добавить вывод ошибки
-				if not TblStudentGroup.objects.filter(
-						Q(group_id=group_id) &
-						Q(student_id__in=values)).exists():
-					values = [TblStudentGroup(
-						student_id=value, group_id=group_id) for value in values]
-					TblStudentGroup.objects.bulk_create(values)
+	return (render(request, 'group_modify.html', context=context))
 
-				updated_students_in = _get_group_students(group_id, True)
-				updated_students_out = _get_group_students(group_id, False)
+def group_delete_student(request, group_id, student_id):
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html')
+		
+	query = TblStudentGroup.objects.filter(Q(group_id=group_id) & Q(student_id=student_id))
 
-				return (render(request, 'group_modify.html', context={
-					'right': True,
-					'exist': True,
-					'bad_name': False,
-					'bad_year': False,
-					'group_students': updated_students_in,
-					'del_std_form': GroupModifyStudent(updated_students_in),
-					'add_std_form': GroupModifyStudent(updated_students_out),
-					'data_form': GroupModifyForm(year, group_name, course_number)}))
-			else:
-				return (render(request, 'group_modify.html', context={
-					'right': False}, status=400))
+	if query.exists():
+		query.delete()
 
-		elif 'del_studs' in request.POST:
-			form = GroupModifyStudent(students_in, request.POST or None)
-			if form.is_valid():
-				values = [int(element)
-						  for element in form.cleaned_data['studs']]
+	return group_modify(request, group_id)
 
-				query = TblStudentGroup.objects.filter(
-					Q(group_id=group_id) & Q(student_id__in=values))
-				# TODO: Добавить вывод ошибки
-				if query.exists() and len(query) == len(values):
-					query.delete()
-				else:
-					return (render(request, 'group_modify.html', context={
-						'right': True,
-						'exist': True,
-						'bad_name': False,
-						'bad_year': False,
-						'group_students': students_in,
-						'del_std_form': GroupModifyStudent(students_in),
-						'add_std_form': GroupModifyStudent(students_out),
-						'data_form': GroupModifyForm(year, group_name, course_number)}))
+def delete_group(request, group_id) :
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html')
+	
+	TblGroup.objects.filter(id_group=group_id).delete()
+	return redirect('group_selection')
 
-				updated_students_in = _get_group_students(group_id, True)
-				updated_students_out = _get_group_students(group_id, False)
 
-				return (render(request, 'group_modify.html', context={
-					'right': True,
-					'exist': True,
-					'bad_name': False,
-					'bad_year': False,
-					'group_students': updated_students_in,
-					'del_std_form': GroupModifyStudent(updated_students_in),
-					'add_std_form': GroupModifyStudent(updated_students_out),
-					'data_form': GroupModifyForm(year, group_name, course_number)}))
-
-		elif 'del_group' in request.POST:
-			TblGroup.objects.filter(id_group=group_id).delete()
-			return redirect('group_selection')
-
-		else:
-			return (render(request, 'group_modify.html', context={
-				'right': False
-			}, status=403))
-
-	else:
+def group_add_student(request, group_id, student_id):
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
 		return render(request, 'access_denied.html')
 
+	if TblStudent.objects.filter(Q(id_student=student_id)).exists() and (not TblStudentGroup.objects.filter(
+						Q(group_id=group_id) &
+						Q(student_id=student_id)).exists()):	
+		TblStudentGroup.objects.create(student_id=student_id, group_id=group_id)
+
+	return group_modify(request, group_id)
 
 
 def tasks_info(request, user_id):

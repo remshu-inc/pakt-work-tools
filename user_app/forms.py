@@ -179,32 +179,12 @@ class GroupModifyForm(forms.Form):
 
     def __init__(self, year, group_name, course_number, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['year'] = forms.CharField(
-            widget=forms.TextInput(attrs={'class': 'form-control'}),
-            initial=str(year),
-            max_length=4)
+        self.fields['year'] = forms.IntegerField(
+            widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'year-input', 'min': 1900, 'max': 9999,  'value':int(year), 'autocomplete':'off'}),
+            )
 
         self.fields['group_name'] = forms.CharField(
-            widget=forms.TextInput(attrs={'class': 'form-control'}),
+            widget=forms.TextInput(attrs={'class': 'form-control', 'autocomplete':'off'}),
             initial=group_name,
             max_length=256)
-        self.fields['course_number'] = forms.IntegerField(widget=forms.NumberInput(), initial=course_number)
-
-
-class GroupModifyStudent(forms.Form):
-    fields = ['studs']
-
-    def __init__(self, students, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        options = []
-        for student in students:
-            options.append(
-                (student['id'],
-                 student['id_str'] + ' '
-                 + str(student['last_name']) + ' '
-                 + str(student['name']) + ' '
-                 + str(student['patronymic']) + ' ('
-                 + str(student['login']) + ')')
-            )
-        self.fields['studs'] = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
-                                                         choices=options)
+        self.fields['course_number'] = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 10}), initial=course_number)

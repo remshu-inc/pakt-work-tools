@@ -1,5 +1,4 @@
 'use_strict';
-console.dir(document.querySelectorAll('input[type="password"]'));
 const passwordField = document.querySelectorAll('input[type="password"]')[0];
 
 function showPassword() {
