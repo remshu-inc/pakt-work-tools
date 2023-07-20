@@ -251,7 +251,7 @@ def search(request):
     filters = _parse_cql(user_query)
     if filters is None:
         return render(request, "search.html",
-                      context={'error_search': 'Text not Found', 'search_value': user_query})
+                      context={'error_search': 'Пожалуйста, введите корректный запрос', 'search_value': user_query})
 
     # Получение строк по заданным условиям
     sentence_objects = TblMarkup.objects.filter(filters).values(
@@ -264,7 +264,7 @@ def search(request):
     # TODO: пропписать исключение
     if len(sentence_objects) == 0:
         return render(request, "search.html",
-                      context={'error_search': 'Text not Found', 'search_value': user_query})
+                      context={'error_search': 'Не найдено текстов по данному запросу', 'search_value': user_query})
 
     # Количество найденных предложений
     count_search = len(sentence_objects)
@@ -316,7 +316,7 @@ def text(request, text_id=None):
     header = text_obj['header']
     language = text_obj['language_id__language_name']
     text_type = text_obj['text_type_id__text_type_name']
-    text_path = str(language) + '/' + str(text_type) + '/' + str(header)
+    text_path = str(language) + ' / ' + str(text_type) + ' / ' + str(header)
 
     return (render(request, "search_text.html", context={'text': text_data, 'text_path': text_path, 'text_id': text_id,
                                                          'language_name': language, 'text_type_name': text_type}))

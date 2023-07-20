@@ -247,13 +247,13 @@ def group_creation(request):
 			group_name = form_group.cleaned_data['group_name']
 			enrollment_date = datetime(int(form_group.cleaned_data["year"]), 9, 1)
 			if TblGroup.objects.filter(Q(group_name=group_name)
-										& Q(enrollement_date=enrollment_date)).values('id_group').all().exists():
+										& Q(enrollment_date=enrollment_date)).values('id_group').all().exists():
 				form_group.add_error(None, 'Такая группа уже существует')
 				return render(request, 'group_creation.html', {'form': form_group})
 
 			group = form_group.save(commit=False)
 			group.language_id = request.user.language_id
-			group.enrollement_date = enrollment_date
+			group.enrollment_date = enrollment_date
 			group = group.save()
 
 			return render(request, 'group_creation.html', {'form': GroupCreationForm(), 'success': True})
@@ -270,11 +270,11 @@ def group_selection(request):
 		return render(request, 'access_denied.html', status=403)
 	
 	groups = TblGroup.objects.filter(
-		language_id=request.user.language_id).order_by('-enrollement_date', 'course_number', 'group_name').values()
+		language_id=request.user.language_id).order_by('-enrollment_date', 'course_number', 'group_name').values()
 
 	for index in range(len(groups)):
-		groups[index]['enrollement_date'] = str(groups[index]['enrollement_date'].year) \
-			+ ' /  ' + str(groups[index]['enrollement_date'].year + 1)
+		groups[index]['enrollment_date'] = str(groups[index]['enrollment_date'].year) \
+			+ ' /  ' + str(groups[index]['enrollment_date'].year + 1)
 
 	return (render(request, 'group_select.html', context={'groups': groups}))
 
@@ -320,9 +320,9 @@ def _get_group_students(group_id: int, in_: bool) -> list:
 def group_modify(request, group_id):
 	if hasattr(request.user, 'is_teacher') and request.user.is_teacher():
 		groups = TblGroup.objects.filter(id_group=group_id).values(
-			'enrollement_date', 'group_name', 'course_number')
+			'enrollment_date', 'group_name', 'course_number')
 		if groups.exists():
-			year = groups[0]['enrollement_date'].year
+			year = groups[0]['enrollment_date'].year
 			group_name = groups[0]['group_name']
 			course_number = groups[0]['course_number']
 			students_in = _get_group_students(group_id, True)
@@ -336,7 +336,7 @@ def group_modify(request, group_id):
 
 			# * Page Creation
 			groups = TblGroup.objects.filter(id_group=group_id).values(
-				'enrollement_date', 'group_name')
+				'enrollment_date', 'group_name')
 			if groups.exists():
 				return (render(request, 'group_modify.html', context={
 					'right': True,
@@ -360,11 +360,11 @@ def group_modify(request, group_id):
 
 				if _symbol_check(group_name_new):
 					if year_new.isnumeric() and 999 < int(year_new) < datetime.now().year + 1:
-						enrollement_date = datetime(int(year_new), 9, 1)
+						enrollment_date = datetime(int(year_new), 9, 1)
 
 						group = TblGroup.objects.get(id_group=group_id)
 						group.group_name = group_name_new
-						group.enrollement_date = enrollement_date
+						group.enrollment_date = enrollment_date
 						group.course_number = course_number_new
 
 						group.save()
@@ -606,8 +606,8 @@ class DiagramView(View):
 			text_types = list(TblTextType.objects.values())
 			groups = list(TblGroup.objects.values(
 				'group_name').distinct().order_by('group_name'))
-			enrollement_date = list(TblGroup.objects.values(
-				'enrollement_date').distinct().order_by('enrollement_date'))
+			enrollment_date = list(TblGroup.objects.values(
+				'enrollment_date').distinct().order_by('enrollment_date'))
 			courses = list(TblStudent.objects.values(
 				'course_number').distinct().order_by('course_number'))
 			texts = list(TblText.objects.values(
@@ -626,7 +626,7 @@ class DiagramView(View):
 			if request.headers.get('x-requested-with') == 'XMLHttpRequest':
 				return JsonResponse({'data_type_errors': data, 'list_languages': languages, 'list_text_types': text_types,
 									'list_groups': groups, 'list_courses': courses, 'list_texts': texts,
-									 'data_grade_errors': data_grade, 'enrollement_date': enrollement_date}, status=200)
+									 'data_grade_errors': data_grade, 'enrollment_date': enrollment_date}, status=200)
 
 			return render(request, 'dashboard.html', context={'right': True})
 		else:
@@ -810,7 +810,7 @@ class DiagramView(View):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 										 'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
 											 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 												 date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
 											 sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
@@ -818,7 +818,7 @@ class DiagramView(View):
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
 					Q(tag__markup_type=1) & Q(
 						sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 							date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
 						sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
 
@@ -827,7 +827,7 @@ class DiagramView(View):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 										 'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
 											 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 												 date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
 					count_data=Count('tag__id_tag')))
 
@@ -835,7 +835,7 @@ class DiagramView(View):
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
 					Q(tag__markup_type=1) & Q(
 						sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 							date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
 					count_data=Count('grade__id_grade')))
 
@@ -844,7 +844,7 @@ class DiagramView(View):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 										 'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
 											 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 												 date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
 					count_data=Count('tag__id_tag')))
 
@@ -852,7 +852,7 @@ class DiagramView(View):
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
 					Q(tag__markup_type=1) & Q(
 						sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 							date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
 					count_data=Count('grade__id_grade')))
 
@@ -861,14 +861,14 @@ class DiagramView(View):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 										 'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
 											 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+											 sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 												 date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
 
 			data_grade = list(
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
 					Q(tag__markup_type=1) & Q(
 						sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+						sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
 							date, "%Y-%m-%d"))).annotate(count_data=Count('grade__id_grade')))
 
 		elif text_types_id and text:

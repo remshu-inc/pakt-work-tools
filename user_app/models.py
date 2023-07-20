@@ -127,7 +127,7 @@ class TblGroup(models.Model):
 
     id_group = models.AutoField(primary_key=True)
     group_name = models.CharField(max_length=256)
-    enrollement_date = models.DateField(blank=True, null=True)
+    enrollment_date = models.DateField(blank=True, null=True)
     course_number = models.SmallIntegerField(blank=False, null=False, default=1, validators=[
         MaxValueValidator(10),
         MinValueValidator(1)
@@ -136,7 +136,7 @@ class TblGroup(models.Model):
     active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.group_name + ' - ' + str(self.enrollement_date)
+        return self.group_name + ' - ' + str(self.enrollment_date)
 
 
 class TblStudentGroup(models.Model):

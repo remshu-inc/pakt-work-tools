@@ -414,10 +414,10 @@ def _get_text_info(text_id: int):
 
     if group_number.exists():
         group_number = group_number.values(
-            'group_id__group_name', 'group_id__enrollement_date')[0]
+            'group_id__group_name', 'group_id__enrollment_date')[0]
         group_number = group_number['group_id__group_name'] + ' (' \
-                       + str(group_number['group_id__enrollement_date'].year) + ' / ' + \
-                       str(group_number['group_id__enrollement_date'].year + 1) + ')'
+                       + str(group_number['group_id__enrollment_date'].year) + ' / ' + \
+                       str(group_number['group_id__enrollment_date'].year + 1) + ')'
 
     else:
         group_number = 'Отсутствует'
@@ -722,7 +722,7 @@ def author_form(request, text_id=1, **kwargs):
             'student_id__user_id__name',
             'student_id__user_id__patronymic',
             'group_id__group_name',
-            '-group_id__enrollement_date'
+            '-group_id__enrollment_date'
         ) \
             .values(
             'student_id__user_id',
@@ -732,7 +732,7 @@ def author_form(request, text_id=1, **kwargs):
             'student_id__user_id__name',
             'student_id__user_id__patronymic',
             'group_id__group_name',
-            'group_id__enrollement_date'
+            'group_id__enrollment_date'
         )
         if labels.exists():
             for label in labels:
@@ -743,7 +743,7 @@ def author_form(request, text_id=1, **kwargs):
                      str(label['student_id__user_id__patronymic']) + ' Логин: ' +
                      str(label['student_id__user_id__login']) + ' Группа: ' +
                      str(label['group_id__group_name']) + ' (' +
-                     str(label['group_id__enrollement_date'].year) + ')')
+                     str(label['group_id__enrollment_date'].year) + ')')
                 )
         else:
             no_error = False
@@ -758,7 +758,7 @@ def author_form(request, text_id=1, **kwargs):
                 current_group = current_group.values(
                     'group_id',
                     'group_id__group_name',
-                    'group_id__enrollement_date')[0]
+                    'group_id__enrollment_date')[0]
 
                 initial = (str(student_id['user_id']) + ' '
                            + str(current_group['group_id']),
@@ -767,7 +767,7 @@ def author_form(request, text_id=1, **kwargs):
                            str(student_id['user_id__patronymic']) + ' Логин: ' +
                            str(student_id['user_id__login']) + ' Группа: ' +
                            str(current_group['group_id__group_name']) + ' (' +
-                           str(current_group['group_id__enrollement_date'].year) + ')'
+                           str(current_group['group_id__enrollment_date'].year) + ')'
                            )
             else:
                 initial = ('   ', 'Отсутствует')
@@ -781,26 +781,26 @@ def author_form(request, text_id=1, **kwargs):
         if student_id.exists():
             labels = TblStudentGroup.objects. \
                 filter(student_id=student_id.values('id_student')[0]['id_student']). \
-                order_by('group_id__group_name', '-group_id__enrollement_date'). \
+                order_by('group_id__group_name', '-group_id__enrollment_date'). \
                 values('group_id', 'group_id__group_name',
-                       'group_id__enrollement_date')
+                       'group_id__enrollment_date')
 
             if labels.exists():
                 for label in labels:
                     options.append((
                         label['group_id'],
                         str(label['group_id__group_name']) + ' '
-                        + str(label['group_id__enrollement_date'].year)
+                        + str(label['group_id__enrollment_date'].year)
                     ))
             else:
                 no_error = False
 
             if current_group.exists():
                 current_group = current_group.values(
-                    'group_id', 'group_id__group_name', 'group_id__enrollement_date')[0]
+                    'group_id', 'group_id__group_name', 'group_id__enrollment_date')[0]
                 initial = (str(current_group['group_id']),
                            str(current_group['group_id__group_name']) + ' '
-                           + str(current_group['group_id__enrollement_date'].year))
+                           + str(current_group['group_id__enrollment_date'].year))
             else:
                 initial = (' ', 'Отсутствует')
 

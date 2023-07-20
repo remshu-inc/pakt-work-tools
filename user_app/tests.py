@@ -29,10 +29,10 @@ class CQLTestCase(TestCase):
         TblTeacher.objects.create(id_teacher=1, user=TblUser.objects.get(id_user=1))
         TblStudent.objects.create(id_student=2, user=TblUser.objects.get(id_user=2), course_number=2)
 
-        TblGroup.objects.create(id_group=1, group_name="test_group", enrollement_date="2020-01-01", course_number=2,
+        TblGroup.objects.create(id_group=1, group_name="test_group", enrollment_date="2020-01-01", course_number=2,
                                 language=TblLanguage.objects.get(id_language=1))
 
-        TblGroup.objects.create(id_group=2, group_name="test_group2", enrollement_date="2020-01-01", course_number=2,
+        TblGroup.objects.create(id_group=2, group_name="test_group2", enrollment_date="2020-01-01", course_number=2,
                                 language=TblLanguage.objects.get(id_language=1))
 
         TblRights.objects.create(id_right=1, name="view")

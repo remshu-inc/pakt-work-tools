@@ -13,7 +13,7 @@ class StatisticForm(forms.Form):
     def __init__(self, language_id:int, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        groups = TblGroup.objects.filter(language_id = language_id).order_by('-enrollement_date').values('id_group', 'group_name', 'enrollement_date')
+        groups = TblGroup.objects.filter(language_id = language_id).order_by('-enrollment_date').values('id_group', 'group_name', 'enrollment_date')
         options = []
         if groups.exists():
             for group in groups:
@@ -21,8 +21,8 @@ class StatisticForm(forms.Form):
                     (
                     group['id_group'],
                     group['group_name']+\
-                        ' ('+str(group['enrollement_date'].year)+' \ '\
-                            +str(group['enrollement_date'].year+1)+')'
+                        ' ('+str(group['enrollment_date'].year)+' \ '\
+                            +str(group['enrollment_date'].year+1)+')'
                     ))
             # print(options)
 
