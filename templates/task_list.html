@@ -23,9 +23,8 @@
 		</svg>
 		<p class="m-0">Автор текстов не зарегистрирован как студент</p>
 	</div>
-	{% endif %}
-	<h4 class="my-3">Список работ</h4>
-
+	{% endif %} {% if tasks %}
+	<h4 class="my-4 text-secondary">Список работ</h4>
 	<!-- Table medium screen -->
 	<table class="table table-responsive bg-white shadow card-rounded d-none d-md-table table-hover">
 		<thead class="table-light">
@@ -43,7 +42,7 @@
 			<tr class="">
 				<td class="ps-4">
 					<a
-						class="link-primary"
+						class="link-primary text-decoration-none"
 						title="Разбор текста"
 						href="{% url 'text_view' language=task.path.lang text_type=task.path.type text_id=task.path.id%}"
 					>
@@ -144,5 +143,25 @@
 		</div>
 		{% endfor %}
 	</div>
+	{% else %}
+	<div class="alert alert-warning my-3 w-100 d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m10.5 15 3-3m0 3-3-3M22 11.8c0-2.63 0-3.95-.77-4.8a2.98 2.98 0 0 0-.22-.23C20.15 6 18.83 6 16.2 6h-.38c-1.16 0-1.73 0-2.27-.15a4 4 0 0 1-.85-.35c-.49-.28-.9-.68-1.71-1.5l-.55-.55a4 4 0 0 0-2.73-1.43C7.53 2 7.34 2 6.95 2c-.88 0-1.32 0-1.7.07a4 4 0 0 0-3.18 3.19C2 5.63 2 6.06 2 6.95M22 16c-.04 2.48-.23 3.89-1.17 4.83C19.66 22 17.77 22 14 22h-4c-3.77 0-5.66 0-6.83-1.17S2 17.77 2 14v-3"
+			/>
+		</svg>
+
+		<p class="m-0">Список работ пока пуст</p>
+	</div>
+	{% endif %}
 </main>
 {%endblock%}

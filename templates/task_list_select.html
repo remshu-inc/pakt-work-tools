@@ -1,0 +1,81 @@
+{% extends "base.html" %} {% block content %}
+<main class="container my-4">
+	<h2 class="text-center text-primary my-4">Работы студентов</h2>
+	<form method="GET" action="" class="col-6 col-md-4 my-4">
+		<div class="input-group">
+			<input
+				class="form-control"
+				type="search"
+				name="student-filter"
+				autocomplete="off"
+				value="{% if filter %}{{filter}}{% endif %}"
+				placeholder="Поиск студентов"
+			/>
+			<button class="btn btn-primary shadow-sm" type="submit">
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="1.6em"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="2"
+						d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+					/>
+				</svg>
+			</button>
+		</div>
+	</form>
+	{% if not students %}
+	<div class="alert alert-warning my-3 w-100 d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<circle cx="10" cy="6" r="4" stroke-width="1.5" />
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="M20.41 11.41 19 10m0 0-1.41-1.41M19 10l1.41-1.41M19 10l-1.41 1.41M18 18v-.5c0-2.49-3.58-4.5-8-4.5s-8 2.01-8 4.5S2 22 10 22c2.23 0 3.84-.16 5-.44"
+			/>
+		</svg>
+		<p class="m-0">Студенты не найдены</p>
+	</div>
+	{% else %}
+	<table class="table bg-white card-rounded shadow table-hover table-responsive fs-6">
+		<thead class="table-light">
+			<tr class="">
+				<th scope="col" class="text-secondary col-auto">ID</th>
+				<th scope="col" class="">Студент</th>
+				<th scope="col" class="">Логин</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for student in students %}
+			<tr class="">
+				<td class="text-secondary">{{student.id}}</td>
+				<td class="">
+					<a
+						class="link link-primary text-decoration-none"
+						href="{% url 'tasks_info' user_id=student.user_id %}"
+					>
+						{{student.last_name}} {{student.name}}
+						<!--  -->
+						{% if student.patronymic %}{{student.patronymic}}{% endif %}
+					</a>
+				</td>
+				<td>{{student.login}}</td>
+			</tr>
+			{%endfor%}
+		</tbody>
+	</table>
+	{% endif %}
+</main>
+{%endblock%}

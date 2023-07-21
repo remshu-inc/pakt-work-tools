@@ -6,7 +6,8 @@ urlpatterns = [
     path('logout/', views.log_out, name='logout'),
     path('manage/', views.manage, name='manage'),
     path('manage/signup/', views.signup, name='signup'),
-    path('manage/change_password', views.change_password, name='change_password'),
+    path('manage/change_password_student/', views.change_password_student, name='change_password_student'),
+    path('manage/change_password/', views.change_password_self, name='change_password_self'),
     path('manage/signup_teacher/', views.signup_teacher, name='signup_teacher'),
     path('manage/group_creation/', views.group_creation, name='group_creation'),
     path('manage/group_modify/', views.group_selection, name='group_selection'),
@@ -14,6 +15,7 @@ urlpatterns = [
     path('manage/group_modify/<int:group_id>/delete_student/<int:student_id>/', views.group_delete_student, name='group_delete_student'),
     path('manage/group_modify/<int:group_id>/add_student/<int:student_id>/', views.group_add_student, name='group_add_student'),
     path('manage/group_modify/delete_group/<int:group_id>/', views.delete_group, name='delete_group'),
+    path('manage/tasks_info/', views.task_list_select, name='task_list_select'),
     path('manage/tasks_info/<int:user_id>', views.tasks_info, name='tasks_info'),
     path('manage/dashboard/', views.DiagramView.as_view(), name='dashboard'),
 ]

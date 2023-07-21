@@ -1,6 +1,8 @@
 from urllib import request
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import AnonymousUser
+import operator
+from functools import reduce
 
 from .login import MyBackend
 # from django.contrib.auth.forms import UserCreationForm
@@ -70,10 +72,34 @@ def signup(request):
 				  {'form_user': form_user, 'form_student': form_student, 'form_student_group': form_student_group})
 
 
-def change_password(request):
+def change_password_self(request):
+	if not ((hasattr(request.user, 'is_teacher') and request.user.is_teacher()) or (hasattr(request.user, 'is_student') and request.user.is_student())):
+		return render(request, 'access_denied.html', status=403)
+	if request.POST:
+		user_id = request.user.id_user
+		password = str(request.POST['password'])
+		password_form = ChangePasswordForm(request.POST)
+
+		if password.strip() == '':
+			password_form.add_error('password', 'Пожалуйста, введите пароль')
+		
+		if password_form.is_valid():
+			salt = 'DsaVfeqsJw00XvgZnFxlOFkqaURzLbyI'
+			hash = sha512((password + salt).encode('utf-8'))
+			hash = hash.hexdigest()
+
+			TblUser.objects.filter(id_user=user_id).update(password=hash)
+
+			return redirect('manage')
+	else:
+		password_form = ChangePasswordForm()
+
+	return render(request, 'change_password_self.html', {'password_form': password_form})
+
+
+def change_password_student(request):
 	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
 		return render(request, 'access_denied.html', status=403)
-
 
 	if request.POST:
 		user_id = request.POST['student']
@@ -102,7 +128,7 @@ def change_password(request):
 			students.append(
 				{'id': user.id_user, 'name': (user.last_name + ' ' + user.name), 'login': user.login})
 
-	return render(request, 'change_password.html', {'students': students, 'password_form': password_form})
+	return render(request, 'change_password_student.html', {'students': students, 'password_form': password_form})
 
 
 def signup_teacher(request):
@@ -199,6 +225,7 @@ def manage(request):
 
 	return redirect('home')
 
+
 # * Group creation page
 def _symbol_check(name: str) -> bool:
 	"""_summary_
@@ -251,6 +278,7 @@ def group_creation(request):
 
 	return render(request, 'group_creation.html',
 				  {'form': form_group})
+
 
 # * Group selection page
 def group_selection(request):
@@ -395,6 +423,40 @@ def group_add_student(request, group_id, student_id):
 
 	return group_modify(request, group_id)
 
+
+def task_list_select(request):
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html')
+
+	students = []
+	students_query = TblStudent.objects.filter(Q(user_id__language_id=request.user.language_id))
+	
+	student_filter = request.GET.get('student-filter')
+	
+
+	if student_filter != None and student_filter !='' and students_query.exists():
+		search_args = []
+		for term in student_filter.split():
+			for query in ('user_id__last_name__icontains', 'user_id__name__icontains', 'user_id__login__icontains', 'user_id__patronymic__icontains'):
+				search_args.append(Q(**{query: term}))
+		students_query = students_query.filter(reduce(operator.or_, search_args))
+
+	for student in students_query.values('id_student',
+										'user_id__login',
+										'user_id__last_name',
+										'user_id__name',
+										'user_id__patronymic',
+										'user_id'):
+		students.append({
+			'id': student['id_student'],
+			'user_id': student['user_id'],
+			'login': student['user_id__login'],
+			'last_name': student['user_id__last_name'],
+			'name': student['user_id__name'],
+			'patronymic': student['user_id__patronymic']
+		})
+
+	return render(request, 'task_list_select.html', context={'students': students, 'filter': student_filter})
 
 def tasks_info(request, user_id):
 	if not ((request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher()):
