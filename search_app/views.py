@@ -411,3 +411,7 @@ def get_error_stats(request_data):
 
 		data.append(stat_item)
 	return render(request_data, 'error_stats.html', {'error_data': data})
+
+
+def credits(request):
+	return render(request, 'credits.html')

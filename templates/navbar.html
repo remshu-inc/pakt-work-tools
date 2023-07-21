@@ -2,11 +2,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/navbar.css' %}" />
 {% endblock link %}
 
-<!-- TODO logout confirmation -->
-<nav class="navbar navbar-expand-md bg-white shadow-sm sticky-top fs-5">
-	<div class="container-fluid color-primary">
+<nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top fs-5">
+	<div class="container-fluid color-primary px-5">
 		<button
-			class="navbar-toggler m-0 p-0 d-flex d-md-none align-items-center gap-2"
+			class="navbar-toggler m-0 p-0 d-flex d-lg-none align-items-center gap-2"
 			type="button"
 			data-bs-toggle="collapse"
 			data-bs-target="#navbar-content"
@@ -90,6 +89,29 @@
 				</li>
 				{% endif %} {% endif %}
 
+				<li class="nav-item">
+					<a class="nav-link icon-link" href="{% url 'credits' %}">
+						<svg
+							class="bi"
+							xmlns="http://www.w3.org/2000/svg"
+							height="32"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path " stroke-linecap="round" stroke-width="1.5" d="M12 17v-6"/>
+							<circle cx="1" cy="1" r="0.5" fill="currentColor" transform="matrix(1 0 0 -1 11 9)" />
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M7 3.338A9.954 9.954 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"
+							/>
+						</svg>
+
+						Об авторах
+					</a>
+				</li>
+
 				<!-- Login / logout for xs screens inside menu -->
 				<li class="fs-5 d-sm-none nav-item">
 					{% if user.is_authenticated %}
@@ -104,16 +126,11 @@
 						>
 							<path
 								stroke-linecap="round"
-								stroke-linejoin="round"
 								stroke-width="1.5"
-								d="M15 12H2m0 0 3.5-3M2 12l3.5 3"
-							/>
-							<path
-								stroke-linecap="round"
-								stroke-width="1.5"
-								d="M9 7c.01-2.18.11-3.35.88-4.12C10.76 2 12.18 2 15 2h1c2.83 0 4.24 0 5.12.88.88.88.88 2.3.88 5.12v8c0 2.83 0 4.24-.88 5.12-.77.77-1.94.87-4.12.88m-8-5c.01 2.18.11 3.35.88 4.12.64.64 1.57.82 3.12.86"
+								d="M9 4.5H8c-2.357 0-3.536 0-4.268.732C3 5.964 3 7.143 3 9.5v.5m6 9.5H8c-2.357 0-3.536 0-4.268-.732C3 18.035 3 16.857 3 14.5V14M13.658 2.347c-2.162-.377-3.243-.565-3.95.062C9 3.036 9 4.183 9 6.476v11.048c0 2.293 0 3.44.707 4.067.707.627 1.788.439 3.95.062l2.33-.406c2.394-.418 3.591-.627 4.302-1.505.711-.879.711-2.149.711-4.69V8.948c0-2.54 0-3.81-.71-4.689-.476-.587-1.168-.875-2.29-1.126M12 11v2"
 							/>
 						</svg>
+
 						Выход ({{user.name}} {{user.last_name}})
 					</a>
 					{% else %}
@@ -161,14 +178,8 @@
 			>
 				<path
 					stroke-linecap="round"
-					stroke-linejoin="round"
 					stroke-width="1.5"
-					d="M15 12H2m0 0 3.5-3M2 12l3.5 3"
-				/>
-				<path
-					stroke-linecap="round"
-					stroke-width="1.5"
-					d="M9 7c.01-2.18.11-3.35.88-4.12C10.76 2 12.18 2 15 2h1c2.83 0 4.24 0 5.12.88.88.88.88 2.3.88 5.12v8c0 2.83 0 4.24-.88 5.12-.77.77-1.94.87-4.12.88m-8-5c.01 2.18.11 3.35.88 4.12.64.64 1.57.82 3.12.86"
+					d="M9 4.5H8c-2.357 0-3.536 0-4.268.732C3 5.964 3 7.143 3 9.5v.5m6 9.5H8c-2.357 0-3.536 0-4.268-.732C3 18.035 3 16.857 3 14.5V14M13.658 2.347c-2.162-.377-3.243-.565-3.95.062C9 3.036 9 4.183 9 6.476v11.048c0 2.293 0 3.44.707 4.067.707.627 1.788.439 3.95.062l2.33-.406c2.394-.418 3.591-.627 4.302-1.505.711-.879.711-2.149.711-4.69V8.948c0-2.54 0-3.81-.71-4.689-.476-.587-1.168-.875-2.29-1.126M12 11v2"
 				/>
 			</svg>
 		</a>
