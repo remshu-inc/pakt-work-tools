@@ -23,8 +23,39 @@
 		</svg>
 		<p class="m-0">Автор текстов не зарегистрирован как студент</p>
 	</div>
-	{% endif %} {% if tasks %}
+	{% endif %}
 	<h4 class="my-4 text-secondary">Список работ</h4>
+
+	<form method="GET" action="" class="col-6 col-md-4 my-4">
+		<div class="input-group">
+			<input
+				class="form-control"
+				type="search"
+				name="title-filter"
+				autocomplete="off"
+				value="{% if filter %}{{filter}}{% endif %}"
+				placeholder="Поиск по названию"
+			/>
+			<button class="btn btn-primary shadow-sm" type="submit">
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="1.6em"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="2"
+						d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+					/>
+				</svg>
+			</button>
+		</div>
+	</form>
+	{% if tasks %}
+
 	<!-- Table medium screen -->
 	<table class="table table-responsive bg-white shadow card-rounded d-none d-md-table table-hover">
 		<thead class="table-light">
@@ -109,7 +140,8 @@
 					aria-expanded="false"
 					aria-controls="text-{{ task.path.id }}"
 				>
-					{{ task.header }} <span class="text-secondary ms-3">{{task.date}}</span>
+					<span class="col-8 ellipsis">{{ task.header }}</span
+					><span class="text-secondary ms-3 col-3 text-center">{{task.date}}</span>
 				</button>
 			</h2>
 			<div id="text-{{ task.path.id }}" class="accordion-collapse collapse" data-bs-parent="#text-list-accordion">
@@ -160,7 +192,7 @@
 			/>
 		</svg>
 
-		<p class="m-0">Список работ пока пуст</p>
+		<p class="m-0">{% if filter %}Не найдено работ по данному запросу{% else %}Список работ пока пуст{% endif %}</p>
 	</div>
 	{% endif %}
 </main>

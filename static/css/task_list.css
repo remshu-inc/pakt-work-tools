@@ -2,7 +2,8 @@
 	table-layout: fixed;
 }
 
-.table tr td {
+.table tr td,
+.ellipsis {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }

@@ -458,6 +458,7 @@ def task_list_select(request):
 
 	return render(request, 'task_list_select.html', context={'students': students, 'filter': student_filter})
 
+
 def tasks_info(request, user_id):
 	if not ((request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher()):
 				return render(request, 'access_denied.html')
@@ -466,6 +467,7 @@ def tasks_info(request, user_id):
 		.filter(user_id=user_id)\
 		.values('user_id__name', 'user_id__last_name', 'user_id__patronymic').all()
 	
+
 	author_data = {}
 	if about_student.exists():
 		author_data = {
@@ -473,6 +475,8 @@ def tasks_info(request, user_id):
 			'last_name': about_student[0]['user_id__last_name'] if about_student[0]['user_id__last_name'] else '',
 			'patronymic': about_student[0]['user_id__patronymic'] if about_student[0]['user_id__patronymic'] else '',
 		}
+
+	title_filter = request.GET.get('title-filter')
 
 	tasks = TblText.objects\
 		.filter(user_id=user_id)\
@@ -489,6 +493,9 @@ def tasks_info(request, user_id):
 	
 	task_list = []
 	if tasks.exists():
+		if title_filter != None and title_filter != '':
+			tasks = tasks.filter(Q(header__icontains=title_filter))
+
 		for task in tasks:
 			error_check = 'Да' if task['error_tag_check'] else 'Нет'
 			assessment = ''
@@ -521,7 +528,8 @@ def tasks_info(request, user_id):
 
 	return (render(request, 'task_list.html', context={
 		'author': author_data,
-		'tasks': task_list
+		'tasks': task_list,
+		'filter': title_filter
 	}))
 
 
