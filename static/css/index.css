@@ -50,7 +50,6 @@
 .search-result-card {
 	border-left: 6px solid var(--bs-primary);
 	box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-	transition: 0.15s ease-in-out;
 }
 
 .search-result-card:hover {

@@ -397,79 +397,73 @@ def group_add_student(request, group_id, student_id):
 
 
 def tasks_info(request, user_id):
-	if (request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher():
-		about_student = TblStudent.objects\
-			.filter(user_id=user_id)\
-			.values('user_id__name', 'user_id__last_name', 'user_id__patronymic').all()
-		if about_student.exists():
-			about_student = {
-				'name': about_student[0]['user_id__name'] if about_student[0]['user_id__name'] else '',
-				'last_name': about_student[0]['user_id__last_name'] if about_student[0]['user_id__last_name'] else '',
-				'patronymic': about_student[0]['user_id__patronymic'] if about_student[0]['user_id__patronymic'] else '',
-			}
-		else:
-			about_student = {
-				'name': 'Не указано',
-				'last_name': 'Не указано',
-				'patronymic': 'Не указано'
-			}
+	if not ((request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher()):
+				return render(request, 'access_denied.html')
+	
+	about_student = TblStudent.objects\
+		.filter(user_id=user_id)\
+		.values('user_id__name', 'user_id__last_name', 'user_id__patronymic').all()
+	
+	author_data = {}
+	if about_student.exists():
+		author_data = {
+			'name': about_student[0]['user_id__name'] if about_student[0]['user_id__name'] else '',
+			'last_name': about_student[0]['user_id__last_name'] if about_student[0]['user_id__last_name'] else '',
+			'patronymic': about_student[0]['user_id__patronymic'] if about_student[0]['user_id__patronymic'] else '',
+		}
 
-		tasks = TblText.objects\
-			.filter(user_id=user_id)\
-			.order_by('-create_date')\
-			.values(
-				'id_text',
-				'language_id__language_name',
-				'text_type_id__text_type_name',
-				'header',
-				'create_date',
-				'error_tag_check',
-				'assessment',
-			).all()
-		out = []
-		if tasks.exists():
-			for task in tasks:
-				error_check = 'Да' if task['error_tag_check'] else 'Нет'
-				assessment = ''
-				if task['assessment'] and task['assessment'] > 0:
-					for element in TblText.TASK_RATES:
-						if task['assessment'] == element[0]:
-							assessment = element[1]
-							break
-				if assessment:
-					num_of_errors = TblMarkup.objects.filter(
-						Q(token_id__sentence_id__text_id=task['id_text']) &
-						Q(tag_id__markup_type_id=1)
-					).count()
-				else:
-					num_of_errors = ''
+	tasks = TblText.objects\
+		.filter(user_id=user_id)\
+		.order_by('-create_date')\
+		.values(
+			'id_text',
+			'language_id__language_name',
+			'text_type_id__text_type_name',
+			'header',
+			'create_date',
+			'error_tag_check',
+			'assessment',
+		).all()
+	
+	task_list = []
+	if tasks.exists():
+		for task in tasks:
+			error_check = 'Да' if task['error_tag_check'] else 'Нет'
+			assessment = ''
+			if task['assessment'] and task['assessment'] > 0:
+				for element in TblText.TASK_RATES:
+					if task['assessment'] == element[0]:
+						assessment = element[1]
+						break
+			if assessment:
+				num_of_errors = TblMarkup.objects.filter(
+					Q(token_id__sentence_id__text_id=task['id_text']) &
+					Q(tag_id__markup_type_id=1)
+				).count()
+			else:
+				num_of_errors = ''
 
-				path = {'lang': task['language_id__language_name'],
-						'type': task['text_type_id__text_type_name'],
-						'id': task['id_text']
-						}
+			path = {'lang': task['language_id__language_name'],
+					'type': task['text_type_id__text_type_name'],
+					'id': task['id_text']
+					}
 
-				out.append({
-					'header': task['header'],
-					'path': path,
-					'error_check': error_check,
-					'assessment': assessment,
-					'err_count': num_of_errors,
-					'date': task['create_date']
-				})
+			task_list.append({
+				'header': task['header'],
+				'path': path,
+				'error_check': error_check,
+				'assessment': assessment,
+				'err_count': num_of_errors,
+				'date': task['create_date']
+			})
 
-		return (render(request, 'tasks_list.html', context={
-			'right': True,
-			'author': about_student,
-			'tasks': out
-		}))
-	else:
-		return render(request, 'access_denied.html')
+	return (render(request, 'task_list.html', context={
+		'author': author_data,
+		'tasks': task_list
+	}))
 
 
 # * Dashboard (Polina Osipova)
-
-
 def DFS(v, c, h, data):
 	h[v] = 1
 	c += data[v]["count_data"]
