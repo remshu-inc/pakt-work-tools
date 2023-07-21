@@ -33,8 +33,8 @@
 				<th scope="col" class="ps-4 col-3">Название</th>
 				<th scope="col" class="col-2">Тип текста</th>
 				<th scope="col">Дата создания</th>
-				<th scope="col">Проверка ошибок</th>
-				<th scope="col">Оценка</th>
+				<th scope="col" class="text-center">Проверка ошибок</th>
+				<th scope="col" class="text-center">Оценка</th>
 				<th scope="col" class="pe-4">Количество ошибок</th>
 			</tr>
 		</thead>
@@ -52,8 +52,45 @@
 				</td>
 				<td class="">{{task.path.type}}</td>
 				<td class="">{{task.date}}</td>
-				<td class="">{{task.error_check}}</td>
-				<td class="">{{task.assessment}}</td>
+				<td class="text-center">
+					{% if task.error_check == 'Да' %}
+					<span title="Проверено">
+						<svg
+							class="bi text-success"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="m8.5 12.5 2 2 5-5"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M7 3.34A10 10 0 1 1 3.34 7" />
+						</svg>
+					</span>
+					{% else %}
+					<span title="Не проверено">
+						<svg
+							class="bi text-secondary"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="m14.5 9.5-5 5m0-5 5 5M7 3.34A10 10 0 1 1 3.34 7"
+							/></svg
+					></span>
+					{% endif %}
+				</td>
+				<td class="text-center">{{task.assessment}}</td>
 				<td class="pe-4">{{task.err_count}}</td>
 			</tr>
 			{% endfor %}
