@@ -626,13 +626,13 @@ def chart_errors_types(request):
             languages = list(TblLanguage.objects.values())
             text_types = list(TblTextType.objects.values())
             groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
-            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
             courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
-            for date in enrollement_date:
-                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
-                                            + str(date['enrollement_date'].year+1)
+            for date in enrollment_date:
+                date['enrollment_date'] = str(date['enrollment_date'].year) + ' \ ' \
+                                            + str(date['enrollment_date'].year+1)
 
             data_count_errors = list(
                 TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
@@ -643,7 +643,7 @@ def chart_errors_types(request):
 
             return render(request, 'dashboard_error_types.html', {'right': True, 'languages': languages,
                                                            'courses': courses, 'groups': groups,
-                                                           'enrollement_date': enrollement_date,
+                                                           'enrollment_date': enrollment_date,
                                                            'texts': texts, 'text_types': text_types,
                                                            'levels': levels, 'data': data})
         else:
@@ -759,7 +759,7 @@ def chart_errors_types(request):
                     TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                              'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
                         sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date) & Q(
 
                         sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
                         count_data=Count('tag__id_tag')))
@@ -772,7 +772,7 @@ def chart_errors_types(request):
                     TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                              'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
                         sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date) & Q(
                         sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
 
             elif groups and text_types_id:
@@ -783,7 +783,7 @@ def chart_errors_types(request):
                     TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                              'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
                         sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date) & Q(
                         sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
             elif groups:
@@ -794,7 +794,7 @@ def chart_errors_types(request):
                     TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
                                              'tag__tag_text_russian').filter(Q(tag__markup_type=1) & Q(
                         sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date)).annotate(
+                        sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date)).annotate(
                         count_data=Count('tag__id_tag')))
 
             elif text_types_id and text:
@@ -837,13 +837,13 @@ def chart_grade_errors(request):
             languages = list(TblLanguage.objects.values())
             text_types = list(TblTextType.objects.values())
             groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
-            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
             courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
-            for date in enrollement_date:
-                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
-                                            + str(date['enrollement_date'].year+1)
+            for date in enrollment_date:
+                date['enrollment_date'] = str(date['enrollment_date'].year) + ' \ ' \
+                                            + str(date['enrollment_date'].year+1)
 
             data_grade = list(
                 TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
@@ -852,7 +852,7 @@ def chart_grade_errors(request):
 
             return render(request, 'dashboard_error_grade.html', {'right': True, 'languages': languages,
                                                                         'courses': courses, 'groups': groups,
-                                                                        'enrollement_date': enrollement_date,
+                                                                        'enrollment_date': enrollment_date,
                                                                         'texts': texts, 'text_types': text_types,
                                                                         'data':  data_grade})
         else:
@@ -955,7 +955,7 @@ def chart_grade_errors(request):
                     TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
                         Q(tag__markup_type=1) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date) & Q(
                             sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
                         count_data=Count('grade__id_grade')))
 
@@ -967,7 +967,7 @@ def chart_grade_errors(request):
                     TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
                         Q(tag__markup_type=1) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date) & Q(
                             sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
 
             elif groups and text_types_id:
@@ -978,7 +978,7 @@ def chart_grade_errors(request):
                     TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
                         Q(tag__markup_type=1) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date) & Q(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date) & Q(
                             sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
 
             elif groups:
@@ -989,7 +989,7 @@ def chart_grade_errors(request):
                     TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language').filter(
                         Q(tag__markup_type=1) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=groups) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=group_date)).annotate(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=group_date)).annotate(
                         count_data=Count('grade__id_grade')))
 
             elif text_types_id and text:
@@ -1025,13 +1025,13 @@ def chart_types_grade_errors(request):
             languages = list(TblLanguage.objects.values())
             text_types = list(TblTextType.objects.values())
             groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
-            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
             courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
-            for date in enrollement_date:
-                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
-                                            + str(date['enrollement_date'].year+1)
+            for date in enrollment_date:
+                date['enrollment_date'] = str(date['enrollment_date'].year) + ' \ ' \
+                                            + str(date['enrollment_date'].year+1)
 
             grades = list(TblGrade.objects.values('id_grade', 'grade_name', 'grade_language'))
 
@@ -1049,7 +1049,7 @@ def chart_types_grade_errors(request):
 
             return render(request, 'dashboard_error_types_grade.html', {'right': True, 'languages': languages,
                                                                         'courses': courses, 'groups': groups,
-                                                                        'enrollement_date': enrollement_date,
+                                                                        'enrollment_date': enrollment_date,
                                                                         'texts': texts, 'text_types': text_types,
                                                                         'levels': levels, 'data': data,
                                                                         'grades': grades})
@@ -1182,7 +1182,7 @@ def chart_types_grade_errors(request):
                                                  'tag__tag_text_russian').filter(
                             Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
                                 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                     group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
                                 sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
@@ -1196,7 +1196,7 @@ def chart_types_grade_errors(request):
                                                  'tag__tag_text_russian').filter(
                             Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
                                 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                     group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
                             count_data=Count('tag__id_tag')))
 
@@ -1210,7 +1210,7 @@ def chart_types_grade_errors(request):
                                                  'tag__tag_text_russian').filter(
                             Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
                                 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                     group_date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
                             count_data=Count('tag__id_tag')))
 
@@ -1225,7 +1225,7 @@ def chart_types_grade_errors(request):
                                                  'tag__tag_text_russian').filter(
                             Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
                                 sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                                sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                     group_date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
 
                 elif text_types_id and text:
@@ -1324,12 +1324,12 @@ def chart_group_errors(request):
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
             tags = list(TblTag.objects.values('id_tag', 'tag_language', 'tag_text', 'tag_text_russian').filter(
                 markup_type=1).order_by('id_tag'))
-            groups = list(TblGroup.objects.values('group_name', 'enrollement_date', 'language')
-                          .distinct().order_by('-enrollement_date'))
+            groups = list(TblGroup.objects.values('group_name', 'enrollment_date', 'language')
+                          .distinct().order_by('-enrollment_date'))
 
             for group in groups:
-                group['enrollement_date'] = str(group['enrollement_date'].year) + ' \ ' \
-                                            + str(group['enrollement_date'].year + 1)
+                group['enrollment_date'] = str(group['enrollment_date'].year) + ' \ ' \
+                                            + str(group['enrollment_date'].year + 1)
 
             return render(request, 'dashboard_error_groups.html',
                           {'right': True, 'languages': languages, 'texts': texts, 'text_types': text_types,
@@ -1359,7 +1359,7 @@ def chart_group_errors(request):
                     d = list(TblMarkup.objects.annotate(
                         id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
                         number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
-                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date')).values(
                         'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
                         number=group_number[i]) & Q(date=group_date[i]) & Q(tag__id_tag=tag) & Q(
                         sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
@@ -1369,7 +1369,7 @@ def chart_group_errors(request):
                     d = list(TblMarkup.objects.annotate(
                         id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
                         number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
-                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date')).values(
                         'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
                         number=group_number[i]) & Q(date=group_date[i]) & Q(tag__id_tag=tag) & Q(
                         sentence__text_id__header=text)).annotate(count_data=Count('id_group')))
@@ -1378,7 +1378,7 @@ def chart_group_errors(request):
                     d = list(TblMarkup.objects.annotate(
                         id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
                         number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
-                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date')).values(
                         'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
                         number=group_number[i]) & Q(date=group_date[i]) & Q(tag__id_tag=tag) & Q(
                         sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('id_group')))
@@ -1387,7 +1387,7 @@ def chart_group_errors(request):
                     d = list(TblMarkup.objects.annotate(
                         id_group=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__id_group'),
                         number=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name'),
-                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date')).values(
+                        date=F('sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date')).values(
                         'tag__tag_language', 'id_group', 'number', 'date').filter(Q(tag__markup_type=1) & Q(
                         number=group_number[i]) & Q(date=group_date[i]) & Q(
                         tag__id_tag=tag)).annotate(count_data=Count('id_group')))
@@ -1410,19 +1410,19 @@ def chart_emotion_errors(request):
             languages = list(TblLanguage.objects.values())
             text_types = list(TblTextType.objects.values())
             groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
-            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
             courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
-            for date in enrollement_date:
-                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
-                                            + str(date['enrollement_date'].year + 1)
+            for date in enrollment_date:
+                date['enrollment_date'] = str(date['enrollment_date'].year) + ' \ ' \
+                                            + str(date['enrollment_date'].year + 1)
             emotions = list(TblEmotional.objects.values())
 
             levels = get_levels()
             return render(request, 'dashboard_error_emotions.html', {'right': True, 'languages': languages,
                                                                         'courses': courses, 'groups': groups,
-                                                                        'enrollement_date': enrollement_date,
+                                                                        'enrollment_date': enrollment_date,
                                                                         'texts': texts, 'text_types': text_types,
                                                                         'levels': levels, 'emotions': emotions})
         else:
@@ -1550,7 +1550,7 @@ def chart_emotion_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
                             sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
@@ -1564,7 +1564,7 @@ def chart_emotion_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
                         count_data=Count('tag__id_tag')))
 
@@ -1578,7 +1578,7 @@ def chart_emotion_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
                         count_data=Count('tag__id_tag')))
 
@@ -1592,7 +1592,7 @@ def chart_emotion_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
 
             elif text_types_id and text and emotions:
@@ -1638,13 +1638,13 @@ def chart_self_asses_errors(request):
             languages = list(TblLanguage.objects.values())
             text_types = list(TblTextType.objects.values())
             groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
-            enrollement_date = list(TblGroup.objects.values('enrollement_date').distinct().order_by('enrollement_date'))
+            enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
             courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
             texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
-            for date in enrollement_date:
-                date['enrollement_date'] = str(date['enrollement_date'].year) + ' \ ' \
-                                            + str(date['enrollement_date'].year + 1)
+            for date in enrollment_date:
+                date['enrollment_date'] = str(date['enrollment_date'].year) + ' \ ' \
+                                            + str(date['enrollment_date'].year + 1)
 
             self_asses = list(
                 TblText.objects.values('self_rating').filter(self_rating__isnull=False).distinct().order_by(
@@ -1661,7 +1661,7 @@ def chart_self_asses_errors(request):
 
             return render(request, 'dashboard_error_self_assesment.html', {'right': True, 'languages': languages,
                                                                         'courses': courses, 'groups': groups,
-                                                                        'enrollement_date': enrollement_date,
+                                                                        'enrollment_date': enrollment_date,
                                                                         'texts': texts, 'text_types': text_types,
                                                                         'levels': levels, 'self_asses': self_asses})
         else:
@@ -1789,7 +1789,7 @@ def chart_self_asses_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text) & Q(
                             sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
@@ -1803,7 +1803,7 @@ def chart_self_asses_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d")) & Q(sentence__text_id__header=text)).annotate(
                         count_data=Count('tag__id_tag')))
 
@@ -1817,7 +1817,7 @@ def chart_self_asses_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d")) & Q(sentence__text_id__text_type=text_types_id)).annotate(
                         count_data=Count('tag__id_tag')))
 
@@ -1831,7 +1831,7 @@ def chart_self_asses_errors(request):
                                              'tag__tag_text_russian').filter(
                         Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
                             sentence__text_id__user__tblstudent__tblstudentgroup__group__group_name=group_number) & Q(
-                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollement_date=datetime.strptime(
+                            sentence__text_id__user__tblstudent__tblstudentgroup__group__enrollment_date=datetime.strptime(
                                 group_date, "%Y-%m-%d"))).annotate(count_data=Count('tag__id_tag')))
 
             elif text_types_id and text and self_asses:
