@@ -1,3 +1,5 @@
+"""#!/usr/bin/python3"""
+
 from setuptools import setup, find_packages
 
 requirements = []
@@ -15,11 +17,16 @@ setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     version='0.1.1',
-    license='Apache 2.0',
-    python_requires='>=3.7',
-    url='https://github.com/remshu/pakt-work-tools',
+    license='LGPL-2.1',
+    python_requires='>=3.10',
+    url='https://github.com/remshu-inc/pakt-work-tools',
     package_dir={'': '.'},
-    packages=find_packages(where='.'),
+    packages=find_packages(where='.') + ["templates", "static"],
     include_package_data=True,
-    install_requires=requirements
+    package_data={'templates': ['*'], 'static': ["*"]},
+    install_requires=requirements,
+    scripts=['manage.py', 'create_folders.py', 'create_migrations.py', 'drop_migrations.py'],
+    entry_points = {
+        'console_scripts': ['run-pakt-server = manage:main']
+    }
 )

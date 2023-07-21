@@ -124,7 +124,7 @@
                             </div>
 
                             <div class="mb-4 custom-input">
-                                <label for="{{ form_text.emotional.id_for_label }}" class="form-label">Эмоциональное состояние написания текста</label>
+                                <label for="{{ form_text.emotional.id_for_label }}" class="form-label">Эмоционально-физиологическое состояние написания текста</label>
                                 {% if not form_text.emotional.errors %}
                                 {{ form_text.emotional }}
                                 {% else %}
@@ -145,18 +145,9 @@
                         </div>
 
                         <div class="col-6">
-                            <div class="mb-4 custom-input">
-                                <label for="{{ form_text.write_tool.id_for_label }}" class="form-label">Как написан текст</label>
-                                {% if not form_text.write_tool.errors %}
-                                {{ form_text.write_tool }}
-                                {% else %}
-                                {{ form_text.write_tool|addclass:'is-invalid' }}
-                                {% comment %} TODO: Добавить вывод ошибки? {% endcomment %}
-                                {% endif %}
-                            </div>
 
                             <div class="mb-4 custom-input">
-                                <label for="{{ form_text.education_level.id_for_label }}" class="form-label">Уровень знания языка(в годах)</label>
+                                <label for="{{ form_text.education_level.id_for_label }}" class="form-label">Год изучения языка</label>
                                 {% if not form_text.education_level.errors %}
                                 {{ form_text.education_level }}
                                 {% else %}

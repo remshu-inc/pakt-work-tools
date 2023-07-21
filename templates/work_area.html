@@ -3,7 +3,6 @@
 {%block functions%}
 
 
-
 function re_built_classification(response, lang){
     var tags_field = document.getElementById("tag-type-create-form-classification")
     while (tags_field.firstChild) {
@@ -72,7 +71,7 @@ function re_built_classification(response, lang){
         }))
     }
 }
-function re_built_text(response, lang){
+function re_built_text(response, lang, ann_right){
     var sentences_info = response.data.sentences
     var main_table = document.getElementsByClassName("text-area")[0]
     while (main_table.firstChild) {
@@ -153,6 +152,7 @@ function re_built_text(response, lang){
                     token_markup.setAttribute('annotation-id',mrk_info.ann_id)
                     token_markup.setAttribute('data-toggle', 'tooltip')
                     if(lang==0){
+                        token_markup.setAttribute('current-name',response.data.markup_info[mrk_info.ann_id].tag_text)
                         token_markup.setAttribute(
                             'title',String(response.data.markup_info[mrk_info.ann_id].tag_text)+'\n'+
                                         'Аббревиатура: '+String(response.data.markup_info[mrk_info.ann_id].tag_text_abbrev)+'\n'+
@@ -162,6 +162,7 @@ function re_built_text(response, lang){
                                         'Комментарий:  '+String(mrk_info.comment)+'\n')
                     }
                     else{
+                        token_markup.setAttribute('curren_name',response.data.markup_info[mrk_info.ann_id].tag_text_russian)
                         token_markup.setAttribute(
                             'title',String(response.data.markup_info[mrk_info.ann_id].tag_text_russian)+'\n'+
                             'Причина:  '+String(mrk_info.reason)+'\n'+
@@ -170,6 +171,7 @@ function re_built_text(response, lang){
                             'Комментарий:  '+String(mrk_info.comment)+'\n')
                     }
                     token_markup.setAttribute('annotation-type',response.data.markup_info[mrk_info.ann_id].markup_type)
+                    token_markup.setAttribute('name-abbrev',response.data.markup_info[mrk_info.ann_id].tag_text_abbrev)
                     token_markup.setAttribute('ann-color',response.data.markup_info[mrk_info.ann_id].tag_color)
                     token_markup.setAttribute('token-markup-id', mrk_info.token_markup_id)
                     token_markup.setAttribute('child-token-id',mrk_info.token_id)
@@ -177,6 +179,7 @@ function re_built_text(response, lang){
                     token_markup.setAttribute("v-on:mouseleave","outHoverAnnotation")
                     token_markup.setAttribute("v-on:click","ModifyAnnotation")
                     token_markup.setAttribute("style",`background-color: ${response.data.markup_info[mrk_info.ann_id].tag_color};`)
+                    token_markup.setAttribute('annotation-position',mrk_info.ann_position)
 
                     annotation_cell.setAttribute('annotation-position',mrk_info.ann_position)
                 }
@@ -1015,4 +1018,5 @@ function reset_language(event){
         {%endif%}
     }
 }
+
 {%endblock%}

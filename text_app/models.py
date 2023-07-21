@@ -108,7 +108,7 @@ class TblText(models.Model):
     modified_date = models.DateField(null=True)
 
     education_level = models.IntegerField(blank=True, null=True)
-    self_rating = models.IntegerField(blank=True, null=True, choices=RATES)
+    self_rating = models.IntegerField(blank=True, null=True, choices=TASK_RATES)
     student_assesment = models.IntegerField(blank=True, null=True, choices=RATES)
     creation_course = models.IntegerField(choices=YEARS)
 

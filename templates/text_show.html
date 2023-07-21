@@ -337,10 +337,12 @@ td{
 {%block annotation_edit_form_css%}{%endblock%}
 {%endblock styles%}
 </style>
+{% load static %}
 
 {%block plugins%}
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="{% static 'js/work_area.js' %}"></script>
 {%endblock plugins%}
 
 <body>
@@ -376,6 +378,14 @@ td{
                     <option id="foreign-option" value="0">{{lang_name}}</option>
                     <option id="russian-option" value="1">Русский</option>
                 </select>
+            </div>
+        </li>
+        <li><h6 class="dropdown-header">Компактный вид</h6></li>
+        <li>
+            <div class="dropdown-item-text mfield">
+                <div class="form-check form-switch">
+                   <input class="form-check-input" type="checkbox" id="tag-style" v-on:click = "SwitchTagStyle">
+                </div>
             </div>
         </li>
         <li><h6 class="dropdown-header">Части речи</h6></li>
@@ -418,6 +428,12 @@ td{
         <li>
             <div class="dropdown-item-text mfield">
                 <a href = 'show_raw' class="btn shadow-none update-button text-menu-btn">Исходный текст</a>
+            </div>
+        </li>
+        <li>
+            <div class="dropdown-item-text mfield" id="update_part_of_speech_btn">
+                <a href="#" class="btn shadow-none update-button text-menu-btn"
+                   onclick="process_part_of_speech(event, '{{language}}', '{{text_type}}', '{{text_id}}')">Обновление частей речи</a>
             </div>
         </li>
         {%if superuser%}
@@ -468,16 +484,10 @@ td{
     <ul class="dropdown-menu">
         <li>
             <div class="dropdown-item-text mfield">
-                <label class = "mflabel">Эмоциональное состояние:  </label>
+                <label class = "mflabel">Эмоционально-физиологическое состояние:  </label>
                 {{text_info.emotional}}
             </div>
-        </li>
-        <li>
-            <div class="dropdown-item-text mfield">
-                <label class = "mflabel">Средство написания:  </label>
-                {{text_info.write_tool}}
-            </div>
-        </li>
+        </li> 
         <li>
             <div class="dropdown-item-text mfield">
                 <label class = "mflabel">Место написания:   </label>
@@ -486,7 +496,7 @@ td{
         </li>
         <li>
             <div class="dropdown-item-text mfield">
-                <label class = "mflabel">Уровень знания языка:  </label>
+                <label class = "mflabel">Год изучения языка:  </label>
                 {{text_info.education_level}}
             </div>
         </li>
@@ -738,6 +748,38 @@ if (eventData.button === 0) {
     key_down=false}
 }
 
+function process_part_of_speech(eventData, language, text_type, text_id) {
+    // функция отправки запроса на обновление частеречной разметки текста
+    eventData.preventDefault();
+
+    if (!window.confirm("Вы действительно желаете обновить частеречную разметку? Старая разметка будет удалена")) {
+        return;
+    }
+
+    document.getElementById("update_part_of_speech_btn").style.display = 'none';
+
+    let process_url = "{% url 'part_of_speech' %}";
+    fetch(process_url, {
+        method: 'POST',
+        body: JSON.stringify({language, text_type, text_id})
+    }).then(
+        response => {
+            if (response.ok) {
+                console.log("SUCCESS");
+                window.alert("Частеречная разметка обновлена!");
+                document.getElementById("update_part_of_speech_btn").style.display = 'block';
+                return;
+            } else {
+                window.alert("Ошибка разметки текста: " + response.statusText)
+            }
+            console.log(response);
+        }, networkError => {
+            window.alert("Ошибка разметки текста: " + networkError.message)
+            console.log(networkError.message);
+        }
+    );
+}
+
 {%if ann_right%}
 {#режим редактирование аннотации (1-создание, 2-обновление)#} 
 var selected_tag = 0 //Удалить
@@ -796,6 +838,29 @@ var lang_changers = new Vue({
     el:"#lang-change-area",
     methods:{
         ChangeLang:reset_language
+    }
+})
+var switchtagstyle = new Vue({
+    el:"#tag-style",
+    methods:{
+        SwitchTagStyle: function change_tag_style(event){
+            var tags = document.querySelectorAll('[annotation-type="1"][annotation-position="start"],[annotation-type="1"][annotation-position="single"]')
+            if(compact_style ==0 ){
+                compact_style = 1
+                console.log(tags[1].innerHTML)
+                for(let i = 0; i < tags.length; i++){
+                    var new_name = tags[i].getAttribute('name-abbrev')
+                    tags[i].innerHTML = new_name
+                }
+            }
+            else{
+                compact_style = 0
+                for(let i = 0; i < tags.length; i++){
+                    var new_name = tags[i].getAttribute('current-name')
+                    tags[i].innerHTML = new_name
+                } 
+            }
+        }
     }
 })
 var switchpos = new Vue({

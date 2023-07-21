@@ -1,0 +1,5 @@
+numpy~=1.22
+pandas==1.4.2
+PyMySQL==1.0.3
+SQLAlchemy==2.0.15
+cryptography
