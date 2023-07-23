@@ -1,437 +1,471 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% load static %} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/table_fix.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
 {% block content %}
+<main class="container my-4">
+	{% if is_teacher %}
+	<div class="col-6 mx-auto mt-5">{{ search_form.header }}</div>
+	{% endif %}
+	<!-- Language choice -->
+	{% if content == 'languages' %}
+	<table class="table table-hover card-rounded bg-white shadow my-4">
+		<thead class="table-light">
+			<tr>
+				<th class="px-3 py-2">
+					<a
+						class="d-flex gap-2 link-primary text-decoration-none"
+						href="?order_by=language_name&reverse={{ reverse|yesno:'False,True' }}"
+					>
+						{% if order_by == 'language_name' %}
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-width="1.5" d="M11 11H3M12 16H3" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M15 11.5 17.5 9m0 0 2.5 2.5M17.5 9v8"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M20 6H9.5M3 6h2.25" />
+						</svg>
+						{% elif order_by == '-language_name' %}
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-width="1.5" d="M11 16H3M12 11H3" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="m15 14.5 2.5 2.5m0 0 2.5-2.5M17.5 17V9"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M3 6h10.5M20 6h-2.25" />
+						</svg>
+						{% endif %}
+						<span>Язык</span>
+					</a>
+				</th>
+			</tr>
+		</thead>
 
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/corpus.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'css/modal.css' %}">    
-<script type="text/x-template" id="modal-template">
-    <transition name="modal">
-      <div class="modal-mask">
-        <div class="modal-wrapper">
-          <div class="modal-container">
-                <h2>Выбор студента</h2>
+		<tbody>
+			{% for language in languages %}
+			<tr>
+				<td class="ps-3">
+					<a href="{{ language.language_name }}" class="link-primary text-decoration-none d-flex gap-2">
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-width="1.5"
+								d="M19.562 7a2.132 2.132 0 0 0-2.1-2.5H6.538a2.132 2.132 0 0 0-2.1 2.5M17.5 4.5c.028-.26.043-.389.043-.496a2 2 0 0 0-1.787-1.993C15.65 2 15.52 2 15.26 2H8.74c-.26 0-.391 0-.497.011a2 2 0 0 0-1.787 1.993c0 .107.014.237.043.496"
+							/>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M15 18H9M21.194 16.793c-.35 2.48-.525 3.721-1.422 4.464-.897.743-2.22.743-4.867.743h-5.81c-2.646 0-3.97 0-4.867-.743-.897-.743-1.072-1.983-1.422-4.464l-.422-3c-.447-3.164-.67-4.745.278-5.77C3.61 7 5.298 7 8.672 7h6.656c3.374 0 5.062 0 6.01 1.024.748.809.767 1.966.521 3.976"
+							/>
+						</svg>
 
-                <form method="post" novalidate action="new_text">
-                    {% csrf_token %}
-                    <div class="mb-4 custom-input">
-                        <label for="student" class="form-label">Студент</label>
-                        <select class="form-control" id="student" name='student'>
-                            {% for student in all_students %}
-                            <option value="{{student.0}}">{{ student.1 }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                
-                <button class="btn shadow-none update-button" style="float: right;">
-                    Новый текст
-                </button>
+						<span>{{ language.language_name }}</span>
+					</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 
-                </form>
+	<!-- Text type choice -->
+	{% elif content == 'text_types' %}
+	<table class="table table-hover card-rounded bg-white shadow my-4">
+		<thead class="table-light">
+			<tr>
+				<th class="px-3 py-2">
+					<a
+						class="link-primary text-decoration-none d-flex gap-2"
+						href="?order_by=text_type_name&reverse={{ reverse|yesno:'False,True' }}"
+					>
+						{% if order_by == 'text_type_name' %}
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-width="1.5" d="M11 11H3M12 16H3" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M15 11.5 17.5 9m0 0 2.5 2.5M17.5 9v8"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M20 6H9.5M3 6h2.25" />
+						</svg>
+						{% elif order_by == '-text_type_name' %}
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-width="1.5" d="M11 16H3M12 11H3" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="m15 14.5 2.5 2.5m0 0 2.5-2.5M17.5 17V9"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M3 6h10.5M20 6h-2.25" />
+						</svg>
+						{% endif %}<span>Тип текста</span>
+					</a>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td class="ps-3">
+					<a class="link-secondary text-decoration-none d-flex gap-2" href="{% url 'corpus' %}"
+						><svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M4 7h11a5 5 0 0 1 0 10M4 7l3-3M4 7l3 3m1 7h3"
+							/>
+						</svg>
+						<span>Назад</span>
+					</a>
+				</td>
+			</tr>
+			{% for text_type in text_types %}
+			<tr>
+				<td class="ps-3">
+					<a class="link-primary text-decoration-none d-flex gap-2" href="{{ text_type.text_type_name }}">
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M18 10h-5M22 11.798c0-2.632 0-3.949-.77-4.804a2.984 2.984 0 0 0-.224-.225C20.151 6 18.834 6 16.202 6h-.374c-1.153 0-1.73 0-2.268-.153a4 4 0 0 1-.848-.352C12.224 5.224 11.816 4.815 11 4l-.55-.55c-.274-.274-.41-.41-.554-.53a4 4 0 0 0-2.18-.903C7.53 2 7.336 2 6.95 2c-.883 0-1.324 0-1.692.07A4 4 0 0 0 2.07 5.257C2 5.626 2 6.068 2 6.95M21.991 16c-.036 2.48-.22 3.885-1.163 4.828C19.657 22 17.771 22 14 22h-4c-3.771 0-5.657 0-6.828-1.172C2 19.657 2 17.771 2 14v-3"
+							/>
+						</svg>
+						<span>{{ text_type.text_type_name }}</span>
+					</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 
-                <button class="btn shadow-none decline-button" style="float: left;" @click="$emit('close')">
-                    Закрыть
-                </button>
+	<!-- Text choice -->
+	{% elif content == 'texts' %}
+	<table class="table table-hover card-rounded bg-white shadow my-4">
+		<thead class="table-light">
+			<tr>
+				<th class="px-3 py-2">
+					<a
+						class="link-primary text-decoration-none d-flex gap-2"
+						href="?order_by=header&reverse={{ reverse|yesno:'False,True' }}"
+					>
+						<div class="d-none d-sm-block">
+							{% if order_by == 'header' %}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path stroke-linecap="round" stroke-width="1.5" d="M11 11H3M12 16H3" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="1.5"
+									d="M15 11.5 17.5 9m0 0 2.5 2.5M17.5 9v8"
+								/>
+								<path stroke-linecap="round" stroke-width="1.5" d="M20 6H9.5M3 6h2.25" />
+							</svg>
+							{% elif order_by == '-header'%}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path stroke-linecap="round" stroke-width="1.5" d="M11 16H3M12 11H3" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="1.5"
+									d="m15 14.5 2.5 2.5m0 0 2.5-2.5M17.5 17V9"
+								/>
+								<path stroke-linecap="round" stroke-width="1.5" d="M3 6h10.5M20 6h-2.25" />
+							</svg>
+							{% else %}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M4 7h3m13 0h-9M20 17h-3M4 17h9M4 12h16"
+								/>
+							</svg>
+							{% endif %}
+						</div>
+						<span>Название текста</span>
+					</a>
+				</th>
+				<th>
+					<a
+						class="link-primary text-decoration-none d-flex gap-2"
+						href="?order_by=user_id__last_name&reverse={{ reverse|yesno:'False,True' }}"
+					>
+						<div class="d-none d-sm-block">
+							{% if order_by == 'user_id__last_name' %}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path stroke-linecap="round" stroke-width="1.5" d="M11 11H3M12 16H3" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="1.5"
+									d="M15 11.5 17.5 9m0 0 2.5 2.5M17.5 9v8"
+								/>
+								<path stroke-linecap="round" stroke-width="1.5" d="M20 6H9.5M3 6h2.25" />
+							</svg>
+							{% elif order_by == '-user_id__last_name' %}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path stroke-linecap="round" stroke-width="1.5" d="M11 16H3M12 11H3" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="1.5"
+									d="m15 14.5 2.5 2.5m0 0 2.5-2.5M17.5 17V9"
+								/>
+								<path stroke-linecap="round" stroke-width="1.5" d="M3 6h10.5M20 6h-2.25" />
+							</svg>
+							{% else %}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M4 7h3m13 0h-9M20 17h-3M4 17h9M4 12h16"
+								/>
+							</svg>
+							{% endif %}
+						</div>
+						<span>Автор</span>
+					</a>
+				</th>
+				<th>
+					<a
+						class="link-primary text-decoration-none d-flex gap-2"
+						href="?order_by=modified_date&reverse={{ reverse|yesno:'False,True' }}"
+					>
+						<div class="d-none d-sm-block">
+							{% if order_by == 'modified_date'%}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path stroke-linecap="round" stroke-width="1.5" d="M11 11H3M12 16H3" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="1.5"
+									d="M15 11.5 17.5 9m0 0 2.5 2.5M17.5 9v8"
+								/>
+								<path stroke-linecap="round" stroke-width="1.5" d="M20 6H9.5M3 6h2.25" />
+							</svg>
+							{% elif order_by == '-modified_date' %}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path stroke-linecap="round" stroke-width="1.5" d="M11 16H3M12 11H3" />
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="1.5"
+									d="m15 14.5 2.5 2.5m0 0 2.5-2.5M17.5 17V9"
+								/>
+								<path stroke-linecap="round" stroke-width="1.5" d="M3 6h10.5M20 6h-2.25" />
+							</svg>
+							{% else %}
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M4 7h3m13 0h-9M20 17h-3M4 17h9M4 12h16"
+								/>
+							</svg>
+							{% endif %}
+						</div>
+						<span>Дата модификации</span>
+					</a>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td colspan="3" class="ps-3">
+					<a
+						class="link-secondary text-decoration-none d-flex gap-2"
+						href="{% url 'language' language=selected_language%}"
+						><svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M4 7h11a5 5 0 0 1 0 10M4 7l3-3M4 7l3 3m1 7h3"
+							/>
+						</svg>
+						<span>Назад</span>
+					</a>
+				</td>
+			</tr>
 
-          </div>
-        </div>
-      </div>
-    </transition>
-  </script>
+			{% for text_data in text_list %}
+			<tr>
+				<td class="ps-3">
+					<a class="link-primary text-decoration-none d-flex gap-2" href="{{ text_data.text.id_text }}">
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-width="1.5"
+								d="m18.18 8.04.463-.464a1.966 1.966 0 1 1 2.781 2.78l-.463.464M18.18 8.04s.058.984.927 1.853 1.854.927 1.854.927M18.18 8.04l-4.26 4.26c-.29.288-.434.433-.558.592-.146.188-.271.39-.374.606-.087.182-.151.375-.28.762l-.413 1.24-.134.401m8.8-5.081-4.26 4.26c-.29.29-.434.434-.593.558-.188.146-.39.271-.606.374-.182.087-.375.151-.762.28l-1.24.413-.401.134m0 0-.401.134a.53.53 0 0 1-.67-.67l.133-.402m.938.938-.938-.938"
+							/>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M8 13h2.5M8 9h6.5M8 17h1.5M3 14v-4c0-3.771 0-5.657 1.172-6.828C5.343 2 7.229 2 11 2h2c3.771 0 5.657 0 6.828 1.172M21 14c0 3.771 0 5.657-1.172 6.828m-15.656 0C5.343 22 7.229 22 11 22h2c3.771 0 5.657 0 6.828-1.172m0 0c.944-.943 1.127-2.348 1.163-4.828"
+							/>
+						</svg>
+						<span class="ellipsis">{{ text_data.text.header }} </span>
+					</a>
+				</td>
+				<td>{{ text_data.author_name }}</td>
+				<td class="pe-3">{{ text_data.text.modified_date }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 
-<div class="container">
-    <div class="row">
+	<!-- Error message -->
+	{% elif content == 'error' %}
+	<div class="alert alert-danger my-3 w-100 d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path stroke-linecap="round" stroke-width="1.5" d="M12 7v6" />
+			<circle cx="12" cy="16" r="0.5" fill="currentColor" />
+			<path " stroke-linecap="round" stroke-width="1.5" d="M9.216 3c1.18-.667 1.954-1 2.784-1 1.114 0 2.128.6
+			4.157 1.802l.686.406c2.029 1.202 3.043 1.803 3.6 2.792.557.99.557 2.19.557 4.594v.812c0 2.403 0 3.605-.557
+			4.594-.557.99-1.571 1.59-3.6 2.791l-.686.407C14.128 21.399 13.114 22 12 22c-1.114
+			0-2.128-.6-4.157-1.802l-.686-.407c-2.029-1.2-3.043-1.802-3.6-2.791C3 16.01 3 14.81 3 12.406v-.812C3 9.19 3
+			7.989 3.557 7 3.996 6.22 4.719 5.682 6 4.9"/>
+		</svg>
 
-        {# ERROR #}
-        {% if error %}
-
-        <h1 class="text-center mt-5 text-danger">
-            {{ text_html }} 
-        </h1>
-
-        {% endif %}
-
-        {# For anonymous users #}
-        {% if not user.is_authenticated %}
-
-        <h1 class="text-center mt-5 text-danger">
-            You need to log in. 
-        </h1>
-
-        {% else %}
-
-        {# Search for teachers #}
-        {% if user.is_teacher %}
-
-        <div class="d-flex justify-content-center mt-5">
-            <div class="col-6">
-                <form action="{% url 'corpus_search' %}" method="post" novalidate>
-                    {% csrf_token %}
-                    <div class="input-group mb-1">
-                        {% load filters %}
-                        {{ form_search.header|addclass:'non-round' }}
-                        <button class="btn shadow-none decline-button btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
-                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                            </svg>
-                            Фильтр
-                        </button>
-                        <button name="corpus_search" class="btn shadow-none update-button" type="submit" id="button-addon">Поиск</button>
-                    </div>
-
-                    <div class="filter" id="list-filter">
-                        <div class="row">
-                            <div class="col-4">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.user.id_for_label }}" class="form-label">Автор</label>
-                                    {{ form_search.user }}
-                                </div>
-                            </div>
-        
-                            <div class="col-4">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.create_date.id_for_label }}" class="form-label">Дата создания</label>
-                                    {{ form_search.create_date }}
-                                </div>
-                            </div>
-        
-                            <div class="col-4">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.modified_date.id_for_label }}" class="form-label">Дата модификации</label>
-                                    {{ form_search.modified_date }}
-                                </div>
-                            </div>
-                        </div>
-    
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.language.id_for_label }}" class="form-label">Язык</label>
-                                    {{ form_search.language }}
-                                </div>
-                            </div>
-    
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.text_type.id_for_label }}" class="form-label">Тип текста</label>
-                                    {{ form_search.text_type }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.pos_check.id_for_label }}" class="form-label">Проверка частеречной разметки</label>
-                                    {{ form_search.pos_check }}
-                                </div>
-                            </div>
-    
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.error_tag_check.id_for_label }}" class="form-label">Проверка разметки ошибок</label>
-                                    {{ form_search.error_tag_check }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.emotional.id_for_label }}" class="form-label">Эмоционально-физиологическое состояние</label>
-                                    {{ form_search.emotional }}
-                                </div>
-                            </div>
-    
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.write_place.id_for_label }}" class="form-label">Где написан текст</label>
-                                    {{ form_search.write_place }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-    
-                </form>
-            </div>
-        </div>
-
-        <!-- {{ search_form.as_table }} -->
-
-        {% endif %}
-            
-        <div class="col-md-10 mt-3 left">
-            <!-- TODO: ССЫЛКА ВСЯ СТРОКА -->
-
-            {# For Language #}
-            {% if list_language %}
-            
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr class='corpus-tr'>
-                        <!-- <th scope="col">#</th> -->
-                        <th class="col-5"><a href="?order_by=language_name&reverse={{ reverse }}">
-
-                            {% if order_by == 'language_name' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-language_name' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
-                            Язык
-                        </a></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    
-                    {% for language in list_language  %}
-                    <tr class='corpus-tr'>
-                        <!-- <td scope="col">#</td> -->
-                        <td>
-                            <a href="{{ language.language_name }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
-                                </svg>
-                                {{ language.language_name }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            {% endif %}
-
-            <!-- For Text Type -->
-            {% if list_text_type %}
-            
-            <table class="table table-hover table-sm">
-                <thead>
-                    <tr class='corpus-tr'>
-                        <th class="col-5"><a href="?order_by=text_type_name&reverse={{ reverse }}">
-
-                            {% if order_by == 'text_type_name' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-text_type_name' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
-                            Тип текста
-                        </a></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class='corpus-tr'>
-                        <!-- <td scope="col">#</td> -->
-                        <td><a href="{% url 'corpus' %}">..</a></td>
-                    </tr>
-                    {% for text_type in list_text_type  %}
-                    <tr class='corpus-tr'>
-                        <!-- <td scope="col">#</td> -->
-                        <td>
-                            <a href="{{ text_type.text_type_name }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
-                                </svg>
-                                {{ text_type.text_type_name }}
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            {% endif %}
-
-            {# For Text #}
-            {% if list_text_and_user %}
-
-            <table class="table table-hover table-sm">
-                <thead class="thead-dark">
-                    <tr class='corpus-tr d-flex'>
-                        <th scope="row"class="col-1 text-center">#</th>
-                        <th class="col-5"><a href="?order_by=header&reverse={{ reverse }}">
-
-                            {% if order_by == 'header' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-header' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
-                            Название текста
-                        </a></th>
-                        <th class="col-3"><a href="?order_by=user_id__last_name&reverse={{ reverse }}">
-
-                            {% if order_by == 'user_id__last_name' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-user_id__last_name' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
-                            Пользователь
-                        </a></th>
-                        <th class="col-3"><a href="?order_by=modified_date&reverse={{ reverse }}">
-
-                            {% if order_by == 'modified_date' and reverse %}                            
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-up-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5z"/>
-                            </svg>
-                            {% elif order_by == '-modified_date' and not reverse %}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg>
-                            {% endif %}
-
-                            Дата модификации
-                        </a></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class='corpus-tr d-flex'>
-                        <td class="col-1 text-center">0</td>
-                        <td class="col-5"><a href="{% url 'language' language_selected %}">..</a></td>
-                        <td class="col-3"></td>
-                        <td class="col-3"></td>
-                    </tr>
-                    {% for text_and_user in list_text_and_user  %}
-                    
-                    <tr class='corpus-tr d-flex'>
-                        <td class="col-1 text-center">{{ forloop.counter }}</td>
-                        <td class="col-5">
-                            <a href="{{ text_and_user.0.id_text }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
-                                    <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-                                </svg>
-                                {{ text_and_user.0.header }}
-                            </a>
-                        </td>
-                        <td class="col-3">{{ text_and_user.1 }}</td>
-                        <td class="col-3">{{ text_and_user.0.modified_date }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            {% endif %}
-            
-
-        </div>
-
-        
-        {% if work_with_file %}
-        <div id="new_text_btn" class="col-md-2 mt-5">
-            {% if user.is_teacher %}
-            <button id="show-modal" class="btn shadow-none update-button" @click="showModal = true">Новый текст</button>
-            <!-- use the modal component, pass in the prop -->
-            <modal v-if="showModal" @close="showModal = false">
-            </modal>
-            {% else %}
-            <a href='new_text' class="btn shadow-none update-button">Новый текст</a>
-            {% endif %}
-            <!-- <button type="button" class="btn shadow-none del-button">Danger</button> -->
-        </div>
-        {% endif %}
-
-        {% endif %}
-    </div>
-</div>
-
-{%endblock%}
-
-{% block script %}
-
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-
-<script>
-    {% comment %} Модальное окно {% endcomment %}
-
-    Vue.component("modal", {
-        template: "#modal-template"
-    });
-
-    // start app
-    new Vue({
-        el: "#new_text_btn",
-        data: {
-            showModal: false
-        }
-    });
-
-
-
-
-
-
-
-    document.getElementById("list-filter").style.display = "none"
-    var text_types = {
-        1: [{'text_type_name': '---------', 'id_text_type': ''}], 
-        2: [{'text_type_name': '---------', 'id_text_type': ''}]
-    };
-    {% for text_type in form_search.text_type.field.queryset %}
-
-        {% if text_type.language_id == 1 %}
-            text_types[1].push({'text_type_name': '{{ text_type.text_type_name }}', 'id_text_type': '{{ text_type.id_text_type }}'})
-        {% else %}
-            text_types[2].push({'text_type_name': '{{ text_type.text_type_name }}', 'id_text_type': '{{ text_type.id_text_type }}'})
-        {% endif %}
-
-    {% endfor %}
-
-    var lang_select = new Vue({
-        el:"#id_language",
-        methods:{
-            ChangeTypes:function(event){
-                var lang_id = event.target.options[event.target.selectedIndex].value
-
-                var type_selector = document.getElementById("id_text_type")
-                type_selector.selectedIndex = -1
-
-                while (type_selector.firstChild) {
-                    type_selector.removeChild(type_selector.firstChild);
-                }
-                for(var i=0; i < text_types[lang_id].length; i++){
-                    var field = document.createElement("option")
-                    field.setAttribute("value",`${text_types[lang_id][i]['id_text_type']}`)
-                    field.innerHTML = text_types[lang_id][i]['text_type_name']
-                    type_selector.appendChild(field)
-                }
-
-                type_selector.selectedIndex = 0
-
-            }
-        }
-    })
-
-    new Vue({
-        el: "#button-filter",
-        methods:{
-            ShowDiv: function(event){
-                // document.getElementById("list-filter").style.display = "block"}}})
-                if(document.getElementById("list-filter").style.display == "none")
-                {
-                    document.getElementById("list-filter").style.display = "block"
-                } else {
-                    document.getElementById("list-filter").style.display = "none"
-                }
-            }
-        }
-    })
-</script>
-
-{%endblock%}
+		<p class="m-0">{{error_message}}</p>
+	</div>
+	{% endif %}
+</main>
+{% endblock content %}

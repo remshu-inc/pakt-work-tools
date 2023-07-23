@@ -17,6 +17,7 @@ urlpatterns = [
     path('manage/group_modify/delete_group/<int:group_id>/', views.delete_group, name='delete_group'),
     path('manage/tasks_info/', views.task_list_select, name='task_list_select'),
     path('manage/tasks_info/<int:user_id>', views.tasks_info, name = 'tasks_info'),
+    
     path('manage/dashboards/', views.list_charts, name='dashboards'),
     path('manage/dashboards/types_errors/', views.chart_errors_types, name='types_errors'),
     path('manage/dashboards/grade_errors/', views.chart_grade_errors, name='grade_errors'),

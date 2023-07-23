@@ -11,9 +11,9 @@ from django.urls import path
 urlpatterns = [
     #* Управление текстами
     # Просмотр досутпных текстов
-    path('corpus/', views.show_files, name='corpus'),
-    path('corpus/<str:language>/', views.show_files, name='language'),
-    path('corpus/<str:language>/<str:text_type>/', views.show_files, name='text_type'),
+    path('corpus/', views.corpus, name='corpus'),
+    path('corpus/<str:language>/', views.corpus, name='language'),
+    path('corpus/<str:language>/<str:text_type>/', views.corpus, name='text_type'),
     # Открытие выбранного текста
     path('corpus/<str:language>/<str:text_type>/<int:text_id>/', views.show_text, name='text_view'),
     # Создание нового текста 
