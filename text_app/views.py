@@ -107,36 +107,6 @@ def corpus(request, language=None, text_type=None):
 	context['text_list'] = text_user_list
 
 	return render(request, "corpus.html", context=context)
-	# 	try:
-	# 		if check_permissions_show_text(request.user.id_user):
-	# 			list_text = TblText.objects.filter(
-	# 				language_id=language_id, text_type_id=text_type_id).order_by(order_by)
-	# 		else:
-	# 			list_text = TblText.objects.filter(
-	# 				language_id=language_id, text_type_id=text_type_id, user_id=request.user.id_user).order_by(order_by)
-	# 	except FieldError:
-	# 		return render(request, "corpus.html",
-	# 					  context={'form_search': search_form, 'error': True, 'text_html': 'Sort type not found'},
-	# 					  status=404)
-
-	# 	list_text_and_user = []
-	# 	try:
-	# 		for text in list_text:
-	# 			user = TblUser.objects.filter(id_user=text.user_id).first()
-	# 			if user.name == 'empty':
-	# 				list_text_and_user.append([text, ''])
-	# 			else:
-	# 				list_text_and_user.append(
-	# 					[text, user.last_name + ' ' + user.name])
-	# 	except FieldError:
-	# 		return render(request, "corpus.html",
-	# 					  context={'form_search': search_form, 'error': True, 'text_html': 'Sort type not found'},
-	# 					  status=404)
-
-	# 	return (render(request, "corpus.html",
-	# 				   context={'work_with_file': True, 'list_text_and_user': list_text_and_user,
-	# 							'language_selected': language, 'form_search': search_form, 'order_by': order_by,
-	# 							'reverse': not reverse, 'all_students': all_students}))
 
 
 def corpus_search(request):
