@@ -81,7 +81,9 @@ def corpus(request, language=None, text_type=None):
 		context['content'] = 'error'
 		context['error_message'] = 'Тип текста ' + text_type + ' не найден'
 		return render(request, "corpus.html", context=context)
-	text_type_id = text_type_object.first().id_text_type
+	text_type_object = text_type_object.first()
+	text_type_id = text_type_object.id_text_type
+	context['selected_text_type']=text_type_object.text_type_name
 
 
 	# Text choice
@@ -239,8 +241,7 @@ def new_text(request, language=None, text_type=None):
 		custom_user = request.user
 		student = TblStudent.objects.filter(
 			user_id=custom_user.id_user).first()
-		groups = TblStudentGroup.objects.filter(
-			student_id=student.id_student).values_list('group_id', flat=True)
+		groups = TblStudentGroup.objects.filter(student_id=student.id_student).values_list('group_id', flat=True)
 		student_groups = TblGroup.objects.filter(id_group__in=groups)
 
 		form_text = TextCreationForm(
