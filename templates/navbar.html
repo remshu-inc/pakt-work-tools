@@ -47,6 +47,7 @@
 					</a>
 				</li>
 
+				{% if user.is_authenticated %} {% if user.is_teacher or user.is_student %}
 				<li class="nav-item">
 					<a class="nav-link icon-link" href="{% url 'corpus' %}">
 						<svg
@@ -66,7 +67,6 @@
 					</a>
 				</li>
 
-				{% if user.is_authenticated %} {% if user.is_teacher or user.is_student %}
 				<li class="nav-item">
 					<a class="nav-link icon-link" href="{% url 'manage' %}">
 						<svg
