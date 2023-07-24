@@ -208,12 +208,10 @@ def new_text(request):
 
 					count_token += 1
 
-			language = TblLanguage.objects.filter(id_language=text.language_id).first()
-			text_type = TblTextType.objects.filter(id_text_type=text.text_type_id).first()
-			return redirect('text_type', language=language.language_name, text_type=text_type.text_type_name)
+			return redirect('tasks_info', user_id=text.user_id)
 		
 	language = TblLanguage.objects.filter(id_language=request.user.language_id).values_list('language_name', flat=True).first()
-	
+
 	return render(request, 'new_text.html', {'form_text': text_form, 'is_teacher': request.user.is_teacher(), 'language': language})
 
 
