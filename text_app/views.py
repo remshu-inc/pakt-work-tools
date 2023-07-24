@@ -15,6 +15,7 @@ from user_app.models import TblLanguage, TblTeacher, TblUser, TblStudent, TblGro
 from .forms import TextCreationForm, get_annotation_form, SearchTextForm, AssessmentModify, MetaModify, AuthorModify
 from .models import TblReason, TblGrade, TblTextType, TblText, TblSentence, TblMarkup, TblTag, \
 	TblTokenMarkup, TblToken
+from nltk.tokenize import sent_tokenize, word_tokenize
 
 os.environ['NLTK_DATA'] = '/var/www/lingo/nltk_data'
 
@@ -161,55 +162,27 @@ def corpus_search(request):
 	return (render(request, "corpus_search.html",
 				   context={'search_form': search_form, 'text_list': text_list, 'reverse': reverse, 'order_by': order}))
 
-	
 
 
-def new_text(request, language=None, text_type=None):
-	# Проверка на выбранный язык и тип текста
-	if language != None and text_type != None:
+def new_text(request):
+	if not (request.user.is_teacher() or request.user.is_student()):
+		return render(request, 'access_denied.html')
 
-		language_object = TblLanguage.objects.filter(language_name=language)
-		if len(language_object) != 0:
-			language_id = language_object[0].id_language
-		else:
-			return render(request, 'corpus.html')
-
-		text_type_objects = TblTextType.objects.filter(
-			language_id=language_id, text_type_name=text_type)
-		if len(text_type_objects) == 0:
-			return render(request, 'corpus.html')
-	else:
-		return render(request, 'corpus.html')
+	text_form = TextCreationForm(request.user)
 
 	if request.method == 'POST':
-		from nltk.tokenize import sent_tokenize, word_tokenize
-		if not request.user.is_authenticated:
-			return redirect('home')
-		elif request.user.is_teacher():
-			custom_user = TblUser.objects.filter(
-				id_user=request.POST['student']).first()
-		else:
-			custom_user = request.user
+		text_form = TextCreationForm(request.user, request.POST)
 
-		student = TblStudent.objects.filter(
-			user_id=custom_user.id_user).first()
-		groups = TblStudentGroup.objects.filter(
-			student_id=student.id_student).values_list('group_id', flat=True)
+		group = request.POST['group']
+		if (group is None) or (group == '-1'):
+			text_form.add_error('group', 'Выберите группу')
 
-		student_groups = TblGroup.objects.filter(id_group__in=groups)
+		if text_form.is_valid():
+			text = text_form.save()
 
-		form_text = TextCreationForm(
-			custom_user, language_object[0], text_type_objects[0], data=request.POST)
-
-		if form_text.is_valid():
-			text = form_text.save(commit=False)
-			# print(text)
-			text.modified_date = text.create_date
-			text = text.save()
-			# print(text)
-
+			group = text_form.cleaned_data['group']
 			textgroup = TblTextGroup(
-				group_id=request.POST['student_group'],
+				group_id=group,
 				text_id=text.id_text
 			)
 			textgroup.save()
@@ -235,27 +208,13 @@ def new_text(request, language=None, text_type=None):
 
 					count_token += 1
 
-			# log_text('create', request.user, text.header, text.user_id, language, text_type)
-
-			return redirect('text_type', language=language, text_type=text_type)
-		else:
-			# print(form_text.errors)
-			pass
-
-	else:
-		custom_user = request.user
-		student = TblStudent.objects.filter(
-			user_id=custom_user.id_user).first()
-		groups = TblStudentGroup.objects.filter(student_id=student.id_student).values_list('group_id', flat=True)
-		student_groups = TblGroup.objects.filter(id_group__in=groups)
-
-		form_text = TextCreationForm(
-			custom_user, language_object[0], text_type_objects[0])
-		return render(request, 'new_text.html',
-					  {'form_text': form_text, 'student_groups': student_groups, 'student': student})
-
-	return render(request, 'new_text.html',
-				  {'form_text': form_text, 'student_groups': student_groups, 'student': request.POST['student']})
+			language = TblLanguage.objects.filter(id_language=text.language_id).first()
+			text_type = TblTextType.objects.filter(id_text_type=text.text_type_id).first()
+			return redirect('text_type', language=language.language_name, text_type=text_type.text_type_name)
+		
+	language = TblLanguage.objects.filter(id_language=request.user.language_id).values_list('language_name', flat=True).first()
+	
+	return render(request, 'new_text.html', {'form_text': text_form, 'is_teacher': request.user.is_teacher(), 'language': language})
 
 
 def delete_text(request):
@@ -273,10 +232,7 @@ def delete_text(request):
 	elif not check_is_superuser(request.user.id_user):
 		return redirect('home')
 
-	print('1111')
-
 	if request.method == 'POST':
-		print('2222')
 		language = request.POST['language']
 		text_type = request.POST['text_type']
 		text_id = request.POST['text_id']

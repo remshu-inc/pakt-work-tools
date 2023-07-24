@@ -7,8 +7,8 @@ Description: Перечень форм для функций работы с т�
 from email.policy import default
 from faulthandler import disable
 from django import forms
-from .models import TblText, TblTextType, TblTextGroup
-from user_app.models import TblUser, TblStudent, TblStudentGroup, TblLanguage
+from .models import TblText, TblTextType, TblTextGroup, TblWritePlace, TblEmotional
+from user_app.models import TblUser, TblStudent, TblStudentGroup, TblLanguage, TblGroup
 import datetime
 from right_app.views import check_permissions_new_text, check_permissions_work_with_annotations
 
@@ -28,18 +28,24 @@ class DateInput(forms.DateInput):
 	"""
 	input_type = 'date'
 
+def distinct_text_types():
+	unique_names = set()
+	ids = set()
+	for item in TblTextType.objects.all():
+		if (item.text_type_name not in unique_names):
+			unique_names.add(item.text_type_name)
+			ids.add(item.id_text_type)
+
+	return TblTextType.objects.filter(id_text_type__in=ids)
 
 class TextCreationForm(forms.ModelForm):
 	"""
 	Форма создания нового текста
 	"""
-	# Фиксация даты создания и даты последнего изменения
-	create_date = forms.DateField(
-		initial=datetime.date.today, widget=DateInput(attrs={'class': 'form-control'}))
-	modified_date = forms.DateField(
-		initial=datetime.date.today, widget=forms.HiddenInput())
-	# asd = forms.Model
-
+	# Фиксация даты последнего изменения
+	modified_date = forms.DateField(initial=datetime.date.today(), widget=forms.HiddenInput())
+	create_date = forms.DateField(widget=DateInput(attrs={'class': 'form-control'}))
+	
 	class Meta:
 		"""
 		Описание полей информации о тексте
@@ -60,7 +66,7 @@ class TextCreationForm(forms.ModelForm):
 			'write_place',
 			'education_level',
 			'self_rating',
-			'student_assesment'
+			'student_assesment',
 		)
 		# Описание виджетов полей
 		"""
@@ -74,13 +80,28 @@ class TextCreationForm(forms.ModelForm):
 			'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 14}),
 			'emotional': forms.Select(attrs={'class': 'form-control'}),
 			'write_place': forms.Select(attrs={'class': 'form-control'}),
-			'education_level': forms.NumberInput(attrs={'class': 'form-control'}),
+			'education_level': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '200'}),
 			'self_rating': forms.Select(attrs={'class': 'form-control'}),
 			'student_assesment': forms.Select(attrs={'class': 'form-control'}),
-			'creation_course': forms.Select(attrs={'class': 'form-control'}),
+			'creation_course': forms.Select(attrs={'class': 'form-control', 'min': '1', 'max': '10'}),
 		}
 
-	def __init__(self, user=None, language=None, text_type=None, *args, **kwargs):
+		error_messages = {
+			'header': {
+				'required': 'Введите название текста'
+			},
+			
+			'text': {
+				'required': 'Введите текст'
+			},
+			
+			'creation_course': {
+				'required': 'Выберите номер курса'
+			}
+		}
+
+
+	def __init__(self, user=None, *args, **kwargs):
 		"""
 			Инициализация формы создания текста
 		Args:
@@ -88,47 +109,53 @@ class TextCreationForm(forms.ModelForm):
 			language (_type_, optional): Название языкового корпуса (~язык текста).
 			text_type (_type_, optional): Название типа загружаемого текста.
 		"""
-		#? Знаю что это необходимо, но вот суть не ясна (???)
 		super(TextCreationForm, self).__init__(*args, **kwargs)
-		if user != None and language != None and text_type != None:
+		
+		groups = TblGroup.objects.filter(language_id=user.language_id)
 
-			""" 
-			Определение id автора работы
-			Если загружающий пользователь не имеет права выбора автора, то 
-			сам загружающий и фиксируется как автор 
-			"""
-			user_object = TblUser.objects.filter(id_user=user.id_user)
-			self.fields['user'] = forms.ModelChoiceField(
-				queryset=user_object, widget=forms.Select(attrs={'class': 'form-control'}))
-			self.fields['user'].initial = user_object[0]
-			self.fields['user'].widget.attrs['readonly'] = "readonly"
+		if user.is_teacher():
+			students = TblStudent.objects.all().values('user_id')
+			user_list = TblUser.objects.filter(language_id=user.language_id, id_user__in=students)
 
-			"""
-			Поулчение id  языка текста по названию
-			"""
-			language_object = TblLanguage.objects.filter(
-				language_name=language)
-			self.fields['language'] = forms.ModelChoiceField(
-				queryset=language_object, widget=forms.Select(attrs={'class': 'form-control'}))
-			self.fields['language'].initial = language_object[0]
-			self.fields['language'].widget.attrs['readonly'] = "readonly"
+			self.fields['user'] = forms.ModelChoiceField(queryset=user_list, empty_label='Выберите студента', widget=forms.Select(attrs={'class': 'form-control select2'}))
+			self.fields['user'].error_messages={'required': 'Выберите студента'}
 
-			"""
-			Поулчение id  типа текста по названию
-			"""
-			text_type_object = TblTextType.objects.filter(
-				text_type_name=text_type, language_id=language_object[0].id_language)
-			self.fields['text_type'] = forms.ModelChoiceField(
-				queryset=text_type_object, widget=forms.Select(attrs={'class': 'form-control'}))
-			self.fields['text_type'].initial = text_type_object[0]
-			self.fields['text_type'].widget.attrs['readonly'] = "readonly"
+		elif user.is_student():
+			student = TblStudent.objects.filter(user_id=user.id_user).first()
+
+			user_list = TblUser.objects.filter(id_user=user.id_user)
+			self.fields['user'] = forms.ModelChoiceField(queryset=user_list, initial=user, widget=forms.Select(attrs={'readonly': True, 'class': 'form-control'}))
+
+			student_groups = TblStudentGroup.objects.filter(student_id=student.id_student).values('group_id')
+			groups = groups.filter(id_group__in=student_groups)
+		
+		
+		language = TblLanguage.objects.filter(id_language=user.language_id)
+		self.fields['language'] = forms.ModelChoiceField(queryset=language,
+				initial=language.first(), widget=forms.Select(attrs={'class':'form-control', 'readonly':True}))
+
+		text_type_choices = distinct_text_types()
+		self.fields['text_type'] = forms.ModelChoiceField(queryset=text_type_choices, widget=forms.Select(attrs={'class': 'form-control'}), initial=text_type_choices.filter(text_type_name='Не указано').first())	
+
+		self.fields['write_place'].empty_label = None
+		self.fields['write_place'].initial = TblWritePlace.objects.filter(write_place_name='Не указано').first()
+		
+		self.fields['emotional'].empty_label = None
+		self.fields['emotional'].initial = TblEmotional.objects.filter(emotional_name='Не указано').first()
+
+		self.fields['create_date'].initial = datetime.date.today()
+		self.fields['create_date'].error_messages = {'required': 'Введите дату'}
+
+		self.fields['group'] = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control select2', 'required':True}), choices=[(None, 'Выберите группу')] + [(group.id_group, group.group_name + ' (' + str(group.enrollment_date) + ')') for group in groups], initial=None)
+		self.fields['group'].error_messages={'required': 'Выберите группу'}
+
 
 	def save(self, commit=True):
 		"""
 		Создание записи в БД
 		"""
 		text = super().save(commit=False)
-
+		
 		if commit:
 			text.save()
 
