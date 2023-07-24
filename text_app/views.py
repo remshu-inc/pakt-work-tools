@@ -112,51 +112,56 @@ def corpus(request, language=None, text_type=None):
 
 
 def corpus_search(request):
-	try:
-		order_by = request.GET['order_by']
-		# Covert reverse str to bool
-		reverse = (request.GET['reverse'] == 'True')
+	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+		return render(request, 'access_denied.html')
+	
+	order = 'header'
+	reverse = False
 
-		if reverse:
-			order_by = '-' + order_by
-	except:
-		order_by = 'header'
-		reverse = False
+	if request.GET:
+		order = request.GET.get('order_by', 'header')
+		reverse = (request.GET.get('reverse', False) == 'True')
+
+		if reverse and not (order is None):
+			order = '-' + order
+
+	text_list = TblText.objects.all().order_by(order)
 
 	if request.POST:
-		form_search = SearchTextForm(request.POST)
-		# Entry.objects.all().filter(pub_date__year=2006)
+		search_form = SearchTextForm(request.POST)
 		filters = Q()
-		if form_search.data['header']:
-			filters &= Q(header=form_search.data['header'])
-		if form_search.data['user']:
-			filters &= Q(user_id=form_search.data['user'])
-		if form_search.data['language']:
-			filters &= Q(language_id=form_search.data['language'])
-		if form_search.data['text_type']:
-			filters &= Q(text_type_id=form_search.data['text_type'])
-		if form_search.data['create_date']:
-			filters &= Q(create_date=form_search.data['create_date'])
-		if form_search.data['modified_date']:
-			filters &= Q(modified_date=form_search.data['modified_date'])
-		if form_search.data['pos_check']:
-			filters &= Q(pos_check=form_search.data['pos_check'])
-		if form_search.data['error_tag_check']:
-			filters &= Q(error_tag_check=form_search.data['error_tag_check'])
-		if form_search.data['emotional']:
-			filters &= Q(emotional=form_search.data['emotional'])
-		if form_search.data['write_place']:
-			filters &= Q(write_place=form_search.data['write_place'])
 
-		list_text = TblText.objects.filter(filters).order_by(order_by)
+		if search_form.data['header']:
+			filters &= Q(header__icontains=search_form.data['header'])
+		if search_form.data['user']:
+			filters &= Q(user_id=search_form.data['user'])
+		if search_form.data['language']:
+			filters &= Q(language_id=search_form.data['language'])
+		if search_form.data['create_date']:
+			filters &= Q(create_date=search_form.data['create_date'])
+		if search_form.data['modified_date']:
+			filters &= Q(modified_date=search_form.data['modified_date'])
+		if search_form.data['pos_check']:
+			filters &= Q(pos_check=search_form.data['pos_check'])
+		if search_form.data['error_tag_check']:
+			filters &= Q(error_tag_check=search_form.data['error_tag_check'])
+		if search_form.data['emotional']:
+			filters &= Q(emotional=search_form.data['emotional'])
+		if search_form.data['write_place']:
+			filters &= Q(write_place=search_form.data['write_place'])
+		if search_form.data['text_type']:
+			text_type_ids = TblTextType.objects.filter(text_type_name=search_form.data['text_type']).values('id_text_type')
+			filters &= Q(text_type_id__in=text_type_ids)
+
+		text_list = text_list.filter(filters)
 
 	else:
-		form_search = SearchTextForm()
-		return (render(request, "corpus_search.html", context={'form_search': form_search}))
+		search_form = SearchTextForm()
 
 	return (render(request, "corpus_search.html",
-				   context={'form_search': form_search, 'list_text': list_text, 'order_by': order_by,
-							'reverse': not reverse}))
+				   context={'search_form': search_form, 'text_list': text_list, 'reverse': reverse, 'order_by': order}))
+
+	
 
 
 def new_text(request, language=None, text_type=None):

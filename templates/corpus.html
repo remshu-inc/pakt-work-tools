@@ -1,12 +1,106 @@
 {% extends "base.html" %} {% load static %} {% block link %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/table_fix.css' %}" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link
+	rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/select2.css' %}" />
 {% endblock link %}
 
 <!-- Content -->
 {% block content %}
 <main class="container my-4">
+	<!-- Search menu -->
 	{% if is_teacher %}
-	<div class="col-6 mx-auto mt-5">{{ search_form.header }}</div>
+	<form action="{% url 'corpus_search' %}" method="post" novalidate class="text-secondary col-11 col-lg-6 mx-auto">
+		{% comment %}{% csrf_token %}{% endcomment %}
+		<div class="input-group">
+			{{ search_form.header }}
+			<button
+				type="button"
+				class="btn btn-outline-secondary shadow-none"
+				title="Фильтр"
+				data-bs-toggle="collapse"
+				data-bs-target="#filter"
+				aria-expanded="false"
+				aria-controls="filter"
+			>
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="1.6em"
+					stroke="currentColor"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="1.5"
+						d="M20.058 9.723c.948-.534 1.423-.801 1.682-1.232.26-.43.26-.949.26-1.987v-.69c0-1.326 0-1.99-.44-2.402C21.122 3 20.415 3 19 3H5c-1.414 0-2.121 0-2.56.412C2 3.824 2 4.488 2 5.815v.69c0 1.037 0 1.556.26 1.986.26.43.733.698 1.682 1.232l2.913 1.64c.636.358.955.537 1.183.735.474.411.766.895.898 1.49.064.284.064.618.064 1.285v2.67c0 .909 0 1.364.252 1.718.252.355.7.53 1.594.88 1.879.734 2.818 1.101 3.486.683.668-.417.668-1.372.668-3.282v-2.67c0-.666 0-1 .064-1.285a2.68 2.68 0 0 1 .899-1.49"
+					/>
+				</svg>
+			</button>
+			<button type="submit" class="btn btn-primary shadow-none" title="Поиск">
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="1.6em"
+					stroke="currentColor"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="1.5"
+						d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+					/>
+				</svg>
+			</button>
+		</div>
+		<div class="collapse" id="filter">
+			<div class="p-3 card">
+				<div class="row justify-content-between align-items-end">
+					<label for="{{ search_form.user.id_for_label }}" class="form-label col-6">
+						Автор {{ search_form.user }}
+					</label>
+				</div>
+				<div class="row justify-content-evenly align-items-end">
+					<label for="{{ search_form.language.id_for_label }}" class="form-label col-6">
+						Язык {{ search_form.language }}
+					</label>
+					<label for="{{ search_form.text_type.id_for_label }}" class="form-label col-6">
+						Тип текста {{ search_form.text_type }}
+					</label>
+				</div>
+				<div class="row justify-content-evenly align-items-end">
+					<label for="{{ search_form.pos_check.id_for_label }}" class="form-label col-6">
+						Проверка частеречной разметки {{ search_form.pos_check }}
+					</label>
+					<label for="{{ search_form.error_tag_check.id_for_label }}" class="form-label col-6">
+						Проверка разметки ошибок {{ search_form.error_tag_check }}
+					</label>
+				</div>
+				<div class="row justify-content-evenly align-items-end">
+					<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
+						Эмоционально-физиологическое состояние {{ search_form.emotional }}
+					</label>
+					<label for="{{ search_form.write_place.id_for_label }}" class="form-label col-6">
+						Где написан текст {{ search_form.write_place }}
+					</label>
+				</div>
+				<div class="row justify-content-evenly align-items-end">
+					<label for="{{ search_form.create_date.id_for_label }}" class="form-label col-6">
+						Дата создания {{ search_form.create_date }}
+					</label>
+					<label for="{{ search_form.modified_date.id_for_label }}" class="form-label col-6">
+						Дата модификации {{ search_form.modified_date }}
+					</label>
+				</div>
+			</div>
+		</div>
+	</form>
+
 	{% endif %}
 	<!-- Language choice -->
 	{% if content == 'languages' %}
@@ -516,4 +610,8 @@
 	</div>
 	{% endif %}
 </main>
-{% endblock content %}
+{% endblock content %} {% block plugins %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock plugins %} {% block script %}
+<script type="text/javascript" src="{% static 'js/apply_select2.js' %}" defer></script>
+{% endblock %}

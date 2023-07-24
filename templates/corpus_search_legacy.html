@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/corpus.css' %}">
+
+<div class="container">
+    <div class="row">
+
+        {# ERROR #}
+        {% if error %}
+
+        <h1 class="text-center mt-5 text-danger">
+            {{ text_html }} 
+        </h1>
+
+        {% endif %}
+
+        {# For anonymous users #}
+        {% if not user.is_authenticated %}
+
+        <h1 class="text-center mt-5 text-danger">
+            You need to log in. 
+        </h1>
+
+        {% else %}
+
+        {# Search for teachers #}
+        {% if user.is_teacher %}
+
+        <div class="d-flex justify-content-center mt-5">
+            <div class="col-6">
+                <form method="post" novalidate>
+                    {% comment %} {% csrf_token %} {% endcomment %}
+                    <div class="input-group mb-1">
+                        {{ form_search.header }}
+                        <button class="btn btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
+                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                            </svg>
+                            Фильтр
+                        </button>
+                        <button class="btn btn-outline-secondary" type="submit">Поиск</button>
+                    </div>
+
+                    <div class="filter" id="list-filter">
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.user.id_for_label }}" class="form-label">Автор</label>
+                                    {{ form_search.user }}
+                                </div>
+                            </div>
+        
+                            <div class="col-4">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.create_date.id_for_label }}" class="form-label">Дата создания</label>
+                                    {{ form_search.create_date }}
+                                </div>
+                            </div>
+        
+                            <div class="col-4">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.modified_date.id_for_label }}" class="form-label">Дата модификации</label>
+                                    {{ form_search.modified_date }}
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.language.id_for_label }}" class="form-label">Язык</label>
+                                    {{ form_search.language }}
+                                </div>
+                            </div>
+    
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.text_type.id_for_label }}" class="form-label">Тип текста</label>
+                                    {{ form_search.text_type }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.pos_check.id_for_label }}" class="form-label">Проверка частеречной разметки</label>
+                                    {{ form_search.pos_check }}
+                                </div>
+                            </div>
+    
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.error_tag_check.id_for_label }}" class="form-label">Проверка разметки ошибок</label>
+                                    {{ form_search.error_tag_check }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.emotional.id_for_label }}" class="form-label">Эмоционально-физиологическое состояние</label>
+                                    {{ form_search.emotional }}
+                                </div>
+                            </div>
+    
+                            <div class="col-6">
+                                <div class="mb-1">
+                                    <label for="{{ form_search.write_place.id_for_label }}" class="form-label">Где написан текст</label>
+                                    {{ form_search.write_place }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                </form>
+            </div>
+        </div>
+            
+        <div class="col-md-10 mt-3">
+            <!-- TODO: ССЫЛКА ВСЯ СТРОКА -->
+            
+            {# For Text #}
+            {% if list_text %}
+
+            <table class="table table-hover table-sm">
+                <thead class="thead-dark">
+                    <tr class='corpus-tr'>
+                        <th class="text-center">#</th>
+                        {% comment %} TODO: Добавить сортировку {% endcomment %}
+                        {% comment %} <th><a href="?order_by=header"> {% endcomment %}
+                        <th>
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg> {% endcomment %}
+                            Название текста
+                        {% comment %} </a></th> {% endcomment %}
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg> {% endcomment %}
+                            Язык
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg> {% endcomment %}
+                            Тип текста
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg> {% endcomment %}
+                            Пользователь
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg> {% endcomment %}
+                            Дата создания
+                        </th>
+                        <th class="text-center">
+                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
+                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
+                            </svg> {% endcomment %}
+                            Дата модификации
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for text in list_text  %}
+                    
+                    <tr class='corpus-tr'>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td >
+                            <a href="../corpus/{{ text.language }}/{{ text.text_type }}/{{ text.id_text }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
+                                    <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
+                                </svg>
+                                {{ text.header }}
+                            </a>
+                        </td>
+                        <td class="text-center">{{ text.language }}</td>
+                        <td class="text-center">{{ text.text_type }}</td>
+                        <td class="text-center">{{ text.user }}</td>
+                        <td class="text-center">{{ text.create_date }}</td>
+                        <td class="text-center">{{ text.modified_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% endif %}
+            
+        </div>
+
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{%endblock%}
+
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+
+<script>
+    var text_types = {
+        1: [{'text_type_name': '---------', 'id_text_type': ''}], 
+        2: [{'text_type_name': '---------', 'id_text_type': ''}]
+    };
+
+    {% for text_type in form_search.text_type.field.queryset %}
+
+        {% if text_type.language_id == 1 %}
+            text_types[1].push({'text_type_name': '{{ text_type.text_type_name }}', 'id_text_type': '{{ text_type.id_text_type }}'})
+        {% else %}
+            text_types[2].push({'text_type_name': '{{ text_type.text_type_name }}', 'id_text_type': '{{ text_type.id_text_type }}'})
+        {% endif %}
+
+    {% endfor %}
+
+    var type_selector = document.getElementById("id_text_type")
+    while (type_selector.firstChild) {
+        type_selector.removeChild(type_selector.firstChild);
+    }
+    var field = document.createElement("option")
+    field.setAttribute("value",``)
+    field.innerHTML = '---------'
+    type_selector.appendChild(field)
+
+    var lang_select = new Vue({
+        el:"#id_language",
+        methods:{
+            ChangeTypes:function(event){
+                var lang_id = event.target.options[event.target.selectedIndex].value
+
+                var type_selector = document.getElementById("id_text_type")
+                type_selector.selectedIndex = -1
+
+                while (type_selector.firstChild) {
+                    type_selector.removeChild(type_selector.firstChild);
+                }
+                if (lang_id == '')
+                {
+                    var field = document.createElement("option")
+                    field.setAttribute("value",``)
+                    field.innerHTML = '---------'
+                    type_selector.appendChild(field)
+                }
+                else
+                {
+                    for(var i = 0; i < text_types[lang_id].length; i++){
+                        var field = document.createElement("option")
+                        field.setAttribute("value",`${text_types[lang_id][i]['id_text_type']}`)
+                        field.innerHTML = text_types[lang_id][i]['text_type_name']
+                        type_selector.appendChild(field)
+                    }
+                }
+
+                type_selector.selectedIndex = 0
+
+            }
+        }
+    })
+
+    new Vue({
+        el: "#button-filter",
+        methods:{
+            ShowDiv: function(event){
+                // document.getElementById("list-filter").style.display = "block"}}})
+                if(document.getElementById("list-filter").style.display == "none")
+                {
+                    document.getElementById("list-filter").style.display = "block"
+                } else {
+                    document.getElementById("list-filter").style.display = "none"
+                }
+            }
+        }
+    })
+</script>
+{%endblock%}
