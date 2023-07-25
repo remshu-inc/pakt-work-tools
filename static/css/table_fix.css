@@ -3,6 +3,7 @@
 }
 
 .table tr td,
+.table th,
 .ellipsis {
 	overflow: hidden;
 	text-overflow: ellipsis;

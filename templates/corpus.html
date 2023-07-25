@@ -59,7 +59,7 @@
 			</button>
 		</div>
 		<div class="collapse" id="filter">
-			<div class="p-3 card">
+			<div class="p-3 card d-flex flex-column gap-2">
 				<div class="row justify-content-between align-items-end">
 					<label for="{{ search_form.user.id_for_label }}" class="form-label col-6">
 						Автор {{ search_form.user }}
@@ -74,33 +74,24 @@
 					</label>
 				</div>
 				<div class="row justify-content-evenly align-items-end">
-					<label for="{{ search_form.pos_check.id_for_label }}" class="form-label col-6">
-						Проверка частеречной разметки {{ search_form.pos_check }}
+					<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
+						Эмоционально-физиологическое состояние {{ search_form.emotional }}
 					</label>
 					<label for="{{ search_form.error_tag_check.id_for_label }}" class="form-label col-6">
 						Проверка разметки ошибок {{ search_form.error_tag_check }}
 					</label>
 				</div>
 				<div class="row justify-content-evenly align-items-end">
-					<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
-						Эмоционально-физиологическое состояние {{ search_form.emotional }}
-					</label>
 					<label for="{{ search_form.write_place.id_for_label }}" class="form-label col-6">
 						Где написан текст {{ search_form.write_place }}
 					</label>
-				</div>
-				<div class="row justify-content-evenly align-items-end">
 					<label for="{{ search_form.create_date.id_for_label }}" class="form-label col-6">
 						Дата создания {{ search_form.create_date }}
-					</label>
-					<label for="{{ search_form.modified_date.id_for_label }}" class="form-label col-6">
-						Дата модификации {{ search_form.modified_date }}
 					</label>
 				</div>
 			</div>
 		</div>
 	</form>
-
 	{% endif %}
 	<a href="{% url 'new_text' %}" class="btn btn-primary ms-4 mt-3">
 		<svg
@@ -529,7 +520,10 @@
 			{% for text_data in text_list %}
 			<tr>
 				<td class="ps-3">
-					<a class="link-primary text-decoration-none d-flex gap-2" href="{{ text_data.text.id_text }}">
+					<a
+						class="link-primary text-decoration-none d-flex gap-2"
+						href="{% url 'text_view' text_id=text_data.text.id_text %}"
+					>
 						<svg
 							class="bi flex-shrink-0"
 							xmlns="http://www.w3.org/2000/svg"

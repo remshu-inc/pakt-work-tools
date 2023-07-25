@@ -231,13 +231,21 @@ class SearchTextForm(forms.ModelForm):
 			'error_tag_check': forms.Select(attrs={'class': 'form-control'}, choices=CHOICES_CHECK),
 		}
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, language_id=None, *args, **kwargs):
 		super(SearchTextForm, self).__init__(*args, **kwargs)
+		if not language_id is None:
+			self.fields['language'].initial = TblLanguage.objects.filter(id_language=language_id).first()
+
 		self.fields['error_tag_check'].initial = None
-		self.fields['language'].empty_label = 'Все тексты'
+		self.fields['language'].empty_label = 'Любой'
 		self.fields['emotional'].empty_label = 'Все тексты'
 		self.fields['write_place'].empty_label = 'Все тексты'
-		self.fields['user'].empty_label = 'Любой'
+
+		students = TblStudent.objects.all().values('user_id')
+		users_students = TblUser.objects.filter(id_user__in=students)
+		self.fields['user'].queryset=users_students
+		self.fields['user'].empty_label = 'Все студенты'
+
 
 class AssessmentModify(forms.ModelForm):
 	class Meta:

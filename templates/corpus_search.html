@@ -58,7 +58,7 @@
 			</button>
 		</div>
 		<div class="collapse" id="filter">
-			<div class="p-3 card">
+			<div class="p-3 card d-flex flex-column gap-2">
 				<div class="row justify-content-between align-items-end">
 					<label for="{{ search_form.user.id_for_label }}" class="form-label col-6">
 						Автор {{ search_form.user }}
@@ -73,27 +73,19 @@
 					</label>
 				</div>
 				<div class="row justify-content-evenly align-items-end">
-					<label for="{{ search_form.pos_check.id_for_label }}" class="form-label col-6">
-						Проверка частеречной разметки {{ search_form.pos_check }}
+					<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
+						Эмоционально-физиологическое состояние {{ search_form.emotional }}
 					</label>
 					<label for="{{ search_form.error_tag_check.id_for_label }}" class="form-label col-6">
 						Проверка разметки ошибок {{ search_form.error_tag_check }}
 					</label>
 				</div>
 				<div class="row justify-content-evenly align-items-end">
-					<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
-						Эмоционально-физиологическое состояние {{ search_form.emotional }}
-					</label>
 					<label for="{{ search_form.write_place.id_for_label }}" class="form-label col-6">
 						Где написан текст {{ search_form.write_place }}
 					</label>
-				</div>
-				<div class="row justify-content-evenly align-items-end">
 					<label for="{{ search_form.create_date.id_for_label }}" class="form-label col-6">
 						Дата создания {{ search_form.create_date }}
-					</label>
-					<label for="{{ search_form.modified_date.id_for_label }}" class="form-label col-6">
-						Дата модификации {{ search_form.modified_date }}
 					</label>
 				</div>
 			</div>
@@ -118,16 +110,21 @@
 
 		Новый текст
 	</a>
+	<h3 class="text-secondary my-3 ms-4">Результаты поиска</h3>
+
 	{% if text_list %}
-	<table class="table table-hover card-rounded bg-white shadow my-4">
+	<!-- large screen table -->
+	<table class="d-none d-lg-table table table-hover card-rounded bg-white shadow my-4">
 		<thead class="table-light">
-			<tr>
-				<th class="px-3 py-2">Название текста</th>
+			<tr class="">
+				<th class="px-3 py-2 col-xxl-3">Название текста</th>
 				<th>Автор</th>
 				<th>Язык</th>
 				<th>Тип текста</th>
-				<th class="d-none d-md-table-cell">Дата создания</th>
-				<th class="d-none d-md-table-cell">Дата модификации</th>
+				<th>Эмоционально-физиологическое состояние</th>
+				<th>Проверка разметки ошибок</th>
+				<th>Где написан текст</th>
+				<th>Дата создания</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -136,7 +133,7 @@
 				<td class="ps-3">
 					<a
 						class="link-primary text-decoration-none d-flex gap-2"
-						href="{% url 'text_view' language=text.language text_type=text.text_type text_id=text.id_text %}"
+						href="{% url 'text_view' text_id=text.id_text %}"
 					>
 						<svg
 							class="bi flex-shrink-0"
@@ -161,23 +158,143 @@
 				</td>
 				<td>{{ text.user }}</td>
 				<td>{{ text.language }}</td>
-				<td>{{ text.text_type }}</td>
-				<td class="d-none d-md-table-cell">
-					{% if text.create_date %}{{ text.create_date }}{%else%}<span class="text-secondary">
-						Неизвестно
-					</span>
+				<td>
+					{% if text.text_type %}{{ text.text_type }} {%else%}
+					<span class="text-secondary"> Неизвестно </span>
 					{%endif%}
 				</td>
-				<td class="pe-3 d-none d-md-table-cell">
-					{% if text.modified_date %}{{ text.modified_date }}{%else%}<span class="text-secondary">
-						Неизвестно
+				<td>
+					{% if text.emotional %}{{ text.emotional }} {%else%}
+					<span class="text-secondary"> Неизвестно </span>
+					{%endif%}
+				</td>
+				<td>
+					{% if text.error_tag_check %}
+					<span title="Проверено">
+						<svg
+							class="bi text-success"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="m8.5 12.5 2 2 5-5"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M7 3.34A10 10 0 1 1 3.34 7" />
+						</svg>
 					</span>
+					{% else %}
+					<span title="Не проверено">
+						<svg
+							class="bi text-secondary"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="m14.5 9.5-5 5m0-5 5 5M7 3.34A10 10 0 1 1 3.34 7"
+							/>
+						</svg>
+					</span>
+					{% endif %}
+				</td>
+				<td>
+					{% if text.write_place %}{{ text.write_place }} {%else%}
+					<span class="text-secondary"> Неизвестно </span>
+					{%endif%}
+				</td>
+				<td>
+					{% if text.create_date %}{{ text.create_date }}{%else%}
+					<span class="text-secondary"> Неизвестно </span>
 					{%endif%}
 				</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 	</table>
+
+	<!-- Meduim- screen accordion -->
+	<div class="d-block d-lg-none accordion" id="text-list-accordion">
+		{% for text in text_list %}
+		<div class="accordion-item">
+			<h2 class="accordion-header">
+				<button
+					class="accordion-button collapsed shadow-none"
+					type="button"
+					data-bs-toggle="collapse"
+					data-bs-target="#text-{{ text.id_text }}"
+					aria-expanded="false"
+					aria-controls="text-{{ text.id_text }}"
+				>
+					<span class="text-primary col-6 ellipsis">{{ text.header }}</span>
+					<span class="text-secondary ms-3 col-4">{{text.user}}</span>
+				</button>
+			</h2>
+			<div id="text-{{ text.id_text }}" class="accordion-collapse collapse" data-bs-parent="#text-list-accordion">
+				<div class="accordion-body d-flex flex-column gap-3">
+					<div class="fs-6"><span class="text-secondary">Язык: </span>{{ text.language }}</div>
+					<div class="fs-6">
+						<span class="text-secondary">Тип текста: </span>
+						{% if text.text_type %}{{ text.text_type }} {%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Эмоционально-физиологическое состояние: </span>
+						{% if text.emotional %}{{ text.emotional }} {%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Проверка разметки ошибок: </span>
+						{{ text.error_tag_check | yesno:"Проверено,Не проверено"}}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Где написан текст: </span>
+						{% if text.write_place %}{{ text.write_place }} {%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Дата создания: </span>
+						{% if text.create_date %}{{ text.create_date }}{%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6 mt-3">
+						<a href="{% url 'text_view' text_id=text.id_text %}" class="btn btn-primary w-auto shadow-none">
+							<svg
+								class="bi me-2"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								stroke="currentColor"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M22 7V6c0-1.89 0-2.83-.59-3.41C20.83 2 19.9 2 18 2h-2c-1.89 0-2.83 0-3.41.59C12 3.17 12 4.1 12 6v12c0 1.89 0 2.83.59 3.41.58.59 1.52.59 3.41.59h2c1.89 0 2.83 0 3.41-.59.59-.58.59-1.52.59-3.41v-7M12 12h2m-2-6h2m-2 12h2m-2-3h3m-3-6h3M2 6V5a3 3 0 0 1 6 0v1M2 6s1.13 1 3 1c1.88 0 3-1 3-1M2 6v4.55M8 6v9.2c0 .62 0 .93-.04 1.23a5 5 0 0 1-.25 1.06c-.1.29-.24.57-.52 1.13l-1.18 2.36m0 0-.29.57a.8.8 0 0 1-1.44 0l-.3-.57m2.03 0H4m0 0L2.8 18.62c-.28-.56-.42-.84-.52-1.13a5 5 0 0 1-.25-1.06C2 16.13 2 15.82 2 15.2v-.87"
+								/>
+							</svg>
+							Разбор текста
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+
 	{% else %}
 	<div class="alert alert-warning fs-6 my-4" role="alert" id="warning-message">
 		<svg

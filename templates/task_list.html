@@ -98,7 +98,7 @@
 					<a
 						class="link-primary text-decoration-none"
 						title="Разбор текста"
-						href="{% url 'text_view' language=task.path.lang text_type=task.path.type text_id=task.path.id%}"
+						href="{% url 'text_view' text_id=task.path.id%}"
 					>
 						{{task.header}}
 					</a>
@@ -171,12 +171,16 @@
 				<div class="accordion-body">
 					<p class="fs-6"><span class="text-secondary">Тип текста:</span> {{task.path.type}}</p>
 					<p class="fs-6"><span class="text-secondary">Проверка ошибок:</span> {{task.error_check}}</p>
-					<p class="fs-6"><span class="text-secondary">Оценка:</span> {{task.assessment}}</p>
-					<p class="fs-6"><span class="text-secondary">Количество ошибок:</span> {{task.err_count}}</p>
-					<a
-						href="{% url 'text_view' language=task.path.lang text_type=task.path.type text_id=task.path.id%}"
-						class="btn btn-primary"
-					>
+					<p class="fs-6">
+						<span class="text-secondary">Оценка:</span> {% if task.assesment %}{{task.assessment}}
+						<!-- -->
+						{% else %}<span class="text-secondary">Неизвестно</span>{% endif %}
+					</p>
+					<p class="fs-6">
+						<span class="text-secondary">Количество ошибок:</span> {% if task.err_count%}
+						{{task.err_count}}{% else %}<span class="text-secondary">Неизвестно</span>{% endif %}
+					</p>
+					<a href="{% url 'text_view' text_id=task.path.id%}" class="btn btn-primary mt-3 shadow-none">
 						<svg
 							class="bi me-2"
 							xmlns="http://www.w3.org/2000/svg"

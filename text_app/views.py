@@ -27,7 +27,7 @@ def corpus(request, language=None, text_type=None):
 		return redirect('login')
 	
 	is_teacher = hasattr(request.user, 'is_teacher') and request.user.is_teacher()
-	search_form = SearchTextForm() if is_teacher else None
+	search_form = SearchTextForm(language_id=request.user.language_id) if is_teacher else None
 
 	# Определение сортировки
 	order = None
@@ -129,7 +129,7 @@ def corpus_search(request):
 	text_list = TblText.objects.all().order_by(order)
 
 	if request.POST:
-		search_form = SearchTextForm(request.POST)
+		search_form = SearchTextForm(request.user.language_id, request.POST)
 		filters = Q()
 
 		if search_form.data['header']:
@@ -153,7 +153,7 @@ def corpus_search(request):
 		text_list = text_list.filter(filters)
 
 	else:
-		search_form = SearchTextForm()
+		search_form = SearchTextForm(language_id=request.user.language_id)
 
 	return (render(request, "corpus_search.html",
 				   context={'search_form': search_form, 'text_list': text_list, 'reverse': reverse, 'order_by': order}))
@@ -487,9 +487,13 @@ def meta_form(request, text_id=1, **kwargs):
 		return render(request, 'meta_form.html', {'right': False})
 
 
-def show_text(request, text_id=1, language=None, text_type=None):
+def show_text(request, text_id):
 	if not hasattr(request.user, 'id_user'):
 		return redirect('login')
+
+	text = TblText.objects.filter(id_text=text_id).first()
+	language = TblLanguage.objects.filter(id_language=text.language_id).first()
+	text_type = TblTextType.objects.filter(id_text_type=text.text_type_id).first()
 
 	text_info = TblText.objects.filter(id_text=text_id).values(
 		'header', 'language_id', 'language_id__language_name', 'user_id').all()
