@@ -140,10 +140,6 @@ def corpus_search(request):
 			filters &= Q(language_id=search_form.data['language'])
 		if search_form.data['create_date']:
 			filters &= Q(create_date=search_form.data['create_date'])
-		if search_form.data['modified_date']:
-			filters &= Q(modified_date=search_form.data['modified_date'])
-		if search_form.data['pos_check']:
-			filters &= Q(pos_check=search_form.data['pos_check'])
 		if search_form.data['error_tag_check']:
 			filters &= Q(error_tag_check=search_form.data['error_tag_check'])
 		if search_form.data['emotional']:
@@ -178,7 +174,11 @@ def new_text(request):
 			text_form.add_error('group', 'Выберите группу')
 
 		if text_form.is_valid():
-			text = text_form.save()
+			text_type_name = text_form.cleaned_data['text_type']
+			text_type = TblTextType.objects.filter(text_type_name=text_type_name).first()
+			text = text_form.save(commit=False)
+			text.text_type_id = text_type.id_text_type
+			text = text.save()
 
 			group = text_form.cleaned_data['group']
 			textgroup = TblTextGroup(

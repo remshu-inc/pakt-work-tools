@@ -28,15 +28,11 @@ class DateInput(forms.DateInput):
 	"""
 	input_type = 'date'
 
-def distinct_text_types():
-	unique_names = set()
-	ids = set()
-	for item in TblTextType.objects.all():
-		if (item.text_type_name not in unique_names):
-			unique_names.add(item.text_type_name)
-			ids.add(item.id_text_type)
 
-	return TblTextType.objects.filter(id_text_type__in=ids)
+# Database stores same text types for diffetent languages as different entities. This workaround is to avoid choice duplication
+def distinct_text_type_name_choices():
+	text_type_names = [(choice['text_type_name'], choice['text_type_name']) for choice in TblTextType.objects.values('text_type_name').distinct()]
+	return text_type_names
 
 class TextCreationForm(forms.ModelForm):
 	"""
@@ -45,7 +41,8 @@ class TextCreationForm(forms.ModelForm):
 	# Фиксация даты последнего изменения
 	modified_date = forms.DateField(initial=datetime.date.today(), widget=forms.HiddenInput())
 	create_date = forms.DateField(widget=DateInput(attrs={'class': 'form-control'}))
-	
+	text_type = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control'}), choices=distinct_text_type_name_choices(), initial='Не указано')
+
 	class Meta:
 		"""
 		Описание полей информации о тексте
@@ -61,7 +58,6 @@ class TextCreationForm(forms.ModelForm):
 			'text',
 			'creation_course',
 			'language',
-			'text_type',
 			'emotional',
 			'write_place',
 			'education_level',
@@ -133,9 +129,6 @@ class TextCreationForm(forms.ModelForm):
 		language = TblLanguage.objects.filter(id_language=user.language_id)
 		self.fields['language'] = forms.ModelChoiceField(queryset=language,
 				initial=language.first(), widget=forms.Select(attrs={'class':'form-control', 'readonly':True}))
-
-		text_type_choices = distinct_text_types()
-		self.fields['text_type'] = forms.ModelChoiceField(queryset=text_type_choices, widget=forms.Select(attrs={'class': 'form-control'}), initial=text_type_choices.filter(text_type_name='Не указано').first())	
 
 		self.fields['write_place'].empty_label = None
 		self.fields['write_place'].initial = TblWritePlace.objects.filter(write_place_name='Не указано').first()
@@ -212,16 +205,14 @@ class SearchTextForm(forms.ModelForm):
 	modified_date = forms.DateField(
 		widget=DateInput(attrs={'class': 'form-control'}))
 	
-	# Database stores same text types for diffetent languages as different entities. This workaround is to avoid choice duplication
-	text_type_choices = [(choice['text_type_name'], choice['text_type_name']) for choice in TblTextType.objects.values('text_type_name').distinct()]
-	text_type_choices =[('', 'Все тексты')] + text_type_choices
+	text_type_choices = [('', 'Все тексты')] + distinct_text_type_name_choices()
 
 	text_type = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control'}), choices=text_type_choices, initial='')
 
 	class Meta:
 		model = TblText
-		fields = ('header', 'user', 'create_date', 'modified_date', 'language', 'emotional',
-				  'write_place', 'self_rating', 'student_assesment', 'pos_check', 'error_tag_check')
+		fields = ('header', 'user', 'create_date', 'language', 'emotional',
+				  'write_place', 'self_rating', 'student_assesment', 'error_tag_check')
 
 		CHOICES_CHECK = (
 			(None, 'Все тексты'),
@@ -237,13 +228,11 @@ class SearchTextForm(forms.ModelForm):
 			'write_place': forms.Select(attrs={'class': 'form-control'}),
 			'self_rating': forms.Select(attrs={'class': 'form-control'}),
 			'student_assesment': forms.Select(attrs={'class': 'form-control'}),
-			'pos_check': forms.Select(attrs={'class': 'form-control'}, choices=CHOICES_CHECK),
 			'error_tag_check': forms.Select(attrs={'class': 'form-control'}, choices=CHOICES_CHECK),
 		}
 
 	def __init__(self, *args, **kwargs):
 		super(SearchTextForm, self).__init__(*args, **kwargs)
-		self.fields['pos_check'].initial = None
 		self.fields['error_tag_check'].initial = None
 		self.fields['language'].empty_label = 'Все тексты'
 		self.fields['emotional'].empty_label = 'Все тексты'
