@@ -10,106 +10,94 @@
 
 <!-- Content -->
 {% block content %}
-<main class="container my-4">
-	<!-- Search menu -->
-	<form action="{% url 'corpus_search' %}" method="post" novalidate class="text-secondary col-11 col-lg-6 mx-auto">
-		{% comment %}{% csrf_token %}{% endcomment %}
-		<div class="input-group">
-			{{ search_form.header }}
-			<button
-				type="button"
-				class="btn btn-outline-secondary shadow-none"
-				title="Фильтр"
-				data-bs-toggle="collapse"
-				data-bs-target="#filter"
-				aria-expanded="false"
-				aria-controls="filter"
-			>
-				<svg
-					class="bi"
-					xmlns="http://www.w3.org/2000/svg"
-					height="1.6em"
-					stroke="currentColor"
-					fill="none"
-					viewBox="0 0 24 24"
+<main class="container-fluid my-4">
+	<div class="container">
+		<!-- Search menu -->
+		<form
+			action="{% url 'corpus_search' %}"
+			method="post"
+			novalidate
+			class="text-secondary col-11 col-lg-6 mx-auto"
+		>
+			{% comment %}{% csrf_token %}{% endcomment %}
+			<div class="input-group">
+				{{ search_form.header }}
+				<button
+					type="button"
+					class="btn btn-outline-secondary shadow-none"
+					title="Фильтр"
+					data-bs-toggle="collapse"
+					data-bs-target="#filter"
+					aria-expanded="false"
+					aria-controls="filter"
 				>
-					<path
-						stroke-linecap="round"
-						stroke-width="1.5"
-						d="M20.058 9.723c.948-.534 1.423-.801 1.682-1.232.26-.43.26-.949.26-1.987v-.69c0-1.326 0-1.99-.44-2.402C21.122 3 20.415 3 19 3H5c-1.414 0-2.121 0-2.56.412C2 3.824 2 4.488 2 5.815v.69c0 1.037 0 1.556.26 1.986.26.43.733.698 1.682 1.232l2.913 1.64c.636.358.955.537 1.183.735.474.411.766.895.898 1.49.064.284.064.618.064 1.285v2.67c0 .909 0 1.364.252 1.718.252.355.7.53 1.594.88 1.879.734 2.818 1.101 3.486.683.668-.417.668-1.372.668-3.282v-2.67c0-.666 0-1 .064-1.285a2.68 2.68 0 0 1 .899-1.49"
-					/>
-				</svg>
-			</button>
-			<button type="submit" class="btn btn-primary shadow-none" title="Поиск">
-				<svg
-					class="bi"
-					xmlns="http://www.w3.org/2000/svg"
-					height="1.6em"
-					stroke="currentColor"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-width="1.5"
-						d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
-					/>
-				</svg>
-			</button>
-		</div>
-		<div class="collapse" id="filter">
-			<div class="p-3 card d-flex flex-column gap-2">
-				<div class="row justify-content-between align-items-end">
-					<label for="{{ search_form.user.id_for_label }}" class="form-label col-6">
-						Автор {{ search_form.user }}
-					</label>
-				</div>
-				<div class="row justify-content-evenly align-items-end">
-					<label for="{{ search_form.language.id_for_label }}" class="form-label col-6">
-						Язык {{ search_form.language }}
-					</label>
-					<label for="{{ search_form.text_type.id_for_label }}" class="form-label col-6">
-						Тип текста {{ search_form.text_type }}
-					</label>
-				</div>
-				<div class="row justify-content-evenly align-items-end">
-					<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
-						Эмоционально-физиологическое состояние {{ search_form.emotional }}
-					</label>
-					<label for="{{ search_form.error_tag_check.id_for_label }}" class="form-label col-6">
-						Проверка разметки ошибок {{ search_form.error_tag_check }}
-					</label>
-				</div>
-				<div class="row justify-content-evenly align-items-end">
-					<label for="{{ search_form.write_place.id_for_label }}" class="form-label col-6">
-						Где написан текст {{ search_form.write_place }}
-					</label>
-					<label for="{{ search_form.create_date.id_for_label }}" class="form-label col-6">
-						Дата создания {{ search_form.create_date }}
-					</label>
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M20.058 9.723c.948-.534 1.423-.801 1.682-1.232.26-.43.26-.949.26-1.987v-.69c0-1.326 0-1.99-.44-2.402C21.122 3 20.415 3 19 3H5c-1.414 0-2.121 0-2.56.412C2 3.824 2 4.488 2 5.815v.69c0 1.037 0 1.556.26 1.986.26.43.733.698 1.682 1.232l2.913 1.64c.636.358.955.537 1.183.735.474.411.766.895.898 1.49.064.284.064.618.064 1.285v2.67c0 .909 0 1.364.252 1.718.252.355.7.53 1.594.88 1.879.734 2.818 1.101 3.486.683.668-.417.668-1.372.668-3.282v-2.67c0-.666 0-1 .064-1.285a2.68 2.68 0 0 1 .899-1.49"
+						/>
+					</svg>
+				</button>
+				<button type="submit" class="btn btn-primary shadow-none" title="Поиск">
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+						/>
+					</svg>
+				</button>
+			</div>
+			<div class="collapse" id="filter">
+				<div class="p-3 card d-flex flex-column gap-2">
+					<div class="row justify-content-between align-items-end">
+						<label for="{{ search_form.user.id_for_label }}" class="form-label col-6">
+							Автор {{ search_form.user }}
+						</label>
+					</div>
+					<div class="row justify-content-evenly align-items-end">
+						<label for="{{ search_form.language.id_for_label }}" class="form-label col-6">
+							Язык {{ search_form.language }}
+						</label>
+						<label for="{{ search_form.text_type.id_for_label }}" class="form-label col-6">
+							Тип текста {{ search_form.text_type }}
+						</label>
+					</div>
+					<div class="row justify-content-evenly align-items-end">
+						<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
+							Эмоционально-физиологическое состояние {{ search_form.emotional }}
+						</label>
+						<label for="{{ search_form.error_tag_check.id_for_label }}" class="form-label col-6">
+							Проверка разметки ошибок {{ search_form.error_tag_check }}
+						</label>
+					</div>
+					<div class="row justify-content-evenly align-items-end">
+						<label for="{{ search_form.write_place.id_for_label }}" class="form-label col-6">
+							Где написан текст {{ search_form.write_place }}
+						</label>
+						<label for="{{ search_form.create_date.id_for_label }}" class="form-label col-6">
+							Дата создания {{ search_form.create_date }}
+						</label>
+					</div>
 				</div>
 			</div>
-		</div>
-	</form>
-
-	<a href="{% url 'new_text' %}" class="btn btn-primary ms-4 mt-3">
-		<svg
-			class="bi me-1"
-			xmlns="http://www.w3.org/2000/svg"
-			height="1.6em"
-			stroke="currentColor"
-			fill="none"
-			viewBox="0 0 24 24"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-width="1.5"
-				d="M15 12h-3m0 0H9m3 0V9m0 3v3M7 3.338A9.954 9.954 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"
-			/>
-		</svg>
-
-		Новый текст
-	</a>
+		</form>
+	</div>
 	<h3 class="text-secondary my-3 ms-4">Результаты поиска</h3>
 
 	{% if text_list %}

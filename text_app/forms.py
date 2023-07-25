@@ -72,7 +72,7 @@ class TextCreationForm(forms.ModelForm):
 			(значения для них передается в URL запроса)
 		"""
 		widgets   = {
-			'header': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
+			'header': forms.TextInput(attrs={'class': 'form-control', 'required': 'required', 'autocomplete':'off'}),
 			'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 14}),
 			'emotional': forms.Select(attrs={'class': 'form-control'}),
 			'write_place': forms.Select(attrs={'class': 'form-control'}),
