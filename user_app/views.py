@@ -27,7 +27,7 @@ import json
 from text_app.models import TblTag, TblMarkup, TblGrade, TblEmotional
 
 def signup(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+	if not (request.user.is_authenticated and request.user.is_teacher()):
 		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
@@ -70,8 +70,9 @@ def signup(request):
 
 
 def change_password_self(request):
-	if not ((hasattr(request.user, 'is_teacher') and request.user.is_teacher()) or (hasattr(request.user, 'is_student') and request.user.is_student())):
+	if not (request.user.is_authenticated and (request.user.is_teacher() or request.user.is_student())):
 		return render(request, 'access_denied.html', status=403)
+        
 	if request.POST:
 		user_id = request.user.id_user
 		password = str(request.POST['password'])
@@ -95,7 +96,7 @@ def change_password_self(request):
 
 
 def change_password_student(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+	if not (request.user.is_authenticated and request.user.is_teacher()):
 		return render(request, 'access_denied.html', status=403)
 
 	if request.POST:
@@ -129,7 +130,7 @@ def change_password_student(request):
 
 
 def signup_teacher(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher() and check_is_superuser(request.user.id_user)):
+	if not (request.user.is_authenticated and request.user.is_teacher() and check_is_superuser(request.user.id_user)):
 		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
@@ -166,7 +167,7 @@ def signup_teacher(request):
 def log_in(request):
 	# Проверка на авторизованность
 	if request.user.is_authenticated:
-		return redirect('corpus')
+		return redirect('home')
 
 	if request.method == "POST":
 		form_login = LoginForm(request.POST)
@@ -242,7 +243,7 @@ def _symbol_check(name: str) -> bool:
 
 
 def group_creation(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+	if not (request.user.is_authenticated and request.user.is_teacher()):
 		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
@@ -279,7 +280,7 @@ def group_creation(request):
 
 # * Group selection page
 def group_selection(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+	if not (request.user.is_authenticated and request.user.is_teacher()):
 		return render(request, 'access_denied.html', status=403)
 	
 	groups = TblGroup.objects.filter(
@@ -331,8 +332,8 @@ def _get_group_students(group_id: int, in_: bool) -> list:
 
 
 def group_modify(request, group_id):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
-		return render(request, 'access_denied.html')
+	if not (request.user.is_authenticated and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 	
 	groups = TblGroup.objects.filter(id_group=group_id).values(
 			'enrollment_date', 'group_name', 'course_number')
@@ -391,8 +392,8 @@ def group_modify(request, group_id):
 	return (render(request, 'group_modify.html', context=context))
 
 def group_delete_student(request, group_id, student_id):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
-		return render(request, 'access_denied.html')
+	if not (request.user.is_authenticated and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 		
 	query = TblStudentGroup.objects.filter(Q(group_id=group_id) & Q(student_id=student_id))
 
@@ -402,15 +403,15 @@ def group_delete_student(request, group_id, student_id):
 	return group_modify(request, group_id)
 
 def delete_group(request, group_id) :
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
-		return render(request, 'access_denied.html')
+	if not (request.user.is_authenticated and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 	
 	TblGroup.objects.filter(id_group=group_id).delete()
 	return redirect('group_selection')
 
 
 def group_add_student(request, group_id, student_id):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+	if not (request.user.is_authenticated and request.user.is_teacher()):
 		return render(request, 'access_denied.html')
 
 	if TblStudent.objects.filter(Q(id_student=student_id)).exists() and (not TblStudentGroup.objects.filter(
@@ -422,8 +423,8 @@ def group_add_student(request, group_id, student_id):
 
 
 def task_list_select(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
-		return render(request, 'access_denied.html')
+	if not (request.user.is_authenticated and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 
 	students = []
 	students_query = TblStudent.objects.filter(Q(user_id__language_id=request.user.language_id))
@@ -457,8 +458,8 @@ def task_list_select(request):
 
 
 def tasks_info(request, user_id):
-	if not ((request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher()):
-				return render(request, 'access_denied.html')
+	if not (request.user.is_authenticated and ((request.user.is_student() and request.user.id_user == user_id) or request.user.is_teacher())):
+				return render(request, 'access_denied.html', status=403)
 	
 	about_student = TblStudent.objects\
 		.filter(user_id=user_id)\
@@ -528,6 +529,7 @@ def tasks_info(request, user_id):
 		'tasks': task_list,
 		'filter': title_filter
 	}))
+
 
 def get_data_errors_DFS(v, d, level, level_input, h, flags_levels, data):
     h[v] = 1

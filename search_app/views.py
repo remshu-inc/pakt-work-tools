@@ -323,7 +323,7 @@ def text(request, text_id=None):
 
 
 def get_stat(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
+	if not (request.user.is_authenticated and request.user.is_teacher()):
 		return render(request, 'access_denied.html', status=403)
 	
 	if request.method != 'POST':

@@ -168,7 +168,10 @@
 			{% for language in languages %}
 			<tr>
 				<td class="ps-3">
-					<a href="{{ language.language_name }}" class="link-primary text-decoration-none d-flex gap-2">
+					<a
+						href="{% url 'language' language=language.language_name %}"
+						class="link-primary text-decoration-none d-flex gap-2"
+					>
 						<svg
 							class="bi flex-shrink-0"
 							xmlns="http://www.w3.org/2000/svg"
@@ -273,7 +276,10 @@
 			{% for text_type in text_types %}
 			<tr>
 				<td class="ps-3">
-					<a class="link-primary text-decoration-none d-flex gap-2" href="{{ text_type.text_type_name }}">
+					<a
+						class="link-primary text-decoration-none d-flex gap-2"
+						href="{% url 'text_type' language=selected_language text_type=text_type.text_type_name %}"
+					>
 						<svg
 							class="bi flex-shrink-0"
 							xmlns="http://www.w3.org/2000/svg"

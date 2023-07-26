@@ -26,7 +26,7 @@ def corpus(request, language=None, text_type=None):
 	if not request.user.is_authenticated:
 		return redirect('login')
 	
-	is_teacher = hasattr(request.user, 'is_teacher') and request.user.is_teacher()
+	is_teacher = request.user.is_teacher()
 	search_form = SearchTextForm(language_id=request.user.language_id) if is_teacher else None
 
 	# Определение сортировки
@@ -113,8 +113,8 @@ def corpus(request, language=None, text_type=None):
 
 
 def corpus_search(request):
-	if not (hasattr(request.user, 'is_teacher') and request.user.is_teacher()):
-		return render(request, 'access_denied.html')
+	if not (request.user.is_authenticated and request.user.is_teacher()):
+		return render(request, 'access_denied.html', status=403)
 	
 	order = 'header'
 	reverse = False
@@ -161,8 +161,8 @@ def corpus_search(request):
 
 
 def new_text(request):
-	if not (request.user.is_teacher() or request.user.is_student()):
-		return render(request, 'access_denied.html')
+	if not (request.user.is_authenticated and (request.user.is_teacher() or request.user.is_student())):
+		return render(request, 'access_denied.html', status=403)
 
 	text_form = TextCreationForm(request.user)
 
@@ -225,10 +225,8 @@ def delete_text(request):
 		html: redirect to back page
 	"""
 
-	if not request.user.is_authenticated:
-		return redirect('home')
-	elif not check_is_superuser(request.user.id_user):
-		return redirect('home')
+	if not (request.user.is_authenticated and check_is_superuser(request.user.id_user)):
+		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
 		language = request.POST['language']
@@ -456,8 +454,7 @@ def assessment_form(request, text_id=1, **kwargs):
 
 
 def meta_form(request, text_id=1, **kwargs):
-	if request.user.id_user == TblText.objects \
-			.filter(id_text=text_id).values('user_id')[0]['user_id']:
+	if request.user.id_user == TblText.objects.filter(id_text=text_id).values('user_id')[0]['user_id']:
 
 		initial_values = TblText.objects.filter(id_text=text_id).values(
 			'emotional',
@@ -487,8 +484,8 @@ def meta_form(request, text_id=1, **kwargs):
 		return render(request, 'meta_form.html', {'right': False})
 
 
-def show_text(request, text_id):
-	if not hasattr(request.user, 'id_user'):
+def show_text_legacy(request, text_id):
+	if not request.user.is_authenticated:
 		return redirect('login')
 
 	text = TblText.objects.filter(id_text=text_id).first()
@@ -497,6 +494,7 @@ def show_text(request, text_id):
 
 	text_info = TblText.objects.filter(id_text=text_id).values(
 		'header', 'language_id', 'language_id__language_name', 'user_id').all()
+	
 	if text_info.exists() and check_permissions_show_text(request.user.id_user, text_id):
 		header = text_info[0]['header']
 		text_language_name = text_info[0]['language_id__language_name']
@@ -591,6 +589,89 @@ def show_text(request, text_id):
 			})
 	else:
 		return render(request, 'work_area.html', context={'founded': False})
+
+
+def show_text(request, text_id):
+	if not request.user.is_authenticated:
+		return redirect('login')
+
+	text = TblText.objects.filter(id_text=text_id).values('language_id', 'text_type_id', 'user_id')
+	if not text.exists():
+		return render(request, 'work_area.html', context={ 'exists': False })
+	text = text.first()
+	
+	if not check_permissions_show_text(request.user.id_user, text_id):
+		return render(request, 'access_denied.html', status=403)
+
+	language = TblLanguage.objects.filter(id_language=text['language_id']).first()
+	text_type = TblTextType.objects.filter(id_text_type=text['text_type_id']).first()
+	tags = TblTag.objects.filter(tag_language_id=language.id_language).values('id_tag', 'tag_text', 'tag_text_russian', 'tag_parent', 'tag_color').all()
+
+	tags_info = []
+	if tags.exists():
+			for element in tags:
+				parent_id = 0
+				if element['tag_parent'] and element['tag_parent'] != 0:
+					parent_id = element['tag_parent']
+				
+				spoiler = False
+				for child in tags:
+					if child['tag_parent'] == element['id_tag']:
+						spoiler = True
+						break
+				
+				tags_info.append({
+					'isspoiler': spoiler,
+					'tag_id': element['id_tag'],
+					'tag_text': element['tag_text'],
+					'tag_text_russian': element['tag_text_russian'],
+					'parent_id': parent_id,
+					'tag_color': element['tag_color']
+				})
+
+	reasons = TblReason.objects.filter(reason_language_id=language.id_language).values('id_reason', 'reason_name')
+	grades = TblGrade.objects.filter(grade_language_id=language.id_language).values('id_grade', 'grade_name')
+	annotation_form = get_annotation_form(grades, reasons)
+
+	annotation_right = check_permissions_work_with_annotations(request.user.id_user, text_id)
+	text_owner_right = request.user.id_user == text['user_id']
+
+	text_meta_info = _get_text_info(text_id)
+
+	context = {
+		'exists': True,
+		'ann_right': annotation_right,
+		'teacher': request.user.is_teacher(),
+		'superuser': check_is_superuser(request.user.id_user),
+		'text_owner': text_owner_right,
+		'user_id': request.user.id_user,
+		'annotation_form': annotation_form,
+		'text_id': text_id,
+		'lang_name': language.language_name,
+		'text_info': text_meta_info,
+		'language': language,
+		'text_type': text_type,
+		'auto_degree': False
+	}
+
+	if request.user.is_teacher() and language.id_language == 1:
+		cursor = connection.cursor()
+		cursor.execute(
+			f'CALL getallMarks({text_id}, @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp, @dis, @skip, @extra);')
+		cursor.execute(
+			"SELECT @g0, @g1, @g2, @mg, @l0, @l1, @l2, @ml, @p0, @p1, @p2, @mp, @dis, @skip, @extra;")
+		
+		auto_degree = cursor.fetchone()
+		context['auto_grammatik'] = auto_degree[0:4]
+		context['auto_lexik'] = auto_degree[4:8]
+		context['auto_orth'] = auto_degree[8:12]
+		context['count_dis'] = auto_degree[12]
+		context['count_skip'] = auto_degree[13]
+		context['count_extra'] = auto_degree[14]
+		context['auto_degree'] = True
+		cursor.close()
+
+	return render(request, 'work_area.html', context=context)
 
 
 def author_form(request, text_id=1, **kwargs):
