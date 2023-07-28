@@ -233,7 +233,8 @@ def getGrossModel(pathname):
     import shutil
     from huggingface_hub import snapshot_download
     folder_from = snapshot_download(repo_id="remshu-inc/mencoder")
-    os.mkdir(pathname)
+    if not os.path.exists(pathname):
+        os.mkdir(pathname)
     folder_to = pathname
 
     for f in os.listdir(folder_from):
