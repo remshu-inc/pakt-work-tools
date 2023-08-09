@@ -229,8 +229,6 @@ def delete_text(request):
 		return render(request, 'access_denied.html', status=403)
 
 	if request.method == 'POST':
-		language = request.POST['language']
-		text_type = request.POST['text_type']
 		text_id = request.POST['text_id']
 
 		TblTokenMarkup.objects.filter(
@@ -242,7 +240,7 @@ def delete_text(request):
 		TblTextGroup.objects.filter(text_id=text_id).delete()
 		TblText.objects.filter(id_text=text_id).delete()
 
-	return redirect('text_type', language=language, text_type=text_type)
+	return redirect('corpus')
 
 
 def _drop_none(info_dict: dict, ignore: list):
@@ -747,13 +745,13 @@ def author_form(request, text_id=1, **kwargs):
 		else:
 			initial = ('   ', 'Отсутствует')
 
-	elif creator.exists() and creator.values('user_id')[0]['user_id'] == request.user.id_user:
+	elif creator.exists() and creator.values('user_id').first()['user_id'] == request.user.id_user:
 		student_id = TblStudent.objects.filter(
-			user_id=creator.values('user_id')[0]['user_id'])
+			user_id=creator.values('user_id').first()['user_id'])
 
 		if student_id.exists():
 			labels = TblStudentGroup.objects. \
-				filter(student_id=student_id.values('id_student')[0]['id_student']). \
+				filter(student_id=student_id.values('id_student').fisrt()['id_student']). \
 				order_by('group_id__group_name', '-group_id__enrollment_date'). \
 				values('group_id', 'group_id__group_name',
 					   'group_id__enrollment_date')
