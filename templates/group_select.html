@@ -3,7 +3,35 @@
 <!-- Content -->
 {% block content %}
 <main class="container my-4">
-	<h2 class="text-center text-primary mb-5">Управление группами</h2>
+	<h2 class="text-center text-primary mb-4">Управление группами</h2>
+	<form method="GET" action="" class="col-6 col-md-4 my-4">
+		<div class="input-group">
+			<input
+				class="form-control"
+				type="search"
+				name="group-filter"
+				autocomplete="off"
+				value="{% if filter %}{{filter}}{% endif %}"
+				placeholder="Поиск группы"
+			/>
+			<button class="btn btn-primary shadow-sm" type="submit">
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="1.6em"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="2"
+						d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+					/>
+				</svg>
+			</button>
+		</div>
+	</form>
 	{% if groups %}
 	<table class="table table-responsive bg-white shadow table-hover px-5 card-rounded">
 		<thead class="table-light">
@@ -65,9 +93,7 @@
 			/>
 		</svg>
 
-		<p class="m-0">
-			Нет созданных групп. <a href="{% url 'group_creation'%}" class="alert-link">Создайте первую группу</a>
-		</p>
+		<p class="m-0">Группы не найдены <a href="{% url 'group_creation'%}" class="alert-link">Создайте группу</a></p>
 	</div>
 	{%endif%} {%endblock%}
 </main>

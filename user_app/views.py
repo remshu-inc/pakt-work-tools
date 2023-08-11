@@ -283,16 +283,19 @@ def group_selection(request):
 	if not (request.user.is_authenticated and request.user.is_teacher()):
 		return render(request, 'access_denied.html', status=403)
 	
-	groups = TblGroup.objects.filter(
-		language_id=request.user.language_id).order_by('-enrollment_date', 'course_number', 'group_name').values()
-
+	group_filter = request.GET.get('group-filter')
+	group_filter = group_filter.strip() if group_filter else ''
+        
+	groups = TblGroup.objects.filter(Q(language_id=request.user.language_id) & Q(group_name__icontains=group_filter))\
+		.order_by('-enrollment_date', 'course_number', 'group_name')\
+		.values()
+	
 	for index in range(len(groups)):
 		groups[index]['enrollment_date'] = str(groups[index]['enrollment_date'].year) \
 			+ ' /  ' + str(groups[index]['enrollment_date'].year + 1)
 
-	return (render(request, 'group_select.html', context={'groups': groups}))
+	return (render(request, 'group_select.html', context={'groups' : groups, 'filter' : group_filter}))
 
-		
 
 # * Group modify
 def _get_group_students(group_id: int, in_: bool) -> list:
@@ -431,7 +434,6 @@ def task_list_select(request):
 	
 	student_filter = request.GET.get('student-filter')
 	
-
 	if student_filter != None and student_filter !='' and students_query.exists():
 		search_args = []
 		for term in student_filter.split():
@@ -468,10 +470,11 @@ def tasks_info(request, user_id):
 
 	author_data = {}
 	if about_student.exists():
+		about_student = about_student.first();
 		author_data = {
-			'name': about_student[0]['user_id__name'] if about_student[0]['user_id__name'] else '',
-			'last_name': about_student[0]['user_id__last_name'] if about_student[0]['user_id__last_name'] else '',
-			'patronymic': about_student[0]['user_id__patronymic'] if about_student[0]['user_id__patronymic'] else '',
+			'name': about_student['user_id__name'] if about_student['user_id__name'] else '',
+			'last_name': about_student['user_id__last_name'] if about_student['user_id__last_name'] else '',
+			'patronymic': about_student['user_id__patronymic'] if about_student['user_id__patronymic'] else '',
 		}
 
 	title_filter = request.GET.get('title-filter')
