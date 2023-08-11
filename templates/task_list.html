@@ -104,7 +104,9 @@
 					</a>
 				</td>
 				<td class="">{{task.path.type}}</td>
-				<td class="">{{task.date}}</td>
+				<td class="">
+					{%if task.date %}{{task.date}}{%else%}<span class="text-secondary">Неизвестно</span>{%endif%}
+				</td>
 				<td class="text-center">
 					{% if task.error_check == 'Да' %}
 					<span title="Проверено">
@@ -164,7 +166,7 @@
 					aria-controls="text-{{ task.path.id }}"
 				>
 					<span class="col-8 ellipsis">{{ task.header }}</span
-					><span class="text-secondary ms-3 col-3 text-center">{{task.date}}</span>
+					><span class="text-secondary ms-3 col-3 text-center">{%if task.date %}{{task.date}}{%endif%}</span>
 				</button>
 			</h2>
 			<div id="text-{{ task.path.id }}" class="accordion-collapse collapse" data-bs-parent="#text-list-accordion">
