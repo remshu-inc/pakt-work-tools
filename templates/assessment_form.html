@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block content %}
 <main class="container my-4">
 	<h2 class="text-primary text-center">Редактировать оценку</h2>
-	<form method="POST" novalidate class="col-12 col-lg-6 mx-auto my-4">
+	<form method="POST" novalidate class="col-12 col-lg-6 mx-auto my-4 text-secondary">
 		{% comment %} {% csrf_token %} {% endcomment %}
 		<div class="mb-3 row col-12 align-items-end">
 			<label for="{{form.assessment.id_for_label}}" class="col-12">Оценка {{form.assessment}} </label>

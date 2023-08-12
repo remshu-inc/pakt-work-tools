@@ -323,7 +323,7 @@ class MetaModify(forms.ModelForm):
 			'emotional': forms.Select(attrs={'class': 'form-control'}),
 			'write_tool': forms.Select(attrs={'class': 'form-control'}),
 			'write_place': forms.Select(attrs={'class': 'form-control'}),
-			'education_level': forms.NumberInput(attrs={'class': 'form-control'}),
+			'education_level': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100}),
 			'self_rating': forms.Select(attrs={'class': 'form-control'}),
 			'student_assesment': forms.Select(attrs={'class': 'form-control'}),
 		}

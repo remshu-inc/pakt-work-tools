@@ -450,34 +450,36 @@ def assessment_form(request, text_id):
 
 # Form for meta modify
 def meta_form(request, text_id):
-	if request.user.id_user == TblText.objects.filter(id_text=text_id).values('user_id')[0]['user_id']:
-
+	if request.user.id_user == TblText.objects.filter(id_text=text_id).values('user_id').first()['user_id']:
 		initial_values = TblText.objects.filter(id_text=text_id).values(
 			'emotional',
 			'write_tool',
 			'write_place',
 			'education_level',
 			'self_rating',
-			'student_assesment').all()[0]
+			'student_assesment').first()
 
 		if request.method == "POST":
-			# instance = get_object_or_404(TblText, id_text = text_id)
 			instance = TblText.objects.get(id_text=text_id)
 			form = MetaModify(initial_values,
 							  request.POST or None,
 							  instance=instance)
 
 			if form.is_valid():
-				form.save()
-			return (redirect(request.path[:request.path.rfind('/') + 1]))
+				education_level = form.cleaned_data['education_level']
+				if (education_level and (education_level < 0 or education_level > 100)):
+					form.add_error('education_level', 'Некорректное значение')
+				else:
+					form.save()
+					return (redirect(show_text, text_id))
 		else:
 			form = MetaModify(initial_values)
-			return (render(request, 'meta_form.html', {
-				'right': True,
-				'form': form
-			}))
+
+		return (render(request, 'meta_form.html', {
+			'form': form
+		}))
 	else:
-		return render(request, 'meta_form.html', {'right': False})
+		return render(request, 'access_denied.html', status=403)
 
 
 def show_text_legacy(request, text_id):
