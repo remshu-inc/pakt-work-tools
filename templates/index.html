@@ -22,7 +22,6 @@
 	<div class="col col-md-8 col-11 mx-auto mt-4">
 		<form action="{% url 'search' %}" method="post">
 			{% comment %} {% csrf_token %} {% endcomment %}
-
 			<div class="input-group input-group-lg mb-3 mx-auto search-bar">
 				<input
 					name="corpus_search"
@@ -55,7 +54,8 @@
 		<!-- FAQ links -->
 		<div class="container mb-5 d-flex flex-row justify-content-start gap-3 fs-6">
 			<a class="btn btn-secondary rounded-pill" href="{% url 'cql_faq' %}">Язык запросов</a>
-			<a class="btn btn-secondary rounded-pill" href="{% url 'tag_list' %}">Справочник тегов</a>
+			<a class="btn btn-secondary rounded-pill" href="{% url 'tag_list_de' %}">Справочник немецких тегов</a>
+			<a class="btn btn-secondary rounded-pill" href="{% url 'tag_list_fr' %}">Справочник французских тегов</a>
 		</div>
 	</div>
 

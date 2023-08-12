@@ -50,7 +50,7 @@
 						{% if is_registered %}
 						<a
 							class="ms-3 details-btn link-secondary"
-							href="{% url 'text_view' language=search.language text_type=search.text_type text_id=search.text_id %}"
+							href="{% url 'text_view' text_id=search.text_id %}"
 							title="Разбор текста"
 						>
 							<svg

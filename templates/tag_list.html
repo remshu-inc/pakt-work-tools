@@ -3,7 +3,7 @@
 <!-- Main page content -->
 {% block indexContent %}
 <div class="container">
-	<h2 class="text-center text-primary my-5">Справочник тегов</h2>
+	<h2 class="text-center text-primary my-5">{{title}}</h2>
 
 	<div class="col col-md-8 mx-auto d-flex flex-column gap-5">
 		<div>
@@ -14,10 +14,10 @@
 					<th scope="col" class="col-2">Аббревиатура</th>
 				</thead>
 				<tbody>
-					{% for deutsche_reason in deutsche_reasons %}
+					{% for reason in reasons %}
 					<tr>
-						<td>{{ deutsche_reason.reason_name }}</td>
-						<td>{{ deutsche_reason.reason_abbrev }}</td>
+						<td>{{ reason.reason_name }}</td>
+						<td>{{ reason.reason_abbrev }}</td>
 					</tr>
 					{% endfor %}
 				</tbody>
@@ -32,10 +32,10 @@
 					<th scope="col" class="col-2">Аббревиатура</th>
 				</thead>
 				<tbody>
-					{% for deutsche_grade in deutsche_grades %}
+					{% for grade in grades %}
 					<tr>
-						<td>{{ deutsche_grade.grade_name }}</td>
-						<td>{{ deutsche_grade.grade_abbrev }}</td>
+						<td>{{ grade.grade_name }}</td>
+						<td>{{ grade.grade_abbrev }}</td>
 					</tr>
 					{% endfor %}
 				</tbody>
@@ -44,22 +44,24 @@
 
 		<div>
 			<h4 class="mb-4">Теги ошибок</h4>
-			<table class="table table-hover bg-white card-rounded shadow fs-6">
-				<thead class="table-light">
-					<th scope="col" class="col-5">Тег</th>
-					<th scope="col" class="col-5">На русском</th>
-					<th scope="col" class="col-2">Аббревиатура</th>
-				</thead>
-				<tbody>
-					{% for deutsche_error_tag in deutsche_error_tags %}
-					<tr>
-						<td>{{ deutsche_error_tag.tag_text }}</td>
-						<td>{{ deutsche_error_tag.tag_text_russian }}</td>
-						<td>{{ deutsche_error_tag.tag_text_abbrev }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
+			<div class="table-responsive-sm px-1">
+				<table class="table table-hover bg-white card-rounded shadow fs-6">
+					<thead class="table-light">
+						<th scope="col" class="col-5">Тег</th>
+						<th scope="col" class="col-5">На русском</th>
+						<th scope="col" class="col-2">Аббревиатура</th>
+					</thead>
+					<tbody>
+						{% for error_tag in error_tags %}
+						<tr>
+							<td>{{ error_tag.tag_text }}</td>
+							<td>{{ error_tag.tag_text_russian }}</td>
+							<td>{{ error_tag.tag_text_abbrev }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 </div>

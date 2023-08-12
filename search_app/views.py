@@ -92,7 +92,7 @@ def cql_faq(request):
 	return render(request, "cql_faq.html")
 
 
-def tag_list(request):
+def tag_list(request, language_id, title):
 	""" Рендер справочника по тегам
 
 	Args:
@@ -102,20 +102,25 @@ def tag_list(request):
 		HttpResponse: html Справочник тегов
 	"""
 
-	deutsche_reasons = TblReason.objects.filter(reason_language_id=1).values(
+	reasons = TblReason.objects.filter(reason_language_id=language_id).values(
 		'reason_name', 'reason_abbrev')
 
-	deutsche_grades = TblGrade.objects.filter(grade_language_id=1).values(
+	grades = TblGrade.objects.filter(grade_language_id=language_id).values(
 		'grade_name', 'grade_abbrev')
 
-	deutsche_error_tags = TblTag.objects.filter(markup_type_id=1, tag_language_id=1).values(
+	error_tags = TblTag.objects.filter(markup_type_id=1, tag_language_id=language_id).values(
 		'tag_text', 'tag_text_russian', 'tag_text_abbrev')
 
-	deutsche_pos_tags = TblTag.objects.filter(markup_type_id=2, tag_language_id=1).values(
+	pos_tags = TblTag.objects.filter(markup_type_id=2, tag_language_id=language_id).values(
 		'tag_text')
 
-	return render(request, "tag_list.html", {'deutsche_reasons': deutsche_reasons, 'deutsche_grades': deutsche_grades, 'deutsche_error_tags': deutsche_error_tags, 'deutsche_pos_tags': deutsche_pos_tags, })
+	return render(request, "tag_list.html", {'reasons': reasons, 'grades': grades, 'error_tags': error_tags, 'pos_tags': pos_tags, 'title': title})
 
+def tag_list_de(request):
+	return tag_list(request=request, language_id=1, title='Справочник немецкоязычных тегов')
+
+def tag_list_fr(request):
+	return tag_list(request=request, language_id=2, title='Справочник французскоязычных тегов')
 
 def _filter_shaping(cql):
 	"""Формирование фильтра на основе cql

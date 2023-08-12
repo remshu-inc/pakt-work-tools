@@ -9,11 +9,7 @@
 	<div class="d-flex justify-content-between pe-md-5 gap-3">
 		<h1 class="fs-1 text-primary align-self-center">{{ text_path }}</h1>
 		{% if user.is_authenticated %}
-		<a
-			class="fs-3 link-primary"
-			href="{% url 'text_view' language=language_name text_type=text_type_name text_id=text_id %}"
-			title="Разбор текста"
-		>
+		<a class="fs-3 link-primary" href="{% url 'text_view' text_id=text_id %}" title="Разбор текста">
 			<svg
 				class="bi"
 				xmlns="http://www.w3.org/2000/svg"
