@@ -34,8 +34,8 @@ urlpatterns = [
     path('show_text/api/annotation_edit', api.annotation_edit, name='annotation_edit'),
      #** Формы
      # Оценка текста
-    path('corpus/text/<int:text_id>/asses_edit', views.assessment_form,
-         name='asses_edit'),
+    path('corpus/text/<int:text_id>/assessment_edit', views.assessment_form,
+         name='assessment_edit'),
      # Изменение метаданных
     path('corpus/text/<int:text_id>/meta_edit', views.meta_form,
          name='meta_edit'),

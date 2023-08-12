@@ -296,9 +296,9 @@ class AssessmentModify(forms.ModelForm):
 
 	def __init__(self, initial, is_teacher, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
 		for key in initial:
 			self.fields[key].initial = initial[key]
+			
 
 		if not is_teacher:
 			self.fields['assessment'].widget.attrs['readonly'] = "readonly"
@@ -340,5 +340,5 @@ class AuthorModify(forms.Form):
 
 	def __init__(self, options: list, init: tuple, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.fields['user'] = forms.ChoiceField(widget=forms.Select,
+		self.fields['user'] = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control select2'}),
 												choices=options, initial=init)

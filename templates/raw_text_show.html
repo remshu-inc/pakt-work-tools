@@ -1,49 +1,36 @@
-{%extends "base.html"%}
-{%block styles%}
-#text-path{
-    color: var(--color-primary);
-    padding:0.5rem 1rem;
-    font-size: 18pt;
-    background-color: rgba(var(--bs-light-rgb));
-    width: 100%;
-    position: inherit;
-    border-bottom: 1px #d7d7d7 solid;
-}
-.text-block{
-    margin-left: 20px;
-    margin-top: 20px;
-}
-.order-number{
-    color: var(--color-decline);
-    padding-right: 20px;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-.sent-row{
-    border-bottom: 10px white solid;
-}
-{%endblock%}
-{%block content%}
+{%extends "base.html"%} {%block content%}
+<main class="container my-5">
+	{% if not exists %}
+	<div class="alert alert-warning my-1 w-75 mx-auto d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m14.5 9.5-5 5m0-5 5 5M22 12c0 4.71 0 7.07-1.46 8.54C19.07 22 16.7 22 12 22c-4.71 0-7.07 0-8.54-1.46C2 19.07 2 16.7 2 12c0-4.71 0-7.07 1.46-8.54C4.93 2 7.3 2 12 2c4.71 0 7.07 0 8.54 1.46.97.98 1.3 2.35 1.4 4.54"
+			/>
+		</svg>
 
-{%if right%}
-<div id = "text-path">
-    {{lang_name}}/{{text_type}}/{{text_name}}
-</div>
-<table class = 'text-block'>
-{%for sentence in sentences%}
-    <tr class = 'sent-row'>
-        <td class = 'order-number'>{{sentence.0}}</td>
-        <td class = 'sent-text'>{{sentence.1}}</td>
-    </tr>
-{%endfor%}
-</table>
-{%else%}
-<div class="alert alert-danger" role="alert">
-  Текст не найден или недостаточно прав для просмотра
-</div>
-{%endif%}
+		<p class="m-0">Текст не найден</p>
+	</div>
+	{% else %}
+	<h3 class="text-secondary">{{author}}</h3>
+
+	<h2 class="text-primary mb-4">{{language}} / {{text_type}} / {{header}}</h2>
+	<table class="text-block">
+		{%for sentence in sentences%}
+		<tr>
+			<td class="text-secondary text-center align-text-top">{{sentence.0}}</td>
+			<td class="ps-3">{{sentence.1}}</td>
+		</tr>
+		{%endfor%}
+	</table>
+	{% endif %}
+</main>
 {%endblock%}

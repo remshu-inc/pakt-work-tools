@@ -378,7 +378,7 @@ def _get_text_info(text_id: int):
 
 
 # Form for assessments modify proccesing
-def assessment_form(request, text_id=1, **kwargs):
+def assessment_form(request, text_id):
 	if check_permissions_work_with_annotations(request.user.id_user, text_id):
 
 		initial_values = TblText.objects.filter(id_text=text_id).values(
@@ -387,16 +387,26 @@ def assessment_form(request, text_id=1, **kwargs):
 			'structure',
 			'coherence',
 			'pos_check',
-			'error_tag_check').all()[0]
+			'error_tag_check',
+			'teacher',
+			'error_tag_check_user',
+			'pos_check_user').first()
+
+		instance = TblText.objects.get(id_text=text_id)
 
 		if request.method == "POST":
-			# instance = get_object_or_404(TblText, id_text = text_id)
-			instance = TblText.objects.get(id_text=text_id)
 			form = AssessmentModify(initial_values, request.user.is_teacher(),
 									request.POST or None,
 									instance=instance)
 
 			if form.is_valid():
+				if (initial_values['teacher']):
+					form.instance.teacher = TblTeacher.objects.get(id_teacher=initial_values['teacher'])
+				if (initial_values['error_tag_check_user']):
+					form.instance.error_tag_check_user = TblUser.objects.get(id_user=initial_values['error_tag_check_user'])	
+				if (initial_values['pos_check_user']):
+					form.instance.pos_check_user = TblUser.objects.get(id_user=initial_values['pos_check_user'])	
+			
 				assessment = form.cleaned_data['assessment']
 				completeness = form.cleaned_data['completeness']
 				structure = form.cleaned_data['structure']
@@ -405,53 +415,41 @@ def assessment_form(request, text_id=1, **kwargs):
 				pos_check = form.cleaned_data['pos_check']
 				error_tag_check = form.cleaned_data['error_tag_check']
 
-				if assessment != initial_values['assessment'] and request.user.is_teacher():
-					teacher_id = TblTeacher.objects.get(
-						user_id=request.user.id_user)
-					form.instance.teacher = teacher_id
-
-				if completeness != initial_values['completeness'] and request.user.is_teacher():
-					teacher_id = TblTeacher.objects.get(
-						user_id=request.user.id_user)
-					form.instance.teacher = teacher_id
-
-				if structure != initial_values['structure'] and request.user.is_teacher():
-					teacher_id = TblTeacher.objects.get(
-						user_id=request.user.id_user)
-					form.instance.teacher = teacher_id
-
-				if coherence != initial_values['coherence'] and request.user.is_teacher():
-					teacher_id = TblTeacher.objects.get(
-						user_id=request.user.id_user)
-					form.instance.teacher = teacher_id
+				if request.user.is_teacher() and (
+						assessment != initial_values['assessment'] or
+						completeness != initial_values['completeness'] or
+						structure != initial_values['structure'] or
+						coherence != initial_values['coherence']):
+					teacher = TblTeacher.objects.get(user_id=request.user.id_user)
+					form.instance.teacher = teacher
 
 				if pos_check != initial_values['pos_check']:
-					form.instance.pos_check_user = TblUser.objects.get(
-						id_user=request.user.id_user)
+					form.instance.pos_check_user = TblUser.objects.get(id_user=request.user.id_user)
 					form.instance.pos_check_date = datetime.date.today()  # .strftime('%Y-%M-%d')
+				else:
+					form.instance.pos_check_user = instance.pos_check_user
 
 				if error_tag_check != initial_values['error_tag_check']:
-					form.instance.error_tag_check_user = TblUser.objects.get(
-						id_user=request.user.id_user)
+					form.instance.error_tag_check_user = TblUser.objects.get(id_user=request.user.id_user)
 					form.instance.error_tag_check_date = datetime.date.today()  # .strftime('%Y-%M-%d')
+				else:
+					form.instance.error_tag_check_user = instance.error_tag_check_user
 
 				form.save()
-			return (redirect(request.path[:request.path.rfind('/') + 1]))
+
+			return (redirect(show_text, text_id))
 		else:
 			form = AssessmentModify(initial_values, request.user.is_teacher())
 			return (render(request, 'assessment_form.html', {
-				'right': True,
 				'form': form
 			}))
 
 	else:
-		return (render(request, 'assessment_form.html', {'right': False}))
+		return render(request, 'access_denied.html', status=403)
 
 
 # Form for meta modify
-
-
-def meta_form(request, text_id=1, **kwargs):
+def meta_form(request, text_id):
 	if request.user.id_user == TblText.objects.filter(id_text=text_id).values('user_id')[0]['user_id']:
 
 		initial_values = TblText.objects.filter(id_text=text_id).values(
@@ -671,23 +669,24 @@ def show_text(request, text_id):
 
 	return render(request, 'work_area.html', context=context)
 
-
-def author_form(request, text_id=1, **kwargs):
-	url = request.get_full_path()
-	go_back_url = url[:url.rfind('/')]
-
-	no_error = True
+def author_form(request, text_id):
 	is_student = True
-	right = True
 
 	options = []
-	initial = ()
+	initial = ('   ', 'Отсутствует')
+	
+	text = TblText.objects.filter(id_text=text_id)
+	if not text.exists():
+		return redirect(corpus)
+
+	text = text.first()
+
 	current_group = TblTextGroup.objects.filter(text_id=text_id)
+	author = TblText.objects.filter(id_text=text_id)
 
-	creator = TblText.objects.filter(id_text=text_id).all()
 
-	if request.user.is_teacher():
-		labels = TblStudentGroup.objects.all().filter(student_id__user_id__language_id=request.user.language_id) \
+	if request.user.is_teacher() and request.user.language_id == text.language_id:
+		labels = TblStudentGroup.objects.filter(student_id__user_id__language_id=request.user.language_id) \
 			.order_by(
 			'student_id__user_id__last_name',
 			'student_id__user_id__name',
@@ -705,103 +704,86 @@ def author_form(request, text_id=1, **kwargs):
 			'group_id__group_name',
 			'group_id__enrollment_date'
 		)
+		
 		if labels.exists():
 			for label in labels:
 				options.append(
-					(str(label['student_id__user_id']) + ' ' + str(label['group_id']),
-					 str(label['student_id__user_id__last_name']) + ' ' +
-					 str(label['student_id__user_id__name']) + ' ' +
-					 str(label['student_id__user_id__patronymic']) + ' Логин: ' +
-					 str(label['student_id__user_id__login']) + ' Группа: ' +
-					 str(label['group_id__group_name']) + ' (' +
-					 str(label['group_id__enrollment_date'].year) + ')')
+					(
+						str(label['student_id__user_id']) + ' ' + str(label['group_id']), 
+      					str(label['student_id__user_id__last_name']) + ' ' + str(label['student_id__user_id__name']) + ' ' +
+						(str(label['student_id__user_id__patronymic']) if label['student_id__user_id__patronymic'] else '') +
+						' (' + str(label['student_id__user_id__login']) + ')' +
+						' Группа: ' +
+						str(label['group_id__group_name']) +
+						' (' + str(label['group_id__enrollment_date'].year) + ' / ' + str(label['group_id__enrollment_date'].year + 1) + ')'
+					)
 				)
-		else:
-			no_error = False
 
-		if creator.exists() and current_group.exists():
-			student_id = TblStudent.objects.filter(
-				user_id=creator.values('user_id')[0]['user_id'])
+		if author.exists() and current_group.exists():
+			student = TblStudent.objects.filter(
+				user_id=author.first().user_id)
 
-			if student_id.exists():
-				student_id = student_id.values(
-					'user_id', 'user_id__login', 'user_id__last_name', 'user_id__name', 'user_id__patronymic')[0]
+			if student.exists():
+				student = student.values(
+					'user_id', 'user_id__login', 'user_id__last_name', 'user_id__name', 'user_id__patronymic').first()
 				current_group = current_group.values(
 					'group_id',
 					'group_id__group_name',
 					'group_id__enrollment_date')[0]
 
-				initial = (str(student_id['user_id']) + ' '
+				initial = (str(student['user_id']) + ' '
 						   + str(current_group['group_id']),
-						   str(student_id['user_id__last_name']) + ' ' +
-						   str(student_id['user_id__name']) + ' ' +
-						   str(student_id['user_id__patronymic']) + ' Логин: ' +
-						   str(student_id['user_id__login']) + ' Группа: ' +
+						   str(student['user_id__last_name']) + ' ' +
+						   str(student['user_id__name']) + ' ' +
+						   str(student['user_id__patronymic']) + ' (' +
+						   str(student['user_id__login']) + ') Группа: ' +
 						   str(current_group['group_id__group_name']) + ' (' +
-						   str(current_group['group_id__enrollment_date'].year) + ')'
+						   str(current_group['group_id__enrollment_date'].year) + ' / ' + str(current_group['group_id__enrollment_date'].year + 1) + ')'
 						   )
-			else:
-				initial = ('   ', 'Отсутствует')
-		else:
-			initial = ('   ', 'Отсутствует')
 
-	elif creator.exists() and creator.values('user_id').first()['user_id'] == request.user.id_user:
-		student_id = TblStudent.objects.filter(
-			user_id=creator.values('user_id').first()['user_id'])
+	elif author.exists() and author.first().user_id == request.user.id_user:
+		student = TblStudent.objects.filter(
+			user_id=author.first().user_id)
 
-		if student_id.exists():
+		if student.exists():
 			labels = TblStudentGroup.objects. \
-				filter(student_id=student_id.values('id_student').fisrt()['id_student']). \
+				filter(student_id=student.first().id_student). \
 				order_by('group_id__group_name', '-group_id__enrollment_date'). \
-				values('group_id', 'group_id__group_name',
-					   'group_id__enrollment_date')
+				values('group_id', 'group_id__group_name', 'group_id__enrollment_date')
 
 			if labels.exists():
 				for label in labels:
 					options.append((
 						label['group_id'],
-						str(label['group_id__group_name']) + ' '
-						+ str(label['group_id__enrollment_date'].year)
+						str(label['group_id__group_name']) + ' ('
+						+ str(label['group_id__enrollment_date'].year) + ' / ' + str(label['group_id__enrollment_date'].year + 1) + ')'
 					))
-			else:
-				no_error = False
-
+			
 			if current_group.exists():
 				current_group = current_group.values(
 					'group_id', 'group_id__group_name', 'group_id__enrollment_date')[0]
 				initial = (str(current_group['group_id']),
-						   str(current_group['group_id__group_name']) + ' '
-						   + str(current_group['group_id__enrollment_date'].year))
-			else:
-				initial = (' ', 'Отсутствует')
+						   str(current_group['group_id__group_name']) + ' ('
+						   + str(current_group['group_id__enrollment_date'].year) + ' / ' + str(current_group['group_id__enrollment_date'].year + 1) + ')') 
 
 		else:
 			is_student = False
 	else:
-		right = False
+		return render(request, 'access_denied.html', status=403)
 
-	if request.method != 'POST':
-		return (render(request, 'author_modify.html', context={
-			'right': right,
-			'no_error': no_error,
-			'is_student': is_student,
-			'is_teacher': request.user.is_teacher(),
-			'form': AuthorModify(options, initial),
-			'go_back': go_back_url,
-		}))
 
-	else:
+	if request.method == 'POST':
 		form = AuthorModify(options, initial, request.POST or None)
 		if form.is_valid():
-			value = form.cleaned_data['user']
+			user_value = form.cleaned_data['user']
 
 			if request.user.is_teacher():
-				if value and ' ' in value \
-						and value.split(' ')[0].isnumeric() \
-						and value.split(' ')[1].isnumeric():
+				if user_value and ' ' in user_value \
+						and user_value.split(' ')[0].isnumeric() \
+						and user_value.split(' ')[1].isnumeric():
 
-					user_id = int(value.split(' ')[0])
-					group_id = int(value.split(' ')[1])
+					user_id = int(user_value.split(' ')[0])
+					group_id = int(user_value.split(' ')[1])
 
 					text = TblText.objects.get(id_text=text_id)
 					text.user_id = user_id
@@ -818,12 +800,10 @@ def author_form(request, text_id=1, **kwargs):
 						group = TblTextGroup(
 							text_id=text_id, group_id=group_id)
 						group.save()
-				else:
-					no_error = False
 
-			elif creator.exists() and creator.values('user_id')[0]['user_id'] == request.user.id_user:
-				if value.isnumeric():
-					group_id = int(value)
+			elif author.exists() and author.first().user_id == request.user.id_user:
+				if user_value.isnumeric():
+					group_id = int(user_value)
 
 					group = TblTextGroup.objects.filter(text_id=text_id)
 					if group.exists():
@@ -834,53 +814,48 @@ def author_form(request, text_id=1, **kwargs):
 						group = TblTextGroup(
 							text_id=text_id, group_id=group_id)
 						group.save()
-				else:
-					no_error = False
-			else:
-				right = False
-		else:
-			no_error = False
 
-		return (render(request, 'author_modify.html', context={
-			'right': right,
-			'no_error': no_error,
-			'is_student': is_student,
+			return redirect(show_text, text_id)
+
+	return (render(request, 'author_modify.html', context={
+			'author_is_student': is_student,
 			'is_teacher': request.user.is_teacher(),
 			'form': AuthorModify(options, initial),
-			'go_back': go_back_url,
 		}))
 
-
-def show_raw(request, text_id: int, **kwargs):
-	author_id = TblText.objects.filter(id_text=text_id).values(
+def show_raw(request, text_id: int):
+	if not check_permissions_show_text(request.user.id_user, text_id):
+		return render(request, 'access_denied.html', status=403)
+	
+	text = TblText.objects.filter(id_text=text_id).values(
 		'user_id',
 		'language_id__language_name',
 		'text_type_id__text_type_name',
-		'header').all()
-	output = []
-	right = True
-	language = ''
-	text_type = ''
-	header = ''
+		'header')
+	
+	context = {}
 
-	if author_id.exists() and (request.user.is_teacher() or request.user.id_user == author_id[0]['user_id']):
+	if text.exists():
+		text = text.first()
+		context['exists'] = True
+		context['language'] = text['language_id__language_name']
+		context['text_type'] = text['text_type_id__text_type_name']
+		context['header'] = text['header']
+
 		sentences = TblSentence.objects \
 			.filter(text_id=text_id) \
 			.order_by('order_number') \
-			.values('text').all()
-		language = author_id[0]['language_id__language_name']
-		text_type = author_id[0]['text_type_id__text_type_name']
-		header = author_id[0]['header']
+			.values('text')
 		if sentences.exists():
-			output = [
-				[i + 1, sentence['text'].replace('-EMPTY-', '')] for i, sentence in enumerate(sentences)]
-	else:
-		right = False
+			context['sentences'] = [
+				[i + 1, sentence['text'].replace('-EMPTY-', '')] for i, sentence in enumerate(sentences)
+			]
 
-	return (render(request, 'raw_text_show.html', context={
-		'right': right,
-		'sentences': output,
-		'lang_name': language,
-		'text_type': text_type,
-		'text_name': header
-	}))
+		author = TblUser.objects.filter(id_user=text['user_id'])
+		if author.exists():
+			author = author.first()
+			context['author'] = author.name + " " + author.last_name
+	else:
+		context['exists'] = False
+
+	return (render(request, 'raw_text_show.html', context=context))
