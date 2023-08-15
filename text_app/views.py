@@ -390,7 +390,9 @@ def assessment_form(request, text_id):
 			'error_tag_check',
 			'teacher',
 			'error_tag_check_user',
-			'pos_check_user').first()
+			'pos_check_user',
+			'pos_check_date',
+			'error_tag_check_date').first()
 
 		instance = TblText.objects.get(id_text=text_id)
 
@@ -428,12 +430,14 @@ def assessment_form(request, text_id):
 					form.instance.pos_check_date = datetime.date.today()  # .strftime('%Y-%M-%d')
 				else:
 					form.instance.pos_check_user = instance.pos_check_user
+					form.instance.pos_check_date = instance.pos_check_date
 
 				if error_tag_check != initial_values['error_tag_check']:
 					form.instance.error_tag_check_user = TblUser.objects.get(id_user=request.user.id_user)
 					form.instance.error_tag_check_date = datetime.date.today()  # .strftime('%Y-%M-%d')
 				else:
 					form.instance.error_tag_check_user = instance.error_tag_check_user
+					form.instance.error_tag_check_date = instance.error_tag_check_date
 
 				form.save()
 
