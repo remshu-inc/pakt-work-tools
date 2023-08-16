@@ -14,6 +14,7 @@ urlpatterns = [
     path('corpus/', views.corpus, name='corpus'),
     # Открытие выбранного текста
     path('corpus/text/<int:text_id>/', views.show_text, name='text_view'),
+    path('corpus/text/legacy/<int:text_id>/', views.show_text_legacy, name='text_view'),
     # Создание нового текста 
     path('corpus/new_text', views.new_text, name='new_text'),
     path('corpus/texts/<str:language>/', views.corpus, name='language'),

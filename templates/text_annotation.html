@@ -1,0 +1,24 @@
+{% extends "base.html" %} {% load static %}{% block content %}
+<main class="container-fluid p-0">
+	{% if not exists %}
+	<div class="alert alert-warning my-4 w-75 mx-auto d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m14.5 9.5-5 5m0-5 5 5M22 12c0 4.71 0 7.07-1.46 8.54C19.07 22 16.7 22 12 22c-4.71 0-7.07 0-8.54-1.46C2 19.07 2 16.7 2 12c0-4.71 0-7.07 1.46-8.54C4.93 2 7.3 2 12 2c4.71 0 7.07 0 8.54 1.46.97.98 1.3 2.35 1.4 4.54"
+			/>
+		</svg>
+
+		<p class="m-0">Текст не найден</p>
+	</div>
+	{% else %} {% block text-navbar %} {% include 'text_navbar.html' %} {% endblock text-navbar %} {% endif %}
+</main>
+{% endblock content %}

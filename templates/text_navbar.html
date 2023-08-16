@@ -1,0 +1,410 @@
+<div class="bg-white shadow-sm p-3">
+	<h3 class="text-primary">{{lang_name}} / {{text_info.text_type}} / {{text_info.text_name}}</h3>
+	<h5 class="text-secondary">{{text_info.author_name}}</h5>
+	<hr />
+	<div class="btn-group flex-wrap col-auto" role="group">
+		<button
+			type="button"
+			class="btn btn-outline-primary dropdown col-auto shadow-none dropdown-toggle rounded-start rounded-0"
+			data-bs-toggle="dropdown"
+			aria-expanded="false"
+		>
+			Вид
+		</button>
+		<ul class="dropdown-menu">
+			<li><h6 class="dropdown-header">Язык разметки</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<select id="lang-select" class="form-control">
+						<option id="foreign-option" value="0">{{lang_name}}</option>
+						<option id="russian-option" value="1">Русский</option>
+					</select>
+				</div>
+			</li>
+			<li><h6 class="dropdown-header">Компактный вид</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" />
+					</div>
+				</div>
+			</li>
+			<li><h6 class="dropdown-header">Части речи</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" />
+					</div>
+				</div>
+			</li>
+			<li><h6 class="dropdown-header">Ошибки</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" checked />
+					</div>
+				</div>
+			</li>
+		</ul>
+
+		<button
+			type="button"
+			class="btn btn-outline-primary dropdown col-auto shadow-none dropdown-toggle rounded-0"
+			data-bs-toggle="dropdown"
+			aria-expanded="false"
+		>
+			Текст
+		</button>
+		<ul class="dropdown-menu">
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Курс создания: </label>
+					{{text_info.course}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Дата создания: </label>
+					{{text_info.create_date}}
+				</div>
+			</li>
+			<li><hr class="dropdown-divider" /></li>
+			<li>
+				<div class="dropdown-item-text text-center">
+					<a href="{% url 'show_raw' text_id=text_id %}" class="link-primary btn shadow-none"
+						>Исходный текст
+					</a>
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<button
+						class="link-primary btn shadow-none"
+						onclick="process_part_of_speech(event, '{{language}}', '{{text_type}}', '{{text_id}}')"
+					>
+						<!--TODO implement process part of speech method-->
+						Обновить частеречную разметку
+					</button>
+				</div>
+			</li>
+			{%if superuser%}
+			<li>
+				<div class="dropdown-item-text">
+					<form
+						method="post"
+						novalidate
+						action="{% url 'delete_text' %}"
+						class="d-flex justify-content-center"
+					>
+						<input type="hidden" name="text_id" value="{{ text_id }}" />
+						<button
+							type="submit"
+							class="link-danger btn shadow-none"
+							onclick="return confirm('Удалить текст?')"
+						>
+							Удалить текст
+						</button>
+					</form>
+				</div>
+			</li>
+			{%endif%}
+		</ul>
+
+		<button
+			type="button"
+			class="btn btn-outline-primary dropdown col-auto shadow-none dropdown-toggle rounded-0"
+			data-bs-toggle="dropdown"
+			aria-expanded="false"
+		>
+			Автор
+		</button>
+		<ul class="dropdown-menu">
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Имя: </label>
+					{{text_info.author_name}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Группа: </label>
+					{{text_info.group_number}}
+				</div>
+			</li>
+			{%if text_owner or teacher%}
+			<li><hr class="dropdown-divider" /></li>
+			<li>
+				<div class="dropdown-item-text text-center">
+					<a href="{%url 'author_edit' text_id=text_id %}" class="link-primary btn shadow-none">Изменить</a>
+				</div>
+			</li>
+			{%endif%}
+		</ul>
+
+		<button
+			type="button"
+			class="btn btn-outline-primary dropdown col-auto shadow-none dropdown-toggle rounded-0"
+			data-bs-toggle="dropdown"
+			aria-expanded="false"
+		>
+			Метаданные
+		</button>
+		<ul class="dropdown-menu">
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Эмоционально-физиологическое состояние: </label>
+					{{text_info.emotional}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Место написания: </label>
+					{{text_info.write_place}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Год изучения языка: </label>
+					{{text_info.education_level}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Самооценивание: </label>
+					{{text_info.self_rating}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Оценка задания студентом: </label>
+					{{text_info.student_assessment}}
+				</div>
+			</li>
+			{%if text_owner%}
+			<li><hr class="dropdown-divider" /></li>
+			<li>
+				<div class="dropdown-item-text text-center">
+					<a href="{%url 'meta_edit' text_id=text_id%}" class="link-primary btn shadow-none">Изменить</a>
+				</div>
+			</li>
+			{%endif%}
+		</ul>
+
+		{% if auto_degree%}
+		<button
+			type="button"
+			class="btn btn-outline-primary dropdown col-auto shadow-none dropdown-toggle rounded-0"
+			data-bs-toggle="dropdown"
+			aria-expanded="false"
+		>
+			Автооценка
+		</button>
+		<ul class="dropdown-menu">
+			<li><h6 class="dropdown-header text-primary">Грамматика</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 1: </label>
+					{{auto_grammatik.0}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 2: </label>
+					{{auto_grammatik.1}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 3: </label>
+					{{auto_grammatik.2}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Оценка: </label>
+					{{auto_grammatik.3}}
+				</div>
+			</li>
+
+			<li><h6 class="dropdown-header text-primary">Лексика</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 1: </label>
+					{{auto_lexik.0}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 2: </label>
+					{{auto_lexik.1}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 3: </label>
+					{{auto_lexik.2}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Оценка: </label>
+					{{auto_lexik.3}}
+				</div>
+			</li>
+
+			<li><h6 class="dropdown-header text-primary">Орфография и пунктуация</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 1: </label>
+					{{auto_orth.0}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 2: </label>
+					{{auto_orth.1}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Степень 3: </label>
+					{{auto_orth.2}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Оценка: </label>
+					{{auto_orth.3}}
+				</div>
+			</li>
+
+			<li><h6 class="dropdown-header text-primary">Подсчёт ошибок</h6></li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Дискурс: </label>
+					{{count_dis}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Пропуски: </label>
+					{{count_skip}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Лишние элементы: </label>
+					{{count_extra}}
+				</div>
+			</li>
+		</ul>
+
+		<button
+			type="button"
+			class="btn btn-outline-primary dropdown col-auto shadow-none dropdown-toggle rounded-end"
+			data-bs-toggle="dropdown"
+			aria-expanded="false"
+		>
+			Проверка
+		</button>
+		<ul class="dropdown-menu">
+			<li><h6 class="dropdown-header text-primary">Оценка работы</h6></li>
+			{%if text_info.assessment%}
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Оценка: </label>
+					{{text_info.assessment}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Полнота: </label>
+					{{text_info.completeness}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Структура: </label>
+					{{text_info.structure}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Связность: </label>
+					{{text_info.coherence}}
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Проверяющий: </label>
+					{{text_info.teacher_name}}
+				</div>
+			</li>
+			{%else%}
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Оценка: </label>
+					Не указано
+				</div>
+			</li>
+			{%endif%}
+
+			<li><h6 class="dropdown-header text-primary">Частеречная разметка</h6></li>
+			{%if text_info.pos_check%}
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Статус: </label>
+					<span class="text-success">Проверено</span>
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Проверяющий: </label>
+					{{text_info.pos_check_name}}
+				</div>
+			</li>
+			{%else%}
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Статус: </label>
+					<span class="text-danger">Не проверено</span>
+				</div>
+			</li>
+			{%endif%}
+
+			<li><h6 class="dropdown-header text-primary">Разметка ошибок</h6></li>
+			{%if text_info.error_check%}
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Статус: </label>
+					<span class="text-success">Проверено</span>
+				</div>
+			</li>
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Проверяющий: </label>
+					{{text_info.error_check_name}}
+				</div>
+			</li>
+			{%else%}
+			<li>
+				<div class="dropdown-item-text">
+					<label class="text-secondary">Статус: </label>
+					<span class="text-danger">Не проверено</span>
+				</div>
+			</li>
+			{%endif%} {%if ann_right%}
+			<li><hr class="dropdown-divider" /></li>
+			<li>
+				<div class="dropdown-item-text text-center">
+					<a href="{% url 'assessment_edit' text_id=text_id %}" class="link-primary btn shadow-none"
+						>Изменить</a
+					>
+				</div>
+			</li>
+			{%endif%}
+		</ul>
+
+		{%endif%}
+	</div>
+</div>
