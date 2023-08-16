@@ -369,7 +369,7 @@ function set_annotation_form_to_basic(){
         }
         document.getElementById("annotation-create-form-data").style.display = "none"
 }
-{%if ann_right%}
+
 function close_ann_create_form(event){
     document.getElementById("tag-type-selected-tag").innerHTML = ""
     document.getElementById("tag-type-selected-tag").style.display = "none"
@@ -380,7 +380,6 @@ function close_ann_create_form(event){
     document.getElementById("creator-field").style.display = "none"
     set_annotation_form_to_basic();
 }
-{%endif%}
 
 function select_ann(event){
     var current_id = event.currentTarget.getAttribute('annotation-id')
@@ -581,7 +580,7 @@ function select_classification_selector(event){
 
 {% load static %}
 
-{#HTML-состовляющая создания/редактирования аннотации#}
+{#HTML-состовляющая создания / редактирования аннотации#}
 {%block annotation_edit_form_html %}
 
 <div id = "annotation-create-form">
@@ -660,8 +659,8 @@ function select_classification_selector(event){
     </div>
 </div>
 {%endblock%}
-{%block annotation_edit_form_script%}
 
+{%block annotation_edit_form_script%}
 {#Получение классификации#}
 function get_classification(){
     axios({
@@ -672,8 +671,8 @@ function get_classification(){
         }).then(function (response){
             classification_response = response
             re_built_classification(classification_response, language)
-        }).catch(function (error) {
-            // your action on error success
+        }).catch((error) => {
+            console.log(error.message)
         });
 }
 {%endblock%}
@@ -691,8 +690,8 @@ function get_text(){
                 text_response = response
                 let markers = re_built_text(text_response, language)
                     })
-            .catch(function (error) {
-            // your action on error success
+            .catch((error) => {
+							console.log(error.message)
             });
 };
 {%endblock%}
@@ -722,8 +721,8 @@ function sent_annotation_info(link){
             selected_tokens = []
             select_tag = 0
             get_text()
-        }).catch(function (error) {
-            // your action on error success
+        }).catch((error) => {
+					console.log(error.message)
         });
 }
 function delete_annotation_info(link){
@@ -741,8 +740,8 @@ function delete_annotation_info(link){
             selected_tokens = []
             select_tag = 0
             get_text()
-        }).catch(function (error) {
-            // your action on error success
+        }).catch((error) => {
+					console.log(error.message)
         });
 }
 {%endif%}

@@ -7,11 +7,11 @@
 <script src="{% static 'js/work_area.js' %}"></script>
 {%endblock plugins%} {%block content%} {%if exists %} {%if ann_right%}
 <div id="annotation-create-form-area">
-	{#Блок для формы созданя/редактирования аннотаций#} {%block annotation_edit_form_html%}{%endblock%}
+	{#Блок для формы создания/редактирования аннотаций#} {%block annotation_edit_form_html%}{%endblock%}
 </div>
 {%else%}
 <div id="annotation-create-form-area">
-	{#Блок для формы созданя/редактирования аннотаций#} {%block annotation_watch_form_html%}{%endblock%}
+	{#Блок для формы просмотра аннотаций#} {%block annotation_watch_form_html%}{%endblock%}
 </div>
 {%endif%}
 <div id="text-path">{{lang_name}}/{{text_info.text_type}}/{{text_info.text_name}}</div>

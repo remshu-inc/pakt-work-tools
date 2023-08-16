@@ -20,6 +20,10 @@
 		{% block link %} {% endblock %}
 	</head>
 	<body class="bg-light">
+		<style>
+			{% block styles %}
+			{% endblock styles %}
+		</style>
 		<!-- Navbar -->
 		{% block navbar %} {% include 'navbar.html' %} {% endblock navbar %}
 		<!-- Content -->

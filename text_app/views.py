@@ -592,7 +592,6 @@ def show_text_legacy(request, text_id):
 	else:
 		return render(request, 'work_area.html', context={'founded': False})
 
-
 def show_text(request, text_id):
 	if not request.user.is_authenticated:
 		return redirect('login')
@@ -600,6 +599,7 @@ def show_text(request, text_id):
 	text = TblText.objects.filter(id_text=text_id).values('language_id', 'text_type_id', 'user_id')
 	if not text.exists():
 		return render(request, 'work_area.html', context={ 'exists': False })
+	
 	text = text.first()
 	
 	if not check_permissions_show_text(request.user.id_user, text_id):
