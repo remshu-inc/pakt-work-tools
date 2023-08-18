@@ -470,7 +470,6 @@ def process_part_of_speech(query):
         for item in part_of_speeches_data:
             tag_name = item.tag_text_abbrev if item.tag_text_abbrev else item.tag_text
             part_of_speeches[str(tag_name)] = item
-        # print(part_of_speeches.keys())
 
         # бежим по предложениям: для каждого предложения делаем тегирование, мапим с токенами и записываем теги
         time = datetime.now()
