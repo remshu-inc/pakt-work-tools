@@ -173,7 +173,7 @@ def get_annotation_form(Grades, Reasons):
 	for element in Reasons:
 		reasons.append((element["id_reason"], element["reason_name"]))
 
-	class AnnotatioCreateForm(forms.Form):
+	class AnnotationCreateForm(forms.Form):
 		nonlocal reasons
 		nonlocal grades
 
@@ -192,11 +192,11 @@ def get_annotation_form(Grades, Reasons):
 		del reasons
 		del grades
 		correct = forms.CharField(widget=forms.Textarea(
-			attrs={"id": "correct-text", "class": "only-errors"}), label="Исправление:", max_length=255, required=False)  # TODO: Уточнить
+			attrs={"id": "correct-text", "class": "only-errors",'rows': 1}), label="Исправление:", max_length=255, required=False)  # TODO: Уточнить
 		comment = forms.CharField(widget=forms.Textarea(
-			attrs={"id": "comment-text"}), label="Комментарий:", max_length=255, required=False)  # TODO: Уточнить
+			attrs={"id": "comment-text",'rows': 1}), label="Комментарий:", max_length=255, required=False)  # TODO: Уточнить
 
-	return (AnnotatioCreateForm)
+	return (AnnotationCreateForm)
 
 
 class SearchTextForm(forms.ModelForm):

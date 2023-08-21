@@ -13,12 +13,16 @@
 }
 
 .token.active {
-	background-color: #0d6efd !important;
-	color: white !important;
+	border: 1px solid #0d6efd;
 }
 
-.token:hover {
-	border: 1px solid #0d6efd;
+.token.selected {
+	background-color: #0d6efd;
+	color: white;
+}
+
+.token:hover:not(.active) {
+	border: 1px dashed #0d6efd !important;
 }
 
 .annotation {
@@ -28,6 +32,49 @@
 
 .annotation > * {
 	display: block;
-	max-width: 256px;
+	max-width: 200px;
 	white-space: normal;
+}
+
+.modal {
+	display: block;
+	position: fixed;
+	width: fit-content;
+	height: fit-content;
+	top: 20vh;
+	left: 15vw;
+}
+
+#modal-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	z-index: 3;
+	justify-content: center;
+	align-items: center;
+}
+
+#modal-container:not(.open) {
+	display: none;
+}
+
+#tag-type-create-form-classification {
+	height: 200px;
+	overflow: scroll;
+}
+
+.classification-tag-content {
+	display: none;
+	padding-left: 20px;
+}
+.classifiation-tag-info > div {
+	display: inline-block;
+}
+
+.handle {
+	cursor: move;
+	user-select: none;
 }

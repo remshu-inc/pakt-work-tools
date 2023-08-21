@@ -23,11 +23,7 @@
 	</div>
 	{% else %}
 	<!-- Toolbar for text -->
-	<div class="bg-white p-3 mb-0 pb-0">
-		<h3 class="text-primary">{{lang_name}} / {{text_info.text_type}} / {{text_info.text_name}}</h3>
-		<h5 class="text-secondary mb-2">{{text_info.author_name}}</h5>
-		<hr class="m-0" />
-	</div>
+
 	<div class="bg-white shadow-sm p-3 sticky-top mt-0">
 		<div class="btn-group col-auto flex-wrap" role="group">
 			<button
@@ -441,6 +437,10 @@
 			</ul>
 		</div>
 	</div>
+	<div class="bg-white p-3 shadow-sm">
+		<h3 class="text-primary">{{lang_name}} / {{text_info.text_type}} / {{text_info.text_name}}</h3>
+		<h5 class="text-secondary mb-2">{{text_info.author_name}}</h5>
+	</div>
 	<!-- Text area -->
 	<div>
 		<h3 v-if="!text_data" class="text-secondary text-center my-5">Загрузка текста...</h3>
@@ -453,326 +453,709 @@
 <!-- Scripts -->
 {% block script %}
 <script type="text/javascript">
-	// Vue
-	const Annotation = {
-		delimiters: ['[[', ']]'],
-		inject: ['errors', 'pos', 'compact', 'translate'],
-		props: {
-			annotation_data: Object,
-			markup_data: Object
-		},
-		computed: {
-			style() {
-	       return 'color:' + getVisibleColor(this.markup_data.tag_color) +'; background-color: ' + this.markup_data.tag_color;
-	     }
-		},
-		template: `
-			<div v-if='(markup_data.markup_type == 1 && errors) || (markup_data.markup_type == 2 && pos)' class='annotation text-center px-2 py-0 rounded' :style='style'>
-				<div v-if='compact'>[[markup_data.tag_text_abbrev]]</div>
-				<div v-else-if='markup_data.markup_type == 1 && translate'>[[markup_data.tag_text_russian]]</div>
-				<div v-else>[[markup_data.tag_text]]</div>
-			</div>
-		`
-	}
+			// Vue
+			const Modal = {
+				delimiters: ['[[', ']]'],
+				emits: ['refresh-text'],
+				mounted() {
+					const modal = this.$refs.modal;
+					let posX, posY, mouseX, mouseY;
+					const handle = this.$refs.handle;
+					modal.addEventListener('click', (e) => {
+						e.stopPropagation();
+					})
 
-	const NewTokenButton = {
-		delimiters: ['[[', ']]'],
-		inject: ['ann_right'],
-		props: {
-			parent_token_id: Number,
-			position: String,
-		},
-		methods: {
-			handleClick: async function() {
-				await add_token(this.parent_token_id, this.position);
-			  this.$emit('refresh-text');
+					handle.addEventListener('mousedown', function (event) {
+							posX = modal.offsetLeft;
+							posY = modal.offsetTop;
+							mouseX = event.clientX;
+							mouseY = event.clientY;
+
+							this.addEventListener('mousemove', moveElement, false);
+							window.addEventListener('mouseup', function () {
+									handle.removeEventListener('mousemove', moveElement, false);
+							}, false);
+					}, false);
+
+					function moveElement(event) {
+							modal.style.left = Math.max(posX + event.clientX - mouseX, 0) + 'px';
+							modal.style.top =  Math.max(posY + event.clientY - mouseY, 64) + 'px';
+					}
+				},
+				methods: {
+					close() {
+						closeModal();
+					},
+					async saveAnnotation() {
+						await send_annotation_info();
+						this.$emit('refresh-text');
+						closeModal();
+					},
+					async deleteAnnotation() {
+						await delete_annotation_info();
+						this.$emit('refresh-text');
+						closeModal();
+					}
+				},
+				template: `<div ref="modal" class="modal bg-white shadow">
+										<div ref="handle" class='handle bg-primary text-white py-2 px-4	d-flex justify-content-between align-items-center w-100'>
+											<h4>Аннотация</h4>
+											<button class='btn text-white' @click='close()'>
+												<svg xmlns="http://www.w3.org/2000/svg" class='bi' height="1.6em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+													<path stroke-linecap="round" stroke-width="1.5" d="m14.5 9.5-5 5m0-5 5 5M7 3.338A9.954 9.954 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"/>
+												</svg>
+											</button>
+										</div>
+
+										<div id = "annotation-create-form-content" class="p-3">
+											<div id = "tag-type-create-form-area">
+												<div id ="tag-type-create-form-area-name">Выберите тег:</div>
+													<div id = "tag-type-create-form-area-content">
+														<div id="tag-type-create-form-classification" content-tag-id="0"></div>
+														<div id = "tag-type-selected-tag-area">Выбранный тег: <div id = "tag-type-selected-tag"></div></div>
+														<form id = "annotation-create-form-data" method = "none" onsubmit ="false;" disabled>
+																{{annotation_form}}
+																<div id="creator-field">Создатель аннотации:<div id="creator-name"></div></div>
+																<div class = 'btn-group'>
+																		<button class = "btn update-button text-menu-btn" id = "form-save-button" type = "button" @click = "saveAnnotation()">Сохранить</button>
+																		<button class = "btn del-button text-menu-btn"  style = "margin-left:10px;" id = "form-delete-button" type = "button" @:click="deleteAnnotation()">Удалить</button>
+																</div>
+															</form>
+														</div>
+													</div>
+												</div>
+
+										</div>`
 			}
-		},
-		emits: ['refresh-text'],
-		template: `
-			<button @click='handleClick' v-if='ann_right' class='add-token-btn text-primary btn shadow-none px-0 mx-0' title='Добавить пустой токен'>
-				<svg xmlns="http://www.w3.org/2000/svg" class='bi' height="1.2em" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-	 				<path stroke-linecap="round" stroke-width="1.5" d="M15 12h-3m0 0H9m3 0V9m0 3v3M7 3.338A9.954 9.954 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"/>
-				</svg>
-			</button>
-		`
-	}
 
-	const Token = {
-		delimiters: ['[[', ']]'],
-		props: {
-	   	token_data: Object,
-		},
-		components: {
-			NewTokenButton,
-			Annotation
-		},
-		emits: ['refresh-text'],
-		methods: {
-			refresh() {
-				this.$emit('refresh-text');
+			const ModalContainer = {
+				delimiters: ['[[', ']]'],
+				emits: ['refresh-text'],
+				components: {
+					Modal
+				},
+				methods: {
+					close() {
+						closeModal();
+					},
+					refresh() {
+						this.$emit('refresh-text');
+					},
+				},
+				template: `<div id='modal-container' @click='close'>
+						<modal @refresh-text="refresh"  />
+					</div>`
 			}
-		},
-		mounted() {
-			console.log('tokendata', this.token_data)
-		},
 
-		template: `
-			<new-token-button @refresh-text="refresh" v-if='token_data.order_number === 0' :parent_token_id='token_data.token_id' position="left"/>
-			<div class='d-flex flex-column justify-content-end gap-1'>
-				<annotation v-for='[markup_id, markup] in token_data.markup' :key=markup_id :annotation_data=markup.annotation_data :markup_data=markup.markup_data />
-				<button v-if='token_data.text !== ""' class='token shadow-sm px-2 py-1 rounded-2 btn' data-bs-toggle="button">[[token_data.text]]</button>
-				<button v-else class='token shadow-sm text-secondary px-2 py-1 rounded-2 btn' data-bs-toggle="button">
-					<svg xmlns="http://www.w3.org/2000/svg" class='bi' height="1em" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-width="1.5" d="m14.36 4.079.927-.927a3.932 3.932 0 0 1 5.561 5.561l-.927.927m-5.56-5.561s.115 1.97 1.853 3.707C17.952 9.524 19.92 9.64 19.92 9.64m-5.56-5.561L12 6.439m7.921 3.2-5.26 5.262L11.56 18l-.16.161c-.578.577-.867.866-1.185 1.114a6.554 6.554 0 0 1-1.211.749c-.364.173-.751.302-1.526.56l-3.281 1.094m0 0-.802.268a1.06 1.06 0 0 1-1.342-1.342l.268-.802m1.876 1.876-1.876-1.876m0 0 1.094-3.281c.258-.775.387-1.162.56-1.526.205-.43.456-.836.749-1.211.248-.318.537-.607 1.114-1.184L8.5 9.939"/>
-					</svg>
-
-				</button>
-			</div>
-			<new-token-button @refresh-text="refresh" :parent_token_id='token_data.token_id' position="right"/>
-		`
-	}
-
-	const Sentence = {
-		delimiters: ['[[', ']]'],
-		components: {
-			Token
-		},
-		props: {
-	   sentence_data: Object,
-		},
-		data() {
-			return {
+			const Annotation = {
+				delimiters: ['[[', ']]'],
+				inject: ['errors', 'pos', 'compact', 'translate'],
+				emits: ['select-annotation'],
+				props: {
+					annotation_data: Object,
+					markup_data: Object
+				},
+				computed: {
+					style() {
+			       return 'color:' + getVisibleColor(this.markup_data.tag_color) +'; background-color: ' + this.markup_data.tag_color;
+			     }
+				},
+				methods: {
+					onHover() {
+						this.$emit('select-annotation', this.annotation_data.ann_id, true, this.style);
+					},
+					onLeave() {
+						this.$emit('select-annotation', this.annotation_data.ann_id, false, '');
+					},
+					handleClick() {
+						modify_annotation_selection(this.annotation_data.ann_id, this.markup_data);
+					}
+				},
+				template:	`
+					<button v-if='(markup_data.markup_type == 1 && errors) || (markup_data.markup_type == 2 && pos)' class='annotation btn shadow-none text-center px-2 py-1 rounded' :style='style' @click='handleClick()' @mouseenter='onHover()' @mouseleave='onLeave()'>
+						<div v-if='compact'>[[markup_data.tag_text_abbrev]]</div>
+						<div v-else-if='markup_data.markup_type == 1 && translate'>[[markup_data.tag_text_russian]]</div>
+						<div v-else>[[markup_data.tag_text]]</div>
+					</button>
+				`
 			}
-		},
-		emits: ['refresh-text'],
-		methods: {
-			refresh() {
-				this.$emit('refresh-text');
+
+			const NewTokenButton = {
+				delimiters: ['[[', ']]'],
+				inject: ['ann_right'],
+				props: {
+					parent_token_id: Number,
+					position: String,
+				},
+				methods: {
+					handleClick: async function() {
+						await add_token(this.parent_token_id, this.position);
+					  this.$emit('refresh-text');
+					}
+				},
+				emits: ['refresh-text'],
+				template: `
+					<button @click='handleClick' v-if='ann_right' class='add-token-btn text-primary btn shadow-none px-0 mx-0' title='Добавить пустой токен'>
+						<svg xmlns="http://www.w3.org/2000/svg" class='bi' height="1.2em" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			 				<path stroke-linecap="round" stroke-width="1.5" d="M15 12h-3m0 0H9m3 0V9m0 3v3M7 3.338A9.954 9.954 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"/>
+						</svg>
+					</button>
+				`
 			}
-		},
-		template: `
-		<div class='d-flex align-items-end gap-1'>
-			<token @refresh-text="refresh" v-for='[token_id, token_data] in sentence_data' :key='token_id' :token_data='token_data' />
-		</div>`
-	}
 
-	const TextArea = {
-		delimiters: ['[[', ']]'],
-		props: {
-	   text_data: Object
-		},
-		components: {
-			Sentence
-		},
-		emits: ['refresh-text'],
-		methods: {
-			refresh() {
-				this.$emit('refresh-text');
+			const Token = {
+				delimiters: ['[[', ']]'],
+				props: {
+			   	token_data: Object,
+				},
+				components: {
+					NewTokenButton,
+					Annotation
+				},
+				emits: ['refresh-text', 'select-annotation'],
+				methods: {
+					refresh() {
+						this.$emit('refresh-text');
+					},
+					selectAnnotation(annotation_id, select, style) {
+						this.$emit('select-annotation', annotation_id, select, style);
+					}
+				},
+				template: `
+					<new-token-button @refresh-text="refresh" v-if='token_data.order_number === 0' :parent_token_id='token_data.token_id' position="left"/>
+					<div class='d-flex flex-column justify-content-end gap-1'>
+						<annotation @select-annotation='selectAnnotation' v-for='[markup_id, markup] in token_data.markup' :key=markup_id :annotation_data=markup.annotation_data :markup_data=markup.markup_data />
+						<button :id=[[this.token_data.token_id]] v-if='token_data.text !== ""' class='token shadow-sm px-2 py-1 rounded-2 btn' data-bs-toggle="button">[[token_data.text]]</button>
+						<button :id=[[this.token_data.token_id]] v-else class='token shadow-sm px-2 py-1 rounded-2 btn' data-bs-toggle="button">
+							<svg xmlns="http://www.w3.org/2000/svg" class='bi' height="1em" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-width="1.5" d="m14.36 4.079.927-.927a3.932 3.932 0 0 1 5.561 5.561l-.927.927m-5.56-5.561s.115 1.97 1.853 3.707C17.952 9.524 19.92 9.64 19.92 9.64m-5.56-5.561L12 6.439m7.921 3.2-5.26 5.262L11.56 18l-.16.161c-.578.577-.867.866-1.185 1.114a6.554 6.554 0 0 1-1.211.749c-.364.173-.751.302-1.526.56l-3.281 1.094m0 0-.802.268a1.06 1.06 0 0 1-1.342-1.342l.268-.802m1.876 1.876-1.876-1.876m0 0 1.094-3.281c.258-.775.387-1.162.56-1.526.205-.43.456-.836.749-1.211.248-.318.537-.607 1.114-1.184L8.5 9.939"/>
+							</svg>
+
+						</button>
+					</div>
+					<new-token-button @refresh-text="refresh" :parent_token_id='token_data.token_id' position="right"/>
+				`
 			}
-		},
-		template: `
-			<div class='table-responsive my-4'>
-				<table class='table text-nowrap'>
-					<tr v-for='(sentence, index) in text_data.sentences' :key='index'>
-						<td class='pe-2 ps-4 text-secondary text-center col-auto'>[[index + 1]]</td>
-						<td class='col-12'><sentence @refresh-text="refresh" :sentence_data=sentence /></td>
-					</tr>
-				</table>
-			</div>
-		`
-	}
 
-	Vue.createApp({
-		delimiters: ['[[', ']]'],
-		components: {
-			TextArea
-		},
-
-		data() {
-			return {
-				text_data: null,
-				text_id: {{text_id}},
-				compact: false,
-				pos: false,
-				errors: true,
-				lang: 'foreign'
+			const Sentence = {
+				delimiters: ['[[', ']]'],
+				components: {
+					Token
+				},
+				props: {
+			   sentence_data: Object,
+				},
+				data() {
+					return {
+					}
+				},
+				emits: ['refresh-text', 'select-annotation'],
+				methods: {
+					refresh() {
+						this.$emit('refresh-text');
+					},
+					selectAnnotation(annotation_id, select, style) {
+						this.$emit('select-annotation', annotation_id, select, style);
+					}
+				},
+				template: `
+				<div class='d-flex align-items-end gap-1'>
+					<token @refresh-text="refresh" @select-annotation='selectAnnotation' v-for='[token_id, token_data] in sentence_data' :key='token_id' :token_data='token_data' />
+				</div>`
 			}
-		},
-		provide() {
-			return {
-				ann_right: '{{ann_right}}' === 'True',
-				errors: Vue.computed(() => this.errors),
-				pos: Vue.computed(() => this.pos),
-				compact: Vue.computed(() => this.compact),
-				translate: Vue.computed(() => this.lang === 'rus')
+
+			const TextArea = {
+				delimiters: ['[[', ']]'],
+				props: {
+			   text_data: Object
+				},
+				components: {
+					Sentence,
+					ModalContainer
+				},
+				data() {
+					return {
+						tokensByMarkupId: buildTokensByMarkupId(this.text_data)
+					}
+				},
+				emits: ['refresh-text'],
+				methods: {
+					refresh() {
+						this.$emit('refresh-text');
+					},
+					selectAnnotation(annotation_id, select, style) {
+						for (let token_id of this.tokensByMarkupId.get(annotation_id)) {
+							tokenElement = document.getElementById(token_id);
+							if (select) {
+								tokenElement.style.cssText = style;
+							}
+							else {
+								tokenElement.style.cssText = '';
+							}
+						}
+					}
+				},
+				template: `
+				<modal-container @refresh-text="refresh" />
+					<div class='table-responsive my-4'>
+						<table class='table text-nowrap'>
+							<tr v-for='(sentence, index) in text_data.sentences' :key='index'>
+								<td class='pe-2 ps-4 text-secondary text-center col-auto align-bottom py-3'>[[index + 1]]</td>
+								<td class='col-12'><sentence @refresh-text="refresh" @select-annotation='selectAnnotation' :sentence_data=sentence /></td>
+							</tr>
+						</table>
+					</div>
+				`
 			}
-		},
-		methods: {
-			async fetchTextData() {
-	   		return await get_text_data(this.text_id).then(raw_data => format_text_data(raw_data));
-	   	},
-			async refresh() {
-				const text_data = await this.fetchTextData();
-				this.text_data = text_data;
-			},
 
-			toggleCompact() {
-				this.compact = !this.compact;
-			},
-			togglePos() {
-				this.pos = !this.pos;
-			},
-			toggleErrors() {
-				this.errors = !this.errors;
+			Vue.createApp({
+				delimiters: ['[[', ']]'],
+				components: {
+					TextArea
+				},
+
+				data() {
+					return {
+						text_data: null,
+						text_id: {{text_id}},
+						compact: false,
+						pos: false,
+						errors: true,
+						lang: 'foreign'
+					}
+				},
+				provide() {
+					return {
+						ann_right: '{{ann_right}}' === 'True',
+						errors: Vue.computed(() => this.errors),
+						pos: Vue.computed(() => this.pos),
+						compact: Vue.computed(() => this.compact),
+						translate: Vue.computed(() => this.lang === 'rus'),
+					}
+				},
+				watch: {
+					lang(newLang, oldLang) {
+						get_classification({{text_id}}).then(response => { build_classification(response, (newLang === 'rus')); })
+					}
+				},
+				methods: {
+					async fetchTextData() {
+			   		return await get_text_data(this.text_id).then(raw_data => format_text_data(raw_data));
+			   	},
+					async refresh() {
+						const text_data = await this.fetchTextData();
+						this.text_data = text_data;
+						text_response = text_data;
+						get_classification({{text_id}}).then(response => {
+						build_classification(response, this.translate);
+					});
+					},
+
+					toggleCompact() {
+						this.compact = !this.compact;
+					},
+					togglePos() {
+						this.pos = !this.pos;
+					},
+					toggleErrors() {
+						this.errors = !this.errors;
+					}
+				},
+
+				mounted() {
+			   	this.refresh();
+			 }
+			}).mount('#text-app');
+
+			// Modal
+			function closeModal() {
+				document.getElementById('modal-container').classList.remove('open');
 			}
-		},
+			function openModal() {
+				document.getElementById('modal-container').classList.add('open');
+			}
 
-		mounted() {
-	   	this.refresh();
-	 }
-	}).mount('#text-app');
+			const selectedTokens = new Set();
+			let selected_tag = 0;
+
+			function toggleSelectToken(token_id) {
+				if (selectedTokens.has(token_id)) {
+					selectedTokens.delete(token_id);
+				}
+				else {
+					selectedTokens.add(token_id);
+				}
+			}
 
 
-	// Text logic
-	async function get_text_data(text_id) {
-		const response = await axios({
-			url: "{%url 'get_text' %}",
-			method: 'POST',
-			data: { text_id: text_id },
-			headers: { 'X-CSRFToken': '{{csrf_token}}' },
-		})
-		.catch((error) => {
-				console.log(error.message);
-		});
-		return response.data;
-	}
+			function modify_annotation_selection(markup_id, markup_data) {
 
-	class TextElement {
-		constructor (id, text, order_number) {
-			this.token_id = id;
-			this.markup = new Map();
-			this.text = text;
-			this.order_number = order_number;
+				document.getElementById("selected-markup-id").value = markup_id
+				const using_tag_id = markup_data.tag_id
+				selected_tag = using_tag_id
+
+				document.getElementById("selected-classif-tag").value = using_tag_id
+				const reason_options = document.getElementById('selected_reason').getElementsByTagName("option")
+				for(let i = 0; i<reason_options.length;i++){
+						if(reason_options[i].value == markup_data.reason_id){
+								reason_options[i].parentNode.selectedIndex = i
+								break
+						}
+				}
+				const grade_options = document.getElementById('selected_grade').getElementsByTagName("option")
+				for(let i = 0; i<grade_options.length;i++){
+						if(grade_options[i].value == markup_data.grade_id){
+								grade_options[i].parentNode.selectedIndex = i;
+								break;
+						}
+				}
+				document.getElementById("correct-text").value = markup_data.correct
+				document.getElementById("comment-text").value = markup_data.comment
+				document.getElementById("creator-name").innerText = `${markup_data.user_name} ${markup_data.user_last_name}`
+				document.getElementById("form-delete-button").style.display = "block"
+				document.getElementById("query-type-field").value = 2
+				const current_tag = document.querySelector(`[name-tag-id="${using_tag_id}"`)
+				const display_tag_name = document.getElementById("tag-type-selected-tag")
+				display_tag_name.innerHTML = current_tag.innerHTML
+				display_tag_name.style.display = "block"
+				display_tag_name.style.backgroundColor = current_tag.style.backgroundColor
+				openModal();
 		}
 
-		add_markup_data(markup_id, markup_data) {
-			if (this.markup.has(markup_id)) {
-				this.markup.get(markup_id).markup_data = markup_data;
+			function create_annotation_selection() {
+				document.getElementById("query-type-field").value = 1
+				document.getElementById("selected-tokens").value = `[${Array.from(selectedTokens).toString()}]`
+				openModal();
 			}
-			else {
-				this.markup.set(markup_id, {
-					annotation_data: null,
-					markup_data: markup_data
-				});
-			}
+
+			function get_classification(text_id) {
+	    return axios({
+	        url: "{%url 'get_classification' %}",
+	        method: 'POST',
+	        data: {'text_id': text_id },
+	        headers: {"X-CSRFToken": "{{csrf_token}}"},
+	        }).catch((error) => {
+	            console.log(error.message);
+	        });
 		}
 
-		add_annotation_data(markup_id, annotation_data) {
-			if (this.markup.has(markup_id)) {
-				this.markup.get(markup_id).annotation_data = annotation_data;
+			function build_classification(response, translate){
+				const tags_field = document.getElementById("tag-type-create-form-classification")
+				while (tags_field.firstChild) {
+						tags_field.removeChild(tags_field.firstChild);
+				}
+
+				const tags = response.data.tags
+				for(let i = 0; i < tags.length; i++){
+						const tag =  document.createElement('div')
+						tag.setAttribute('class','classification-area')
+						tag.setAttribute('area-tag-id',`${tags[i].tag_id}`)
+						var info = document.createElement('div')
+						info.setAttribute('class','classifiation-tag-info')
+
+						var selector = document.createElement('div')
+						selector.setAttribute('class','classification-tag-name')
+						selector.setAttribute('name-tag-id',`${tags[i].tag_id}`)
+						selector.setAttribute('name-tag-type',`${tags[i].tag_type}`)
+						selector.setAttribute('name-tag-color',`${tags[i].tag_color}`)
+						selector.setAttribute('style',`background-color: ${tags[i].tag_color};`)
+						if (!String(tags[i].tag_text_abbrev).includes('#IGNORE#')){
+								selector.addEventListener('click', select_classification_selector);
+						}
+						const parent = document.querySelector(`[content-tag-id = "${tags[i].parent_id}"]`)
+						if(!translate){
+								selector.innerText = tags[i].tag_text
+						}
+						else{
+								selector.innerText = tags[i].tag_text_russian
+						}
+						if(tags[i].isspoiler){
+								const spoiler = document.createElement('div')
+								spoiler.setAttribute('class','classification-tag-spoiler')
+								spoiler.setAttribute('spoiler-tag-id',`${tags[i].tag_id}`)
+								spoiler.setAttribute('spoiler-condition','0')
+								spoiler.addEventListener('click', select_classification_spoiler)
+								spoiler.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-right-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg>'
+
+								const content = document.createElement('div')
+								content.setAttribute('class','classification-tag-content')
+								content.setAttribute('content-tag-id',`${tags[i].tag_id}`)
+
+								info.appendChild(spoiler)
+								info.appendChild(selector)
+								tag.appendChild(info)
+								tag.appendChild(content)
+								parent.appendChild(tag)
+						}
+						else{
+								info.appendChild(selector)
+								tag.appendChild(info)
+								parent.appendChild(tag)
+						}
+				}
 			}
-			else {
-				this.markup.set(markup_id, {
-					annotation_data: annotation_data,
-					markup_data: null
-				});
+
+			function select_classification_spoiler(event){
+					var element = event.currentTarget
+					if(element.getAttribute('spoiler-condition') == 0){
+							element.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">    <path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>'
+							element.setAttribute('spoiler-condition','1')
+							const element_id = element.getAttribute('spoiler-tag-id')
+							const content = document.querySelector(`[content-tag-id = "${element_id}"]`)
+							content.style.display = "block"
+				    }
+					else{
+							element.innerHTML = '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-right-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/></svg>'
+							element.setAttribute('spoiler-condition','0')
+							const element_id = element.getAttribute('spoiler-tag-id')
+							const content = document.querySelector(`[content-tag-id = "${element_id}"]`)
+							content.style.display = "none"
+					}
 			}
-		}
+
+			function select_classification_selector(event){
+	    if(selected_tag > 0){
+	        const old_tag = document.querySelector(`[name-tag-id = "${selected_tag}"]`)
+	    }
+	    else{
+	        document.getElementById("annotation-create-form-data").style.display = "block"
+	    }
+	    selected_tag = event.currentTarget.getAttribute("name-tag-id")
+	    document.getElementById("selected-classif-tag").value = selected_tag
+	    const display_tag_name = document.getElementById("tag-type-selected-tag")
+	    display_tag_name.innerHTML = event.currentTarget.innerHTML
+	    display_tag_name.style.display = "block"
+	    display_tag_name.style.backgroundColor = event.currentTarget.getAttribute("name-tag-color")
+
+	    const change_tag_type = event.currentTarget.getAttribute('name-tag-type')
+	    if(change_tag_type == 1){
+	        const err_fields = document.getElementsByClassName("only-errors")
+	        for(var i=0; i<err_fields.length;i++){
+	            err_fields[i].parentNode.style.display = "block"
+	        }
+	    }
+	    else{
+	        reset_errors_fields(true)
+	    }
 	}
 
-	async function format_text_data(raw_text_data) {
-		console.log(raw_text_data)
-		let sentences = [];
-
-		for (let sentence of raw_text_data.sentences) {
-			let sentence_elements = new Map();
-
-			for (let token of sentence.tokens) {
-				let element = new TextElement(token.token_id, token.text, token.order_number);
-				if (token.markups_ids.trim() !== '') {
-					for (let markup_id of token.markups_ids.trim().split(' ').map(Number)) {
-						let markup_data = raw_text_data.markup_info[markup_id];
-						element.add_markup_data(markup_id, markup_data);
+			function reset_errors_fields(hide_fields){
+				if(hide_fields){
+						const err_fields = document.getElementsByClassName("only-errors")
+						for(let i=0; i<err_fields.length;i++){
+								err_fields[i].parentNode.style.display = "none"
+								if(err_fields[i].tagName=="SELECT"){
+										err_fields[i].selectedIndex = 0;
+								}
+								else{
+										err_fields[i].value = ""
+								}
+						}
 					}
 				}
 
-				sentence_elements.set(token.token_id, element);
+		async function send_annotation_info() {
+	   const reason_sel = document.getElementById("selected_reason")
+	   const grade_sel = document.getElementById("selected_grade")
+	   return axios(
+			{
+	       url: "{%url 'annotation_edit' %}",
+	       method: 'POST',
+	       data:
+	       {   'user_id':{{user_id}},
+	           'query_type': document.getElementById("query-type-field").value,
+	           'classification_tag': document.getElementById("selected-classif-tag").value,
+	           'tokens': document.getElementById("selected-tokens").value,
+	           'markup_id': document.getElementById("selected-markup-id").value,
+	           'reason': reason_sel.options[reason_sel.selectedIndex].value,
+	           'grade': grade_sel.options[grade_sel.selectedIndex].value,
+	           'correct':document.getElementById("correct-text").value,
+	           'comment': document.getElementById('comment-text').value
+	       },
+	       headers: {"X-CSRFToken": "{{csrf_token}}"},
+	       }).catch((error) => {
+	           console.log(error.message);
+	       });
+		}
+
+		function delete_annotation_info(){
+	   return axios({
+	       url: "{%url 'annotation_edit' %}",
+	       method: 'POST',
+	       data:
+	       {   'query_type': '3',
+	           'markup_id': document.getElementById("selected-markup-id").value,
+	       },
+	       headers: {"X-CSRFToken": "{{csrf_token}}"},
+	       }).catch((error) => {
+					console.log(error.message);
+	       });
 			}
 
-			for (let annotation_array of sentence.annotations) {
-				for (let annotation of annotation_array) {
-					if (annotation.isann) {
-						sentence_elements.get(annotation.token_id).add_annotation_data(annotation.ann_id, annotation);
+			// Text logic
+			async function get_text_data(text_id) {
+				const response = await axios({
+					url: "{%url 'get_text' %}",
+					method: 'POST',
+					data: { text_id: text_id },
+					headers: { 'X-CSRFToken': '{{csrf_token}}' },
+				})
+				.catch((error) => {
+						console.log(error.message);
+				});
+				return response.data;
+			}
+
+			class TextElement {
+				constructor (id, text, order_number) {
+					this.token_id = id;
+					this.markup = new Map();
+					this.text = text;
+					this.order_number = order_number;
+				}
+
+				add_markup_data(markup_id, markup_data) {
+					if (this.markup.has(markup_id)) {
+						this.markup.get(markup_id).markup_data = markup_data;
+					}
+					else {
+						this.markup.set(markup_id, {
+							annotation_data: null,
+							markup_data: markup_data
+						});
+					}
+				}
+
+				add_annotation_data(markup_id, annotation_data) {
+					if (this.markup.has(markup_id)) {
+						this.markup.get(markup_id).annotation_data = annotation_data;
+					}
+					else {
+						this.markup.set(markup_id, {
+							annotation_data: annotation_data,
+							markup_data: null
+						});
 					}
 				}
 			}
-			sentences.push(sentence_elements);
-		}
 
-		return {sentences};
-	}
+			async function format_text_data(raw_text_data) {
+				console.log(raw_text_data)
 
-	async function add_token(parent_token_id, position){
-		return await axios({
-				url:"{% url 'add_empty_token' %}",
-				method: 'POST',
-				data:{'parent_token': parent_token_id, 'append_position':position},
-				headers: {"X-CSRFToken": "{{csrf_token}}"}
-		}).catch((error) => {
-			console.log(error.message);
-		});
-	 }
+				let sentences = [];
 
-	 function process_part_of_speech(eventData, language, text_type, text_id) {
-		eventData.preventDefault();
+				for (let sentence of raw_text_data.sentences) {
+					let sentence_elements = new Map();
 
-		if (!window.confirm('Вы действительно желаете обновить частеречную разметку? Старая разметка будет удалена')) {
-			return;
-		}
+					for (let token of sentence.tokens) {
+						let element = new TextElement(token.token_id, token.text, token.order_number);
+						if (token.markups_ids.trim() !== '') {
+							for (let markup_id of token.markups_ids.trim().split(' ').map(Number)) {
+								let markup_data = raw_text_data.markup_info[markup_id];
+								element.add_markup_data(markup_id, markup_data);
+							}
+						}
 
-		let process_url = "{% url 'part_of_speech' %}";
-		fetch(process_url, {
-			method: 'POST',
-			body: JSON.stringify({ language, text_type, text_id }),
-		}).then(
-			(response) => {
-				if (response.ok) {
-					window.alert('Частеречная разметка обновлена!');
-					document.getElementById('update_part_of_speech_btn').style.display = 'block';
+						sentence_elements.set(token.token_id, element);
+					}
+
+					for (let annotation_array of sentence.annotations) {
+						for (let annotation of annotation_array) {
+							if (annotation.isann) {
+								sentence_elements.get(annotation.token_id).add_annotation_data(annotation.ann_id, annotation);
+							}
+						}
+					}
+					sentences.push(sentence_elements);
+				}
+
+				return {sentences};
+			}
+
+			function buildTokensByMarkupId(text_data) {
+				let tokensByMarkupId = new Map();
+
+				for (let sentence of text_data.sentences) {
+					for (let token of sentence.values()) {
+						for (let markup_id of token.markup.keys()) {
+							if (!tokensByMarkupId.has(markup_id)) {
+								tokensByMarkupId.set(markup_id, [token.token_id]);
+							}
+							else {
+								tokensByMarkupId.get(markup_id).push(token.token_id);
+							}
+						}
+					}
+				}
+
+				return tokensByMarkupId;
+			}
+
+			async function add_token(parent_token_id, position){
+				return await axios({
+						url:"{% url 'add_empty_token' %}",
+						method: 'POST',
+						data:{'parent_token': parent_token_id, 'append_position':position},
+						headers: {"X-CSRFToken": "{{csrf_token}}"}
+				}).catch((error) => {
+					console.log(error.message);
+				});
+			 }
+
+			 function process_part_of_speech(eventData, language, text_type, text_id) {
+				eventData.preventDefault();
+
+				if (!window.confirm('Вы действительно желаете обновить частеречную разметку? Старая разметка будет удалена')) {
 					return;
-				} else {
-					window.alert('Ошибка разметки текста: ' + response.statusText);
 				}
-			},
-			(networkError) => {
-				window.alert('Ошибка разметки текста: ' + networkError.message);
+
+				let process_url = "{% url 'part_of_speech' %}";
+				fetch(process_url, {
+					method: 'POST',
+					body: JSON.stringify({ language, text_type, text_id }),
+				}).then(
+					(response) => {
+						if (response.ok) {
+							window.alert('Частеречная разметка обновлена!');
+							document.getElementById('update_part_of_speech_btn').style.display = 'block';
+							return;
+						} else {
+							window.alert('Ошибка разметки текста: ' + response.statusText);
+						}
+					},
+					(networkError) => {
+						window.alert('Ошибка разметки текста: ' + networkError.message);
+					}
+				);
 			}
-		);
-	}
 
-	// Auxiliary methods
-	function brightnessByColor (hexcolor) {
-		const color = "" + hexcolor
-		var m = color.substr(1).match(color.length == 7 ? /(\S{2})/g : /(\S{1})/g);
-		if (m) {
-			var r = parseInt(m[0], 16), g = parseInt(m[1], 16), b = parseInt(m[2], 16);
-		}
+			// Auxiliary methods
+			function brightnessByColor (hexcolor) {
+				const color = "" + hexcolor
+				var m = color.substr(1).match(color.length == 7 ? /(\S{2})/g : /(\S{1})/g);
+				if (m) {
+					var r = parseInt(m[0], 16), g = parseInt(m[1], 16), b = parseInt(m[2], 16);
+				}
 
-		if (typeof r != "undefined") return ((r*299)+(g*587)+(b*114)) / 1000;
-	}
+				if (typeof r != "undefined") return ((r*299)+(g*587)+(b*114)) / 1000;
+			}
 
-	function getVisibleColor(color) {
-		const brightness = brightnessByColor(color);
-		if (brightness < 255 / 2) {
-			return '#ffffff';
-		}
-		else {
-			return '#000000';
-		}
-	}
+			function getVisibleColor(color) {
+				const brightness = brightnessByColor(color);
+				if (brightness > 255 / 2) {
+					return '#000000';
+				}
+				else {
+					return '#ffffff';
+				}
+			}
 </script>
 {% endblock script %} {%block plugins%}
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script
+	src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+	integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+	crossorigin="anonymous"
+></script>
 {%endblock plugins%}

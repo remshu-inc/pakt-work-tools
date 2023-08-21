@@ -467,56 +467,55 @@ function create_annotation_selection(event){
 }
 {%if ann_right%}
 function modify_annotation_selection(event){
-    var forma = document.getElementById("annotation-create-form-area")
-    var markup_id = event.currentTarget.getAttribute("annotation-id")
+	var forma = document.getElementById("annotation-create-form-area")
+	var markup_id = event.currentTarget.getAttribute("annotation-id")
 
-    document.getElementById("selected-markup-id").value = markup_id
-    var using_tag_id = text_response.data.markup_info[markup_id].tag_id
-    forma.style.display = "block"
-    selected_tag = using_tag_id
+	document.getElementById("selected-markup-id").value = markup_id
+	var using_tag_id = text_response.data.markup_info[markup_id].tag_id
+	forma.style.display = "block"
+	selected_tag = using_tag_id
 
-    document.getElementById("selected-classif-tag").value = using_tag_id
-    var reason_options = document.getElementById('selected_reason').getElementsByTagName("option")
-    for(var i = 0; i<reason_options.length;i++){
-        if(reason_options[i].value == text_response.data.markup_info[markup_id].reason_id){
-            reason_options[i].parentNode.selectedIndex = i
-            break
-        }
-    }
-    var grade_options = document.getElementById('selected_grade').getElementsByTagName("option")
-    for(var i = 0; i<grade_options.length;i++){
-        if(grade_options[i].value == text_response.data.markup_info[markup_id].grade_id){
-            grade_options[i].parentNode.selectedIndex = i
-            break
-        }
-    }
-    document.getElementById("correct-text").value = text_response.data.markup_info[markup_id].correct
-    document.getElementById("comment-text").value = text_response.data.markup_info[markup_id].comment
-    if(text_response.data.markup_info[markup_id].markup_type == 2){
-        var only_err_content = document.getElementsByClassName("only-errors")
-        for(var i = 0;i< only_err_content.length; i++){
-            only_err_content[i].parentNode.style.display = "none"
-        }
-    }
-    else{
-        var only_err_content = document.getElementsByClassName("only-errors")
-        for(var i = 0;i< only_err_content.length; i++){
-            only_err_content[i].parentNode.style.display = "block"
-        }
-    }
-    document.getElementById("creator-name").innerHTML = `${text_response.data.markup_info[markup_id].user_name} ${text_response.data.markup_info[markup_id].user_last_name}`
-    document.getElementById("creator-field").style.display = "block"
-    document.getElementById("annotation-create-form-data").style.display = "block"
-    document.getElementById("form-delete-button").style.display = "block"
-    document.getElementById("query-type-field").value = 2
-    var current_tag = document.querySelector(`[name-tag-id="${using_tag_id}"`)
-    var display_tag_name = document.getElementById("tag-type-selected-tag")
-    display_tag_name.innerHTML = current_tag.innerHTML
-    display_tag_name.style.display = "block"
-    display_tag_name.style.backgroundColor = current_tag.style.backgroundColor
-    current_tag.style.border = "2pt solid #00ff3c"
-    current_tag.style.backgroundColor = "white"
-    
+	document.getElementById("selected-classif-tag").value = using_tag_id
+	var reason_options = document.getElementById('selected_reason').getElementsByTagName("option")
+	for(var i = 0; i<reason_options.length;i++){
+			if(reason_options[i].value == text_response.data.markup_info[markup_id].reason_id){
+					reason_options[i].parentNode.selectedIndex = i
+					break
+			}
+	}
+	var grade_options = document.getElementById('selected_grade').getElementsByTagName("option")
+	for(var i = 0; i<grade_options.length;i++){
+			if(grade_options[i].value == text_response.data.markup_info[markup_id].grade_id){
+					grade_options[i].parentNode.selectedIndex = i
+					break
+			}
+	}
+	document.getElementById("correct-text").value = text_response.data.markup_info[markup_id].correct
+	document.getElementById("comment-text").value = text_response.data.markup_info[markup_id].comment
+	if(text_response.data.markup_info[markup_id].markup_type == 2){
+			var only_err_content = document.getElementsByClassName("only-errors")
+			for(var i = 0;i< only_err_content.length; i++){
+					only_err_content[i].parentNode.style.display = "none"
+			}
+	}
+	else{
+			var only_err_content = document.getElementsByClassName("only-errors")
+			for(var i = 0;i< only_err_content.length; i++){
+					only_err_content[i].parentNode.style.display = "block"
+			}
+	}
+	document.getElementById("creator-name").innerHTML = `${text_response.data.markup_info[markup_id].user_name} ${text_response.data.markup_info[markup_id].user_last_name}`
+	document.getElementById("creator-field").style.display = "block"
+	document.getElementById("annotation-create-form-data").style.display = "block"
+	document.getElementById("form-delete-button").style.display = "block"
+	document.getElementById("query-type-field").value = 2
+	var current_tag = document.querySelector(`[name-tag-id="${using_tag_id}"`)
+	var display_tag_name = document.getElementById("tag-type-selected-tag")
+	display_tag_name.innerHTML = current_tag.innerHTML
+	display_tag_name.style.display = "block"
+	display_tag_name.style.backgroundColor = current_tag.style.backgroundColor
+	current_tag.style.border = "2pt solid #00ff3c"
+	current_tag.style.backgroundColor = "white"
 }
 {%endif%}
 
@@ -857,7 +856,7 @@ textarea::-webkit-scrollbar-thumb {
               </svg>
         </div>
     </div>
-    <div id = "annotation-create-form-content">
+  	<div id = "annotation-create-form-content">
         <div id = "tag-type-create-form-area">
             <div id ="tag-type-create-form-area-name">Выберите тег:</div>
             <div id = "tag-type-create-form-area-content">
@@ -990,8 +989,8 @@ function sent_annotation_info(link){
             // your action on error success
         });
 }
+
 function delete_annotation_info(link){
-    
     axios({
         url: link,
         method: 'POST',
