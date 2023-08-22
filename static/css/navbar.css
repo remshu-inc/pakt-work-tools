@@ -4,6 +4,10 @@
 	color: var(--bs-primary);
 }
 
+.navbar {
+	z-index: 3;
+}
+
 .navbar .navbar-toggler {
 	height: 48px;
 	padding: 4px;

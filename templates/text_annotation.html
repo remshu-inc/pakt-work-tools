@@ -24,7 +24,7 @@
 	{% else %}
 	<!-- Toolbar for text -->
 
-	<div class="bg-white shadow-sm p-3 sticky-top mt-0">
+	<div class="bg-white shadow-sm p-3 sticky-top mt-0 toolbar">
 		<div class="btn-group col-auto flex-wrap" role="group">
 			<button
 				type="button"
@@ -558,8 +558,18 @@
 				computed: {
 					style() {
 			       return 'color:' + getVisibleColor(this.markup_data.tag_color) +'; background-color: ' + this.markup_data.tag_color;
-			     }
+			     },
+					 tooltip_data() {
+						const markup = this.markup_data;
+						return  markup.tag_text +
+									 	(markup.tag_text_abbrev ? ` (${markup.tag_text_abbrev})` : '') +
+										(markup.grade_text ? `\nСтепень грубости: ${markup.grade_text}` : '') +
+										(markup.reason_text ? `\nПричина: ${markup.reason_text}` : '') +
+										(markup.correct ? `\nИсправление: ${markup.correct}` : '') +
+										(markup.comment ? `\nКомментарий: ${markup.comment}` : '');
+					 }
 				},
+
 				methods: {
 					onHover() {
 						this.$emit('select-annotation', this.annotation_data.ann_id, true, this.style);
@@ -572,7 +582,11 @@
 					}
 				},
 				template:	`
-					<button v-if='(markup_data.markup_type == 1 && errors) || (markup_data.markup_type == 2 && pos)' class='annotation btn shadow-none text-center px-2 py-1 rounded' :style='style' @click='handleClick()' @mouseenter='onHover()' @mouseleave='onLeave()'>
+					<button v-if='(markup_data.markup_type == 1 && errors) || (markup_data.markup_type == 2 && pos)'
+					 class='annotation btn shadow-none text-center px-2 py-1 rounded'
+					 :style='style'
+					 @click='handleClick' @mouseenter='onHover()' @mouseleave='onLeave()'
+					 :title='tooltip_data'>
 						<div v-if='compact'>[[markup_data.tag_text_abbrev]]</div>
 						<div v-else-if='markup_data.markup_type == 1 && translate'>[[markup_data.tag_text_russian]]</div>
 						<div v-else>[[markup_data.tag_text]]</div>
@@ -819,6 +833,8 @@
 				display_tag_name.innerHTML = current_tag.innerHTML
 				display_tag_name.style.display = "block"
 				display_tag_name.style.backgroundColor = current_tag.style.backgroundColor
+
+				reset_errors_fields(markup_data.markup_type == 2);
 				openModal();
 		}
 
@@ -928,15 +944,7 @@
 	    display_tag_name.style.backgroundColor = event.currentTarget.getAttribute("name-tag-color")
 
 	    const change_tag_type = event.currentTarget.getAttribute('name-tag-type')
-	    if(change_tag_type == 1){
-	        const err_fields = document.getElementsByClassName("only-errors")
-	        for(var i=0; i<err_fields.length;i++){
-	            err_fields[i].parentNode.style.display = "block"
-	        }
-	    }
-	    else{
-	        reset_errors_fields(true)
-	    }
+	    reset_errors_fields(change_tag_type == 2);
 	}
 
 			function reset_errors_fields(hide_fields){
@@ -950,6 +958,12 @@
 								else{
 										err_fields[i].value = ""
 								}
+						}
+					}
+					else {
+						const err_fields = document.getElementsByClassName("only-errors")
+						for(let i=0; i<err_fields.length;i++){
+								err_fields[i].parentNode.style.display = "block"
 						}
 					}
 				}
