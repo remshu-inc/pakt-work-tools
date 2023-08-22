@@ -444,7 +444,14 @@
 	<!-- Text area -->
 	<div>
 		<h3 v-if="!text_data" class="text-secondary text-center my-5">Загрузка текста...</h3>
-		<div v-else v-cloak><text-area :text_data="text_data" @refresh-text="refresh" /></div>
+		<div v-else v-cloak>
+			<text-area
+				:text_data="text_data"
+				@refresh-text="refresh"
+				@select-token="selectToken"
+				@unselect-tokens="unselectTokens"
+			/>
+		</div>
 	</div>
 	{% endif %}
 </main>
@@ -454,6 +461,39 @@
 {% block script %}
 <script type="text/javascript">
 			// Vue
+			const FooterToolbar = {
+				delimiters: ['[[', ']]'],
+				inject: ['selectedTokens', 'ann_right'],
+				emits: ['unselect-tokens'],
+				computed: {
+					selectedTokenCount() {
+						return this.selectedTokens.size;
+					}
+				},
+				methods: {
+					unselectTokens() {
+						this.$emit('unselect-tokens');
+					},
+					deleteTokens() {
+
+					},
+					addAnnotation() {
+						create_annotation_selection(this.selectedTokens);
+					},
+					isActive() {
+						return this.selectedTokenCount > 0;
+					}
+				},
+				template: `
+					<div v-if='ann_right' class='bottom-toolbar fixed-bottom bg-white p-4 d-flex gap-3 shadow-lg align-items-center' :class='{"show": isActive()}'>
+						<button class='btn btn-primary shadow-none' @click='addAnnotation'>Добавить аннотацию</button>
+						<button class='btn btn-danger shadow-none'>Удалить токены</button>
+						<button class='btn btn-secondary shadow-none' @click='unselectTokens'>Снять выделение</button>
+						<span class='text-secondary ms-auto d-none d-md-block'>Выбрано токенов: [[this.selectedTokenCount]]</span>
+					</div>
+				`
+			}
+
 			const Modal = {
 				delimiters: ['[[', ']]'],
 				emits: ['refresh-text'],
@@ -487,7 +527,8 @@
 						closeModal();
 					},
 					async saveAnnotation() {
-						await send_annotation_info();
+						const resp = await send_annotation_info();
+						console.log(resp);
 						this.$emit('refresh-text');
 						closeModal();
 					},
@@ -524,8 +565,8 @@
 														</div>
 													</div>
 												</div>
-
-										</div>`
+										</div>
+										`
 			}
 
 			const ModalContainer = {
@@ -549,7 +590,7 @@
 
 			const Annotation = {
 				delimiters: ['[[', ']]'],
-				inject: ['errors', 'pos', 'compact', 'translate'],
+				inject: ['errors', 'pos', 'compact', 'translate', 'ann_right'],
 				emits: ['select-annotation'],
 				props: {
 					annotation_data: Object,
@@ -578,7 +619,9 @@
 						this.$emit('select-annotation', this.annotation_data.ann_id, false, '');
 					},
 					handleClick() {
-						modify_annotation_selection(this.annotation_data.ann_id, this.markup_data);
+						if (this.ann_right) {
+							modify_annotation_selection(this.annotation_data.ann_id, this.markup_data);
+						}
 					}
 				},
 				template:	`
@@ -586,7 +629,8 @@
 					 class='annotation btn shadow-none text-center px-2 py-1 rounded'
 					 :style='style'
 					 @click='handleClick' @mouseenter='onHover()' @mouseleave='onLeave()'
-					 :title='tooltip_data'>
+					 :title='tooltip_data'
+					 :class='{muted: !ann_right}'>
 						<div v-if='compact'>[[markup_data.tag_text_abbrev]]</div>
 						<div v-else-if='markup_data.markup_type == 1 && translate'>[[markup_data.tag_text_russian]]</div>
 						<div v-else>[[markup_data.tag_text]]</div>
@@ -619,6 +663,7 @@
 
 			const Token = {
 				delimiters: ['[[', ']]'],
+				inject: ['ann_right'],
 				props: {
 			   	token_data: Object,
 				},
@@ -626,21 +671,26 @@
 					NewTokenButton,
 					Annotation
 				},
-				emits: ['refresh-text', 'select-annotation'],
+				emits: ['refresh-text', 'select-annotation', 'select-token'],
 				methods: {
 					refresh() {
 						this.$emit('refresh-text');
 					},
 					selectAnnotation(annotation_id, select, style) {
 						this.$emit('select-annotation', annotation_id, select, style);
+					},
+					selectToken() {
+						if (this.ann_right) {
+							this.$emit('select-token', this.token_data.token_id);
+						}
 					}
 				},
 				template: `
 					<new-token-button @refresh-text="refresh" v-if='token_data.order_number === 0' :parent_token_id='token_data.token_id' position="left"/>
 					<div class='d-flex flex-column justify-content-end gap-1'>
 						<annotation @select-annotation='selectAnnotation' v-for='[markup_id, markup] in token_data.markup' :key=markup_id :annotation_data=markup.annotation_data :markup_data=markup.markup_data />
-						<button :id=[[this.token_data.token_id]] v-if='token_data.text !== ""' class='token shadow-sm px-2 py-1 rounded-2 btn' data-bs-toggle="button">[[token_data.text]]</button>
-						<button :id=[[this.token_data.token_id]] v-else class='token shadow-sm px-2 py-1 rounded-2 btn' data-bs-toggle="button">
+						<button :id=[[this.token_data.token_id]] @click='selectToken' v-if='token_data.text !== ""' class='token shadow-sm px-2 py-1 rounded-2 btn' :class='{muted: !ann_right}'>[[token_data.text]]</button>
+						<button :id=[[this.token_data.token_id]] @click='selectToken' v-else class='token shadow-sm px-2 py-1 rounded-2 btn' :class='{muted: !ann_right}' >
 							<svg xmlns="http://www.w3.org/2000/svg" class='bi' height="1em" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-width="1.5" d="m14.36 4.079.927-.927a3.932 3.932 0 0 1 5.561 5.561l-.927.927m-5.56-5.561s.115 1.97 1.853 3.707C17.952 9.524 19.92 9.64 19.92 9.64m-5.56-5.561L12 6.439m7.921 3.2-5.26 5.262L11.56 18l-.16.161c-.578.577-.867.866-1.185 1.114a6.554 6.554 0 0 1-1.211.749c-.364.173-.751.302-1.526.56l-3.281 1.094m0 0-.802.268a1.06 1.06 0 0 1-1.342-1.342l.268-.802m1.876 1.876-1.876-1.876m0 0 1.094-3.281c.258-.775.387-1.162.56-1.526.205-.43.456-.836.749-1.211.248-.318.537-.607 1.114-1.184L8.5 9.939"/>
 							</svg>
@@ -663,18 +713,22 @@
 					return {
 					}
 				},
-				emits: ['refresh-text', 'select-annotation'],
+				emits: ['refresh-text', 'select-annotation', 'select-token'],
 				methods: {
 					refresh() {
 						this.$emit('refresh-text');
 					},
 					selectAnnotation(annotation_id, select, style) {
 						this.$emit('select-annotation', annotation_id, select, style);
+					},
+					selectToken(token_id) {
+
+						this.$emit('select-token', token_id);
 					}
 				},
 				template: `
 				<div class='d-flex align-items-end gap-1'>
-					<token @refresh-text="refresh" @select-annotation='selectAnnotation' v-for='[token_id, token_data] in sentence_data' :key='token_id' :token_data='token_data' />
+					<token @refresh-text="refresh" @select-annotation='selectAnnotation' @select-token='selectToken' v-for='[token_id, token_data] in sentence_data' :key='token_id' :token_data='token_data' />
 				</div>`
 			}
 
@@ -685,17 +739,24 @@
 				},
 				components: {
 					Sentence,
-					ModalContainer
+					ModalContainer,
+					FooterToolbar
 				},
 				data() {
 					return {
-						tokensByMarkupId: buildTokensByMarkupId(this.text_data)
+						tokensByMarkupId: Vue.computed(() => buildTokensByMarkupId(this.text_data))
 					}
 				},
-				emits: ['refresh-text'],
+				emits: ['refresh-text', 'select-token', 'unselect-tokens'],
 				methods: {
 					refresh() {
 						this.$emit('refresh-text');
+					},
+					selectToken(token_id) {
+						this.$emit('select-token', token_id);
+					},
+					unselectTokens() {
+						this.$emit('unselect-tokens');
 					},
 					selectAnnotation(annotation_id, select, style) {
 						for (let token_id of this.tokensByMarkupId.get(annotation_id)) {
@@ -711,14 +772,15 @@
 				},
 				template: `
 				<modal-container @refresh-text="refresh" />
-					<div class='table-responsive my-4'>
+					<div class='table-responsive my-4 text-area'>
 						<table class='table text-nowrap'>
 							<tr v-for='(sentence, index) in text_data.sentences' :key='index'>
 								<td class='pe-2 ps-4 text-secondary text-center col-auto align-bottom py-3'>[[index + 1]]</td>
-								<td class='col-12'><sentence @refresh-text="refresh" @select-annotation='selectAnnotation' :sentence_data=sentence /></td>
+								<td class='col-12'><sentence @select-token='selectToken' @refresh-text="refresh" @select-annotation='selectAnnotation' :sentence_data=sentence /></td>
 							</tr>
 						</table>
 					</div>
+					<footer-toolbar @unselect-tokens='unselectTokens'/>
 				`
 			}
 
@@ -735,7 +797,8 @@
 						compact: false,
 						pos: false,
 						errors: true,
-						lang: 'foreign'
+						lang: 'foreign',
+						selected_tokens: new Set(),
 					}
 				},
 				provide() {
@@ -745,6 +808,7 @@
 						pos: Vue.computed(() => this.pos),
 						compact: Vue.computed(() => this.compact),
 						translate: Vue.computed(() => this.lang === 'rus'),
+						selectedTokens: Vue.computed(() => this.selected_tokens),
 					}
 				},
 				watch: {
@@ -760,9 +824,28 @@
 						const text_data = await this.fetchTextData();
 						this.text_data = text_data;
 						text_response = text_data;
+						this.unselectTokens();
 						get_classification({{text_id}}).then(response => {
 						build_classification(response, this.translate);
 					});
+					},
+
+					selectToken(token_id) {
+						if (this.selected_tokens.has(token_id)) {
+							this.selected_tokens.delete(token_id);
+							document.getElementById(token_id).classList.remove('active');
+						}
+						else {
+							this.selected_tokens.add(token_id);
+							document.getElementById(token_id).classList.add('active');
+						}
+					},
+
+					unselectTokens() {
+						for (let token_id of this.selected_tokens) {
+							document.getElementById(token_id).classList.remove('active');
+						}
+						this.selected_tokens.clear();
 					},
 
 					toggleCompact() {
@@ -784,23 +867,14 @@
 			// Modal
 			function closeModal() {
 				document.getElementById('modal-container').classList.remove('open');
+				document.getElementById("annotation-create-form-data").reset();
+				document.getElementById("creator-name").innerText = "";
 			}
 			function openModal() {
 				document.getElementById('modal-container').classList.add('open');
 			}
 
-			const selectedTokens = new Set();
 			let selected_tag = 0;
-
-			function toggleSelectToken(token_id) {
-				if (selectedTokens.has(token_id)) {
-					selectedTokens.delete(token_id);
-				}
-				else {
-					selectedTokens.add(token_id);
-				}
-			}
-
 
 			function modify_annotation_selection(markup_id, markup_data) {
 
@@ -830,7 +904,7 @@
 				document.getElementById("query-type-field").value = 2
 				const current_tag = document.querySelector(`[name-tag-id="${using_tag_id}"`)
 				const display_tag_name = document.getElementById("tag-type-selected-tag")
-				display_tag_name.innerHTML = current_tag.innerHTML
+				display_tag_name.innerText = current_tag.innerText
 				display_tag_name.style.display = "block"
 				display_tag_name.style.backgroundColor = current_tag.style.backgroundColor
 
@@ -838,9 +912,11 @@
 				openModal();
 		}
 
-			function create_annotation_selection() {
+			function create_annotation_selection(selectedTokens) {
 				document.getElementById("query-type-field").value = 1
 				document.getElementById("selected-tokens").value = `[${Array.from(selectedTokens).toString()}]`
+				document.getElementById("correct-text").value = ''
+				document.getElementById("comment-text").value = ''
 				openModal();
 			}
 
@@ -969,14 +1045,9 @@
 				}
 
 		async function send_annotation_info() {
-	   const reason_sel = document.getElementById("selected_reason")
-	   const grade_sel = document.getElementById("selected_grade")
-	   return axios(
-			{
-	       url: "{%url 'annotation_edit' %}",
-	       method: 'POST',
-	       data:
-	       {   'user_id':{{user_id}},
+	   const reason_sel = document.getElementById("selected_reason");
+	   const grade_sel = document.getElementById("selected_grade");
+		 const data = {   'user_id':{{user_id}},
 	           'query_type': document.getElementById("query-type-field").value,
 	           'classification_tag': document.getElementById("selected-classif-tag").value,
 	           'tokens': document.getElementById("selected-tokens").value,
@@ -984,8 +1055,14 @@
 	           'reason': reason_sel.options[reason_sel.selectedIndex].value,
 	           'grade': grade_sel.options[grade_sel.selectedIndex].value,
 	           'correct':document.getElementById("correct-text").value,
-	           'comment': document.getElementById('comment-text').value
-	       },
+	           'comment': document.getElementById('comment-text').value }
+		console.log('data:', data);
+
+	   return axios(
+			{
+	       url: "{%url 'annotation_edit' %}",
+	       method: 'POST',
+	       data: data,
 	       headers: {"X-CSRFToken": "{{csrf_token}}"},
 	       }).catch((error) => {
 	           console.log(error.message);

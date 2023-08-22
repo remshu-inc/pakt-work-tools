@@ -701,20 +701,22 @@ function get_text(){
 function sent_annotation_info(link){
     var reason_sel = document.getElementById("selected_reason")
     var grade_sel = document.getElementById("selected_grade")
+		const data = {   'user_id':{{user_id}},
+		'query_type': document.getElementById("query-type-field").value,
+		'classification_tag': document.getElementById("selected-classif-tag").value,
+		'tokens': document.getElementById("selected-tokens").value,
+		'markup_id': document.getElementById("selected-markup-id").value,
+		'reason': reason_sel.options[reason_sel.selectedIndex].value,
+		'grade': grade_sel.options[grade_sel.selectedIndex].value,
+		'correct':document.getElementById("correct-text").value,
+		'comment': document.getElementById('comment-text').value
+}
+	console.log('data', data);
     axios({
         url: link,
         method: 'POST',
-        data: 
-        {   'user_id':{{user_id}},
-            'query_type': document.getElementById("query-type-field").value,
-            'classification_tag': document.getElementById("selected-classif-tag").value,
-            'tokens': document.getElementById("selected-tokens").value,
-            'markup_id': document.getElementById("selected-markup-id").value,
-            'reason': reason_sel.options[reason_sel.selectedIndex].value,
-            'grade': grade_sel.options[grade_sel.selectedIndex].value,
-            'correct':document.getElementById("correct-text").value,
-            'comment': document.getElementById('comment-text').value
-        },
+        data: data,
+        
         headers: {"X-CSRFToken": "{{csrf_token}}"},
         }).then(function (response){
             close_ann_create_form()

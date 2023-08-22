@@ -12,17 +12,16 @@
 	opacity: 0.2;
 }
 
-.token.active {
+.token.active:not(.muted) {
 	border: 1px solid #0d6efd;
 }
 
-.token.selected {
-	background-color: #0d6efd;
-	color: white;
+.token:hover:not(.active):not(.muted) {
+	border: 1px dashed #0d6efd !important;
 }
 
-.token:hover:not(.active) {
-	border: 1px dashed #0d6efd !important;
+.muted {
+	cursor: default !important;
 }
 
 .annotation {
@@ -77,6 +76,18 @@
 .handle {
 	cursor: move;
 	user-select: none;
+}
+
+.bottom-toolbar {
+	transition: 0.2s ease-in-out;
+}
+
+.bottom-toolbar:not(.show) {
+	bottom: -96px;
+}
+
+.text-area {
+	margin-bottom: 96px !important;
 }
 
 @media screen and (max-width: 560px) {
