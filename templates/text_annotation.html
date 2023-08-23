@@ -463,8 +463,8 @@
 			// Vue
 			const FooterToolbar = {
 				delimiters: ['[[', ']]'],
-				inject: ['selectedTokens', 'ann_right'],
-				emits: ['unselect-tokens'],
+				inject: ['selectedTokens', 'selectedEmptyTokens', 'ann_right'],
+				emits: ['unselect-tokens', 'refresh-text'],
 				computed: {
 					selectedTokenCount() {
 						return this.selectedTokens.size;
@@ -474,8 +474,12 @@
 					unselectTokens() {
 						this.$emit('unselect-tokens');
 					},
-					deleteTokens() {
+					async deleteTokens() {
+						for (let token_id of this.selectedEmptyTokens) {
+							await delete_token(token_id);
+						}
 
+						this.$emit('refresh-text');
 					},
 					addAnnotation() {
 						create_annotation_selection(this.selectedTokens);
@@ -487,7 +491,7 @@
 				template: `
 					<div v-if='ann_right' class='bottom-toolbar fixed-bottom bg-white p-4 d-flex gap-3 shadow-lg align-items-center' :class='{"show": isActive()}'>
 						<button class='btn btn-primary shadow-none' @click='addAnnotation'>Добавить аннотацию</button>
-						<button class='btn btn-danger shadow-none'>Удалить токены</button>
+						<button class='btn btn-danger shadow-none' @click='deleteTokens' :disabled='this.selectedEmptyTokens.size == 0'>Удалить пустые токены</button>
 						<button class='btn btn-secondary shadow-none' @click='unselectTokens'>Снять выделение</button>
 						<span class='text-secondary ms-auto d-none d-md-block'>Выбрано токенов: [[this.selectedTokenCount]]</span>
 					</div>
@@ -528,7 +532,6 @@
 					},
 					async saveAnnotation() {
 						const resp = await send_annotation_info();
-						console.log(resp);
 						this.$emit('refresh-text');
 						closeModal();
 					},
@@ -681,7 +684,13 @@
 					},
 					selectToken() {
 						if (this.ann_right) {
-							this.$emit('select-token', this.token_data.token_id);
+							this.$emit('select-token', this.token_data.token_id, false);
+						}
+					},
+
+					selectEmptyToken() {
+						if (this.ann_right) {
+							this.$emit('select-token', this.token_data.token_id, true);
 						}
 					}
 				},
@@ -690,7 +699,7 @@
 					<div class='d-flex flex-column justify-content-end gap-1'>
 						<annotation @select-annotation='selectAnnotation' v-for='[markup_id, markup] in token_data.markup' :key=markup_id :annotation_data=markup.annotation_data :markup_data=markup.markup_data />
 						<button :id=[[this.token_data.token_id]] @click='selectToken' v-if='token_data.text !== ""' class='token shadow-sm px-2 py-1 rounded-2 btn' :class='{muted: !ann_right}'>[[token_data.text]]</button>
-						<button :id=[[this.token_data.token_id]] @click='selectToken' v-else class='token shadow-sm px-2 py-1 rounded-2 btn' :class='{muted: !ann_right}' >
+						<button :id=[[this.token_data.token_id]] @click='selectEmptyToken' v-else class='token shadow-sm px-2 py-1 rounded-2 btn' :class='{muted: !ann_right}' >
 							<svg xmlns="http://www.w3.org/2000/svg" class='bi' height="1em" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-width="1.5" d="m14.36 4.079.927-.927a3.932 3.932 0 0 1 5.561 5.561l-.927.927m-5.56-5.561s.115 1.97 1.853 3.707C17.952 9.524 19.92 9.64 19.92 9.64m-5.56-5.561L12 6.439m7.921 3.2-5.26 5.262L11.56 18l-.16.161c-.578.577-.867.866-1.185 1.114a6.554 6.554 0 0 1-1.211.749c-.364.173-.751.302-1.526.56l-3.281 1.094m0 0-.802.268a1.06 1.06 0 0 1-1.342-1.342l.268-.802m1.876 1.876-1.876-1.876m0 0 1.094-3.281c.258-.775.387-1.162.56-1.526.205-.43.456-.836.749-1.211.248-.318.537-.607 1.114-1.184L8.5 9.939"/>
 							</svg>
@@ -721,9 +730,8 @@
 					selectAnnotation(annotation_id, select, style) {
 						this.$emit('select-annotation', annotation_id, select, style);
 					},
-					selectToken(token_id) {
-
-						this.$emit('select-token', token_id);
+					selectToken(token_id, empty) {
+						this.$emit('select-token', token_id, empty);
 					}
 				},
 				template: `
@@ -752,8 +760,8 @@
 					refresh() {
 						this.$emit('refresh-text');
 					},
-					selectToken(token_id) {
-						this.$emit('select-token', token_id);
+					selectToken(token_id, empty) {
+						this.$emit('select-token', token_id, empty);
 					},
 					unselectTokens() {
 						this.$emit('unselect-tokens');
@@ -780,7 +788,7 @@
 							</tr>
 						</table>
 					</div>
-					<footer-toolbar @unselect-tokens='unselectTokens'/>
+					<footer-toolbar @unselect-tokens='unselectTokens'  @refresh-text="refresh" />
 				`
 			}
 
@@ -799,6 +807,7 @@
 						errors: true,
 						lang: 'foreign',
 						selected_tokens: new Set(),
+						selected_empty_tokens: new Set(),
 					}
 				},
 				provide() {
@@ -809,6 +818,7 @@
 						compact: Vue.computed(() => this.compact),
 						translate: Vue.computed(() => this.lang === 'rus'),
 						selectedTokens: Vue.computed(() => this.selected_tokens),
+						selectedEmptyTokens: Vue.computed(() => this.selected_empty_tokens)
 					}
 				},
 				watch: {
@@ -830,22 +840,31 @@
 					});
 					},
 
-					selectToken(token_id) {
+					selectToken(token_id, empty) {
 						if (this.selected_tokens.has(token_id)) {
 							this.selected_tokens.delete(token_id);
 							document.getElementById(token_id).classList.remove('active');
+							if (empty) {
+								this.selected_empty_tokens.delete(token_id);
+							}
 						}
 						else {
 							this.selected_tokens.add(token_id);
 							document.getElementById(token_id).classList.add('active');
+							if (empty) {
+								this.selected_empty_tokens.add(token_id);
+							}
 						}
 					},
+
+
 
 					unselectTokens() {
 						for (let token_id of this.selected_tokens) {
 							document.getElementById(token_id).classList.remove('active');
 						}
 						this.selected_tokens.clear();
+						this.selected_empty_tokens.clear();
 					},
 
 					toggleCompact() {
@@ -1056,7 +1075,6 @@
 	           'grade': grade_sel.options[grade_sel.selectedIndex].value,
 	           'correct':document.getElementById("correct-text").value,
 	           'comment': document.getElementById('comment-text').value }
-		console.log('data:', data);
 
 	   return axios(
 			{
@@ -1081,6 +1099,18 @@
 	       }).catch((error) => {
 					console.log(error.message);
 	       });
+			}
+
+			async function delete_token(token_id) {
+				return axios(
+					{
+						url: "{%url 'delete_token' %}",
+						method: 'POST',
+						data: { 'token_id' : Number(token_id) },
+						headers: {"X-CSRFToken": "{{csrf_token}}"},
+						}).catch((error) => {
+								console.log(error.message);
+						});
 			}
 
 			// Text logic
@@ -1131,8 +1161,6 @@
 			}
 
 			async function format_text_data(raw_text_data) {
-				console.log(raw_text_data)
-
 				let sentences = [];
 
 				for (let sentence of raw_text_data.sentences) {

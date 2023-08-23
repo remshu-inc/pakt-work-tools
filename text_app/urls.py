@@ -14,7 +14,7 @@ urlpatterns = [
     path('corpus/', views.corpus, name='corpus'),
     # Открытие выбранного текста
     path('corpus/text/<int:text_id>/', views.show_text, name='text_view'),
-    path('corpus/text/legacy/<int:text_id>/', views.show_text_legacy, name='text_view'),
+    path('corpus/text/legacy/<int:text_id>/', views.show_text_legacy),
     # Создание нового текста 
     path('corpus/new_text', views.new_text, name='new_text'),
     path('corpus/texts/<str:language>/', views.corpus, name='language'),
@@ -33,6 +33,8 @@ urlpatterns = [
     path('show_text/api/get_text', api.get_text, name='get_text'),
     # Создание/удаление аннотаций
     path('show_text/api/annotation_edit', api.annotation_edit, name='annotation_edit'),
+    path('show_text/api/delete_token', api.delete_token, name='delete_token'),
+
      #** Формы
      # Оценка текста
     path('corpus/text/<int:text_id>/assessment_edit', views.assessment_form,
