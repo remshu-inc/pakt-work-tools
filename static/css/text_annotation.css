@@ -60,8 +60,13 @@
 	display: none;
 }
 
+#annotation-create-form-content {
+	width: calc(min(600px, 100vw));
+}
+
 #tag-type-create-form-classification {
-	height: 200px;
+	width: 100%;
+	height: 256px;
 	overflow: scroll;
 }
 
@@ -69,8 +74,28 @@
 	display: none;
 	padding-left: 20px;
 }
+
+.classifiation-tag-info {
+	display: flex;
+	align-items: center;
+}
+
 .classifiation-tag-info > div {
 	display: inline-block;
+}
+
+.classification-area {
+	margin: 8px 0;
+}
+
+.classification-tag-spoiler {
+	cursor: pointer;
+}
+
+.classification-tag-name {
+	cursor: pointer;
+	border-radius: 0.25rem;
+	padding: 0.25rem 0.5rem;
 }
 
 .handle {

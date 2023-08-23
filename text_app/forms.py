@@ -186,15 +186,15 @@ def get_annotation_form(Grades, Reasons):
 		markup_id = forms.IntegerField(
 			widget=forms.HiddenInput(attrs={"id": "selected-markup-id"}))
 		reason = forms.ChoiceField(widget=forms.Select(
-			attrs={"id": "selected_reason", "class": "only-errors"}), choices=reasons, label="Причина", required=False)
+			attrs={"id": "selected_reason", "class": "only-errors form-control"}), choices=reasons, label="Причина", required=False)
 		grade = forms.ChoiceField(widget=forms.Select(
-			attrs={"id": "selected_grade", "class": "only-errors"}), choices=grades, label="Степень грубости:", required=False)
+			attrs={"id": "selected_grade", "class": "only-errors form-control"}), choices=grades, label="Степень грубости:", required=False)
 		del reasons
 		del grades
 		correct = forms.CharField(widget=forms.Textarea(
-			attrs={"id": "correct-text", "class": "only-errors",'rows': 1}), label="Исправление:", max_length=255, required=False)  # TODO: Уточнить
+			attrs={"id": "correct-text", "class": "only-errors form-control",'rows': 1}), label="Исправление:", max_length=255, required=False)  # TODO: Уточнить
 		comment = forms.CharField(widget=forms.Textarea(
-			attrs={"id": "comment-text",'rows': 1}), label="Комментарий:", max_length=255, required=False)  # TODO: Уточнить
+			attrs={"id": "comment-text",'rows': 1, 'class':'form-control'}), label="Комментарий:", max_length=255, required=False)  # TODO: Уточнить
 
 	return (AnnotationCreateForm)
 
