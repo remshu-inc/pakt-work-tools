@@ -86,13 +86,13 @@
 			<ul class="dropdown-menu">
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Курс создания: </label>
+						<span class="text-secondary">Курс создания: </span>
 						{{text_info.course}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Дата создания: </label>
+						<span class="text-secondary">Дата создания: </span>
 						{{text_info.create_date}}
 					</div>
 				</li>
@@ -148,13 +148,13 @@
 			<ul class="dropdown-menu">
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Имя: </label>
+						<span class="text-secondary">Имя: </span>
 						{{text_info.author_name}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Группа: </label>
+						<span class="text-secondary">Группа: </span>
 						{{text_info.group_number}}
 					</div>
 				</li>
@@ -180,41 +180,41 @@
 			</button>
 			<ul class="dropdown-menu">
 				<li><h6 class="dropdown-header text-primary">Оценка работы</h6></li>
-				{%if text_info.assessment%}
+				{%if text_info.assessment %}
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Оценка: </label>
+						<span class="text-secondary">Оценка: </span>
 						{{text_info.assessment}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Полнота: </label>
+						<span class="text-secondary">Полнота: </span>
 						{{text_info.completeness}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Структура: </label>
+						<span class="text-secondary">Структура: </span>
 						{{text_info.structure}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Связность: </label>
+						<span class="text-secondary">Связность: </span>
 						{{text_info.coherence}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Проверяющий: </label>
+						<span class="text-secondary">Проверяющий: </span>
 						{{text_info.teacher_name}}
 					</div>
 				</li>
 				{%else%}
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Оценка: </label>
+						<span class="text-secondary">Оценка: </span>
 						Не указано
 					</div>
 				</li>
@@ -224,20 +224,20 @@
 				{%if text_info.pos_check%}
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Статус: </label>
+						<span class="text-secondary">Статус: </span>
 						<span class="text-success">Проверено</span>
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Проверяющий: </label>
+						<span class="text-secondary">Проверяющий: </span>
 						{{text_info.pos_check_name}}
 					</div>
 				</li>
 				{%else%}
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Статус: </label>
+						<span class="text-secondary">Статус: </span>
 						<span class="text-danger">Не проверено</span>
 					</div>
 				</li>
@@ -247,20 +247,20 @@
 				{%if text_info.error_check%}
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Статус: </label>
+						<span class="text-secondary">Статус: </span>
 						<span class="text-success">Проверено</span>
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Проверяющий: </label>
+						<span class="text-secondary">Проверяющий: </span>
 						{{text_info.error_check_name}}
 					</div>
 				</li>
 				{%else%}
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Статус: </label>
+						<span class="text-secondary">Статус: </span>
 						<span class="text-danger">Не проверено</span>
 					</div>
 				</li>
@@ -289,25 +289,25 @@
 				<li><h6 class="dropdown-header text-primary">Грамматика</h6></li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 1: </label>
+						<span class="text-secondary">Степень 1: </span>
 						{{auto_grammatik.0}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 2: </label>
+						<span class="text-secondary">Степень 2: </span>
 						{{auto_grammatik.1}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 3: </label>
+						<span class="text-secondary">Степень 3: </span>
 						{{auto_grammatik.2}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Оценка: </label>
+						<span class="text-secondary">Оценка: </span>
 						{{auto_grammatik.3}}
 					</div>
 				</li>
@@ -315,25 +315,25 @@
 				<li><h6 class="dropdown-header text-primary">Лексика</h6></li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 1: </label>
+						<span class="text-secondary">Степень 1: </span>
 						{{auto_lexik.0}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 2: </label>
+						<span class="text-secondary">Степень 2: </span>
 						{{auto_lexik.1}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 3: </label>
+						<span class="text-secondary">Степень 3: </span>
 						{{auto_lexik.2}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Оценка: </label>
+						<span class="text-secondary">Оценка: </span>
 						{{auto_lexik.3}}
 					</div>
 				</li>
@@ -341,25 +341,25 @@
 				<li><h6 class="dropdown-header text-primary">Орфография и пунктуация</h6></li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 1: </label>
+						<span class="text-secondary">Степень 1: </span>
 						{{auto_orth.0}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 2: </label>
+						<span class="text-secondary">Степень 2: </span>
 						{{auto_orth.1}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Степень 3: </label>
+						<span class="text-secondary">Степень 3: </span>
 						{{auto_orth.2}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Оценка: </label>
+						<span class="text-secondary">Оценка: </span>
 						{{auto_orth.3}}
 					</div>
 				</li>
@@ -367,19 +367,19 @@
 				<li><h6 class="dropdown-header text-primary">Подсчёт ошибок</h6></li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Дискурс: </label>
+						<span class="text-secondary">Дискурс: </span>
 						{{count_dis}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Пропуски: </label>
+						<span class="text-secondary">Пропуски: </span>
 						{{count_skip}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Лишние элементы: </label>
+						<span class="text-secondary">Лишние элементы: </span>
 						{{count_extra}}
 					</div>
 				</li>
@@ -398,31 +398,31 @@
 			<ul class="dropdown-menu">
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Эмоционально-физиологическое состояние: </label>
+						<span class="text-secondary">Эмоционально-физиологическое состояние: </span>
 						{{text_info.emotional}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Место написания: </label>
+						<span class="text-secondary">Место написания: </span>
 						{{text_info.write_place}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Год изучения языка: </label>
+						<span class="text-secondary">Год изучения языка: </span>
 						{{text_info.education_level}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Самооценивание: </label>
+						<span class="text-secondary">Самооценивание: </span>
 						{{text_info.self_rating}}
 					</div>
 				</li>
 				<li>
 					<div class="dropdown-item-text">
-						<label class="text-secondary">Оценка задания студентом: </label>
+						<span class="text-secondary">Оценка задания студентом: </span>
 						{{text_info.student_assessment}}
 					</div>
 				</li>
@@ -626,12 +626,12 @@
 				     },
 						 tooltip_data() {
 							const markup = this.markup_data;
-							return  markup.tag_text +
-										 	(markup.tag_text_abbrev ? ` (${markup.tag_text_abbrev})` : '') +
-											(markup.grade_text ? `\nСтепень грубости: ${markup.grade_text}` : '') +
-											(markup.reason_text ? `\nПричина: ${markup.reason_text}` : '') +
-											(markup.correct ? `\nИсправление: ${markup.correct}` : '') +
-											(markup.comment ? `\nКомментарий: ${markup.comment}` : '');
+							return  `<b>${markup.tag_text}` +
+										 	(markup.tag_text_abbrev ? ` (${markup.tag_text_abbrev})</b>` : '</b>') +
+											(markup.grade_text ? `<br>Степень грубости: ${markup.grade_text}` : '') +
+											(markup.reason_text ? `<br>Причина: ${markup.reason_text}` : '') +
+											(markup.correct ? `<br>Исправление: <b>${markup.correct}</b>` : '') +
+											(markup.comment ? `<br>Комментарий: ${markup.comment}` : '');
 						 }
 					},
 
@@ -646,15 +646,26 @@
 							if (this.ann_right) {
 								modify_annotation_selection(this.annotation_data.ann_id, this.markup_data);
 							}
+						},
+					},
+
+					mounted() {
+						if ((this.markup_data.markup_type == 1 && this.errors) || (this.markup_data.markup_type == 2 && this.pos)) {
+							this.$nextTick(() => {
+								console.log(this.$refs.annotation)
+
+								new bootstrap.Tooltip(this.$refs.annotation, {html: true})
+							});
 						}
 					},
 					template:	`
-						<button v-if='(markup_data.markup_type == 1 && errors) || (markup_data.markup_type == 2 && pos)'
+						<button ref="annotation"  v-if='(markup_data.markup_type == 1 && errors) || (markup_data.markup_type == 2 && pos)'
 						 class='annotation btn shadow-none text-center px-2 py-1 rounded'
+						 data-bs-toggle="tooltip"
 						 :style='style'
 						 @click='handleClick' @mouseenter='onHover()' @mouseleave='onLeave()'
 						 :title='tooltip_data'
-						 :class='{muted: !ann_right}'>
+						 >
 							<div v-if='compact'>[[markup_data.tag_text_abbrev]]</div>
 							<div v-else-if='markup_data.markup_type == 1 && translate'>[[markup_data.tag_text_russian]]</div>
 							<div v-else>[[markup_data.tag_text]]</div>
@@ -896,12 +907,13 @@
 						},
 						toggleErrors() {
 							this.errors = !this.errors;
-						}
+						},
 					},
 
 					mounted() {
 				   	this.refresh();
-				 }
+				 	},
+
 				}).mount('#text-app');
 
 				// Modal
@@ -918,16 +930,16 @@
 
 				function modify_annotation_selection(markup_id, markup_data) {
 
-					document.getElementById("selected-markup-id").value = markup_id
-					const using_tag_id = markup_data.tag_id
-					selected_tag = using_tag_id
+					document.getElementById("selected-markup-id").value = markup_id;
+					const using_tag_id = markup_data.tag_id;
+					selected_tag = using_tag_id;
 
-					document.getElementById("selected-classif-tag").value = using_tag_id
-					const reason_options = document.getElementById('selected_reason').getElementsByTagName("option")
-					for(let i = 0; i<reason_options.length;i++){
-							if(reason_options[i].value == markup_data.reason_id){
-									reason_options[i].parentNode.selectedIndex = i
-									break
+					document.getElementById("selected-classif-tag").value = using_tag_id;
+					const reason_options = document.getElementById('selected_reason').getElementsByTagName("option");
+					for(let i = 0; i<reason_options.length;i++) {
+							if(reason_options[i].value == markup_data.reason_id) {
+									reason_options[i].parentNode.selectedIndex = i;
+									break;
 							}
 					}
 					const grade_options = document.getElementById('selected_grade').getElementsByTagName("option")
@@ -937,16 +949,16 @@
 									break;
 							}
 					}
-					document.getElementById("correct-text").value = markup_data.correct
-					document.getElementById("comment-text").value = markup_data.comment
-					document.getElementById("creator-name").innerText = `${markup_data.user_name} ${markup_data.user_last_name}`
-					document.getElementById("form-delete-button").style.display = "block"
-					document.getElementById("query-type-field").value = 2
-					const current_tag = document.querySelector(`[name-tag-id="${using_tag_id}"`)
-					const display_tag_name = document.getElementById("tag-type-selected-tag")
-					display_tag_name.innerText = current_tag.innerText
-					display_tag_name.style.display = "block"
-					display_tag_name.style.backgroundColor = current_tag.style.backgroundColor
+					document.getElementById("correct-text").value = markup_data.correct;
+					document.getElementById("comment-text").value = markup_data.comment;
+					document.getElementById("creator-name").innerText = `${markup_data.user_name} ${markup_data.user_last_name}`;
+					document.getElementById("form-delete-button").style.display = "block";
+					document.getElementById("query-type-field").value = 2;
+					const display_tag_name = document.getElementById("tag-type-selected-tag");
+					display_tag_name.innerText = markup_data.tag_text;
+					display_tag_name.style.display = "block";
+					display_tag_name.style.backgroundColor = markup_data.tag_color;
+					display_tag_name.style.color = getVisibleColor(markup_data.tag_color);
 
 					reset_errors_fields(markup_data.markup_type == 2);
 					openModal();
@@ -1156,6 +1168,7 @@
 					.catch((error) => {
 							console.log(error.message);
 					});
+					console.log('raw data', response.data)
 					return response.data;
 				}
 
