@@ -625,14 +625,16 @@
 				       return 'color:' + getVisibleColor(this.markup_data.tag_color) +'; background-color: ' + this.markup_data.tag_color;
 				     },
 						 tooltip_data() {
-							const markup = this.markup_data;
-							return  `<b>${markup.tag_text}` +
-										 	(markup.tag_text_abbrev ? ` (${markup.tag_text_abbrev})</b>` : '</b>') +
-											(markup.grade_text ? `<br>Степень грубости: ${markup.grade_text}` : '') +
-											(markup.reason_text ? `<br>Причина: ${markup.reason_text}` : '') +
-											(markup.correct ? `<br>Исправление: <b>${markup.correct}</b>` : '') +
-											(markup.comment ? `<br>Комментарий: ${markup.comment}` : '');
-						 }
+							if (this.markup_data.markup_type == 1) {
+								const markup = this.markup_data;
+								return  `<b>${markup.tag_text}` +
+												(markup.tag_text_abbrev ? ` (${markup.tag_text_abbrev})</b>` : '</b>') +
+												(markup.grade_text ? `<br>Степень грубости: ${markup.grade_text}` : '') +
+												(markup.reason_text ? `<br>Причина: ${markup.reason_text}` : '') +
+												(markup.correct ? `<br>Исправление: <b>${markup.correct}</b>` : '') +
+												(markup.comment ? `<br>Комментарий: ${markup.comment}` : '');
+							}
+						}
 					},
 
 					methods: {
