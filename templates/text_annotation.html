@@ -652,8 +652,6 @@
 					mounted() {
 						if ((this.markup_data.markup_type == 1 && this.errors) || (this.markup_data.markup_type == 2 && this.pos)) {
 							this.$nextTick(() => {
-								console.log(this.$refs.annotation)
-
 								new bootstrap.Tooltip(this.$refs.annotation, {html: true})
 							});
 						}
@@ -1168,7 +1166,6 @@
 					.catch((error) => {
 							console.log(error.message);
 					});
-					console.log('raw data', response.data)
 					return response.data;
 				}
 
