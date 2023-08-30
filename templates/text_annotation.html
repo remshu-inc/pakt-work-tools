@@ -652,15 +652,22 @@
 								modify_annotation_selection(this.annotation_data.ann_id, this.markup_data);
 							}
 						},
-					},
-
-					mounted() {
-						if ((this.markup_data.markup_type == 1 && this.errors) || (this.markup_data.markup_type == 2 && this.pos)) {
-							this.$nextTick(() => {
-								new bootstrap.Tooltip(this.$refs.annotation, {html: true})
-							});
+						makeTooltip() {
+							if ((this.markup_data.markup_type == 1 && this.errors) || (this.markup_data.markup_type == 2 && this.pos)) {
+								this.$nextTick(() => {
+									new bootstrap.Tooltip(this.$refs.annotation, {html: true})
+								});
+							}
 						}
 					},
+
+					updated() {
+						this.makeTooltip();
+					},
+					mounted() {
+						this.makeTooltip();
+					},
+
 					template:	`
 						<button ref="annotation"  v-if='(markup_data.markup_type == 1 && errors) || (markup_data.markup_type == 2 && pos)'
 						 class='annotation btn shadow-none text-center px-2 py-1 rounded'
