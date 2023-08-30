@@ -1,6 +1,9 @@
 {% extends "base.html" %} {% load static %} {% block link %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/text_annotation.css' %}" />
-{% endblock %} {% block content %}
+{% endblock %}
+
+<!-- Content -->
+{% block content %}
 <main class="container-fluid p-0" id="text-app">
 	{% if not exists %}
 	<div class="alert alert-warning my-4 w-75 mx-auto d-flex gap-3 align-items-center" role="alert">

@@ -6,6 +6,7 @@
 />
 <link rel="stylesheet" type="text/css" href="{% static 'css/select2.css' %}" />
 {% endblock link %}
+
 <!-- Content -->
 {% block content %}
 <div class="container my-4">
@@ -112,7 +113,10 @@
 		<button type="submit" class="btn shadow-none btn-primary my-3 mx-auto w-50">Загрузить текст</button>
 	</form>
 </div>
-{% endblock content %} {% block plugins %}
+{% endblock content %}
+
+<!-- Scripts -->
+{% block plugins %}
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {% endblock plugins %} {% block script %}
 <script type="text/javascript" src="{% static 'js/apply_select2.js' %}" defer></script>

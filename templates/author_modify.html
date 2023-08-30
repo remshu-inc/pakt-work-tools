@@ -5,7 +5,10 @@
 	href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
 />
 <link rel="stylesheet" type="text/css" href="{% static 'css/select2.css' %}" />
-{% endblock link %} {% block content %}
+{% endblock link %}
+
+<!-- Content -->
+{% block content %}
 <main class="container my-4">
 	<h3 class="text-primary text-center my-3">{% if is_teacher %}Выберите студента{%else%}Выберите группу{%endif%}</h3>
 	{% if author_is_student %}

@@ -1,6 +1,9 @@
 {% extends "base.html" %} {% load static %} {% block link %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/table_fix.css' %}" />
-{% endblock link %} {% block content %}
+{% endblock link %}
+
+<!-- Content -->
+{% block content %}
 <main class="container my-4">
 	{% if author %}
 	<h3 class="text-primary my-4">{{author.last_name}} {{author.name}} {{author.patronymic}}</h3>
