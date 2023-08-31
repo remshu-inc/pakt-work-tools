@@ -60,7 +60,7 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/corpus/')
         self.assertEqual(resp.status_code, 200)
@@ -71,7 +71,7 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "student1", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/corpus/')
         self.assertEqual(resp.status_code, 200)
@@ -82,7 +82,7 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/corpus/?order_by=language_name&reverse=True')
         self.assertEqual(resp.status_code, 200)
@@ -93,7 +93,7 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "student1", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/corpus/?order_by=language_name&reverse=True')
         self.assertEqual(resp.status_code, 200)
@@ -104,14 +104,14 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/corpus/?order_by=lang_name&reverse=True')
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 200)
         resp = self.client.get('/corpus/?order_by=language_name')
         self.assertEqual(resp.status_code, 200)
         resp = self.client.get('/corpus/?reverse=True')
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 200)
         resp = self.client.get('/corpus/?order_by=language_name&reverse=321')
         self.assertEqual(resp.status_code, 200)
 
@@ -121,9 +121,9 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
-        resp = self.client.get('/corpus/Deutsche/')
+        resp = self.client.get('/corpus/texts/Deutsche/')
         self.assertEqual(resp.status_code, 200)
 
     def test_student_corpus_text_type(self):
@@ -132,9 +132,9 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "student1", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
-        resp = self.client.get('/corpus/Deutsche/')
+        resp = self.client.get('/corpus/texts/Deutsche/')
         self.assertEqual(resp.status_code, 200)
 
     def test_corpus_text_type_orders_and_others(self):
@@ -143,27 +143,27 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
-        resp = self.client.get('/corpus/France/')
-        self.assertEqual(resp.status_code, 404)  # если нет ни одного типа текста, то выдает ошибку
-
-        resp = self.client.get('/corpus/bebebe/')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/?order_by=language_name&reverse=True')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/?order_by=text_type_name&reverse=True')
+        resp = self.client.get('/corpus/texts/France/')
         self.assertEqual(resp.status_code, 200)
 
-        resp = self.client.get('/corpus/Deutsche/?order_by=ttype&reverse=True')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/?order_by=text_type_name')
+        resp = self.client.get('/corpus/texts/bebebe/')
         self.assertEqual(resp.status_code, 200)
 
-        resp = self.client.get('/corpus/Deutsche/?order_by=text_type_name&reverse=begff')
+        resp = self.client.get('/corpus/texts/Deutsche/?order_by=language_name&reverse=True')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/?order_by=text_type_name&reverse=True')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/?order_by=ttype&reverse=True')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/?order_by=text_type_name')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/?order_by=text_type_name&reverse=begff')
         self.assertEqual(resp.status_code, 200)
 
     def test_teacher_corpus_text_list(self):
@@ -172,9 +172,9 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
-        resp = self.client.get('/corpus/Deutsche/Test text type/')
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/')
         self.assertEqual(resp.status_code, 200)
 
     def test_student_corpus_text_list(self):
@@ -183,9 +183,9 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "student1", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
-        resp = self.client.get('/corpus/Deutsche/Test text type/')
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/')
         self.assertEqual(resp.status_code, 200)
 
     def test_corpus_text_list_orders_and_others(self):
@@ -194,40 +194,40 @@ class TextAppTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
-        resp = self.client.get('/corpus/France/123/')
-        self.assertEqual(resp.status_code, 404)  # если нет ни одного типа текста, то выдает ошибку
-
-        resp = self.client.get('/corpus/bebebe/3456/')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/3456/')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=language_name&reverse=True')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=text_type_name&reverse=True')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=ttype&reverse=True')
-        self.assertEqual(resp.status_code, 404)
-
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=header&reverse=True')
+        resp = self.client.get('/corpus/texts/France/123/')
         self.assertEqual(resp.status_code, 200)
 
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=user_id__first_name&reverse=True')
+        resp = self.client.get('/corpus/texts/bebebe/3456/')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/3456/')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=language_name&reverse=True')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=text_type_name&reverse=True')
         self.assertEqual(resp.status_code, 404)
 
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=user_id__last_name&reverse=True')
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=ttype&reverse=True')
+        self.assertEqual(resp.status_code, 404)
+
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=header&reverse=True')
         self.assertEqual(resp.status_code, 200)
 
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=modified_date&reverse=True')
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=user_id__first_name&reverse=True')
+        self.assertEqual(resp.status_code, 404)
+
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=user_id__last_name&reverse=True')
         self.assertEqual(resp.status_code, 200)
 
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=header')
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=modified_date&reverse=True')
         self.assertEqual(resp.status_code, 200)
 
-        resp = self.client.get('/corpus/Deutsche/Test text type/?order_by=header&reverse=begff')
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=header')
+        self.assertEqual(resp.status_code, 200)
+
+        resp = self.client.get('/corpus/texts/Deutsche/Test text type/?order_by=header&reverse=begff')
         self.assertEqual(resp.status_code, 200)

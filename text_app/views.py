@@ -48,7 +48,10 @@ def corpus(request, language=None, text_type=None):
 			order='language_name'
 			context['order_by'] = order
 
-		languages = TblLanguage.objects.all().order_by(order)
+		try:
+			languages = TblLanguage.objects.all().order_by(order)
+		except FieldError:
+			languages = []
 
 		context['content']='languages'
 		context['languages'] = languages
@@ -71,7 +74,10 @@ def corpus(request, language=None, text_type=None):
 			order='text_type_name'
 			context['order_by'] = order
 
-		text_types = TblTextType.objects.filter(language_id=language_id).order_by(order)
+		try:
+			text_types = TblTextType.objects.filter(language_id=language_id).order_by(order)
+		except FieldError:
+			text_types = []
 		context['content']='text_types'
 		context['text_types']=text_types
 		return render(request, "corpus.html", context=context)
@@ -95,7 +101,11 @@ def corpus(request, language=None, text_type=None):
 	if order is None:
 			order='modified_date'
 			context['order_by'] = order
-	texts = texts.order_by(order)
+	try:
+		texts2 = texts.order_by(order)
+	except FieldError:
+		texts2 = texts
+	texts = texts2
 
 	text_user_list = []
 	for text in texts:

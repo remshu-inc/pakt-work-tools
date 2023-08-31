@@ -40,11 +40,16 @@ def check_permissions_edit_text(user_id, text_id=None):
     return permission.exists()
 
 
-def check_permissions_work_with_annotations(user_id, text_id):
-    user_language = TblUser.objects.filter(id_user=user_id).first().language_id
-    text_language = TblText.objects.filter(id_text=text_id).first().language_id
-    if (text_language != user_language):
+def check_permissions_work_with_annotations(user_id, text_id=None):
+    user = TblUser.objects.filter(id_user=user_id).first()
+    if user is None:
         return False
+    user_language = user.language_id
+    text = TblText.objects.filter(id_text=text_id).first()
+    if text is not None:
+        text_language = text.language_id
+        if text_language != user_language:
+            return False
     
     permission = TblUserRights.objects.filter(
         Q(text_id=text_id) | Q(text_id=None),
