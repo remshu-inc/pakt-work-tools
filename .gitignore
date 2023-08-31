@@ -1,8 +1,6 @@
-# Django files
+# Byte-compiled / optimized / DLL files
 migrations/
 
-
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class

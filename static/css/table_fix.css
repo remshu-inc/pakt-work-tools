@@ -1,0 +1,10 @@
+.table {
+	table-layout: fixed;
+}
+
+.table tr td,
+.table th,
+.ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

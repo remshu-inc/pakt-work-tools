@@ -72,7 +72,7 @@ def built_group_stat(group_id:int,requester_id:int):
             'group_id',
             'student_id__user_id',
             'group_id__group_name',
-            'group_id__enrollement_date'))
+            'group_id__enrollment_date'))
     if not students_info:
         return({'state':False,'folder_link':''})
         # TblStudent.objects.order_by('group_number').filter(Q(group_number__in = group_numbers)).values('user_id', 'group_number').all())
@@ -81,7 +81,7 @@ def built_group_stat(group_id:int,requester_id:int):
     
     group_name =\
         students_info['group_id__group_name'][0]+' ('\
-        +str(students_info['group_id__enrollement_date'][0].year)+') '
+        +str(students_info['group_id__enrollment_date'][0].year)+') '
 
     group_id = students_info['group_id'][0]
     works = TblTextGroup.objects.filter(group_id = group_id).values('text_id')

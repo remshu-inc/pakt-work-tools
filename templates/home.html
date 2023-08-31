@@ -1,0 +1,65 @@
+{%extends "index.html" %}
+
+<!-- Main page content -->
+{% block indexContent %}
+
+<div class="home-content container-fluid mt-5 fs-5">
+	<p class="text-center px-4 fs-4">
+		<span class="text-primary"><b>Петрозаводский аннотированный корпус текстов (ПАКТ)</b></span> - корпус
+		аннотированных студенческих текстов на немецком и французском языках.
+	</p>
+	<p class="text-center px-4 fs-4">
+		В качестве аннотаций выступает автоматическая частеречная разметка и ручная разметка ошибок.
+	</p>
+	<hr class="my-4" />
+
+	<!-- Language corpus info cards -->
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+		<div class="card card-rounded shadow px-5 py-4 col-xl-4">
+			<h3 class="text-center text-primary mb-3">Немецкий корпус</h3>
+			<p>Размер корпуса в токенах: <span class="text-secondary">{{tokens_count.1}}</span></p>
+			<p>Частеречная разметка:</p>
+			<ul class="text-secondary">
+				<li>RFTagger, набор тегов STTS</li>
+			</ul>
+			<p class="bold">Разметка ошибок:</p>
+
+			<ul class="text-secondary">
+				<li>неограниченная область ошибки</li>
+				<li>трехступенчатая степень критичности ошибки</li>
+				<li>3 варианта возможной причины ошибки</li>
+				<li>90 типов возможных ошибок</li>
+			</ul>
+		</div>
+
+		<div class="card card-rounded shadow px-5 py-4 col-xl-4">
+			<h3 class="text-center text-primary mb-3">Французский корпус</h3>
+			<p>Размер корпуса в токенах: <span class="text-secondary">{{tokens_count.2}}</span></p>
+			<p>Частеречная разметка:</p>
+			<ul class="text-secondary">
+				<li>CoreNLP, набор тегов Treebank</li>
+			</ul>
+			<p>Разметка ошибок:</p>
+
+			<ul class="text-secondary">
+				<li>неограниченная область ошибки</li>
+				<li>трехступенчатая степень критичности ошибки</li>
+				<li>3 варианта возможной причины ошибки</li>
+				<li>71 тип возможных ошибок</li>
+			</ul>
+		</div>
+	</div>
+	<div class="text-center text-muted fs-6">
+		<p>Дата последнего обновления показателей: {{update_time}} (UTC+3)</p>
+	</div>
+	<hr class="my-4" />
+	<div class="mb-4 px-4">
+		<p>
+			По вопросам использования корпуса, выявленных проблем в работе с корпусом, а также с предложениями по
+			совершенствованию интерфейса корпуса обращайтесь на почтовый адрес:
+			<span class="text-primary">koturova@petrsu.ru</span>
+			(Котюрова Ирина Аврамовна).
+		</p>
+	</div>
+</div>
+{% endblock indexContent %}

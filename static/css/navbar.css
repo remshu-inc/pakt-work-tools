@@ -1,0 +1,33 @@
+.navbar,
+.navbar .navbar-toggler {
+	font-family: 'Rubik', sans-serif;
+	color: var(--bs-primary);
+}
+
+.navbar {
+	z-index: 3;
+}
+
+.navbar .navbar-toggler {
+	height: 48px;
+	padding: 4px;
+}
+
+.navbar .nav-link {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.login-btn {
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	top: 8px;
+	right: 48px;
+}
+
+.navbar-toggler:focus {
+	outline: none;
+	box-shadow: none;
+}

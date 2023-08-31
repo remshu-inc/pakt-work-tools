@@ -1,0 +1,44 @@
+.table {
+	box-sizing: border-box;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.table thead th {
+	border-bottom: none;
+	vertical-align: middle;
+}
+
+tr[errorLevel='error-level-2'] {
+	background-color: #0d6efd32;
+	border-bottom: #0d6efd32;
+}
+
+tr[errorLevel='error-level-1'] {
+	background-color: #0d6efd16;
+	border-bottom: #0d6efd16;
+}
+
+tr[errorLevel='error-level-0'] {
+	background-color: white;
+}
+
+.box {
+	min-width: 1.5rem;
+	min-height: 1.5rem;
+	max-width: 1.5rem;
+	max-height: 1.5rem;
+	flex-shrink: 0;
+}
+
+.box[errorLevel='error-level-0'] {
+	border: 1px solid var(--bs-secondary);
+}
+
+.box[errorLevel='error-level-1'] {
+	background-color: #0d6efd3f;
+}
+
+.box[errorLevel='error-level-2'] {
+	background-color: #0d6efd7f;
+}

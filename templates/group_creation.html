@@ -1,0 +1,86 @@
+{% extends "base.html" %} {% load filters %} {% load static %}
+
+<!-- Content -->
+{% block content %}
+<main class="container my-4">
+	<h2 class="text-primary text-center">Создание группы</h2>
+	<form method="POST" novalidate class="col-6 col-lg-3 mx-auto my-5 d-flex flex-column gap-2 text-secondary">
+		{% comment %} {% csrf_token %} {% endcomment %}
+
+		<!-- Group name -->
+		<label for="{{ form.group_name.id_for_label }}" class="form-label">
+			Название группы {% if not form.group_name.errors %} {{ form.group_name }} {% else %}
+			<!-- Invalid field -->
+			{{ form.group_name | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form.group_name.errors | first | striptags }}</div>
+			{% endif %}
+		</label>
+
+		<!-- Year -->
+		<label for="{{ form.year.id_for_label }}" class="form-label"
+			>Год обучения
+
+			<div class="input-group has-validation">
+				{% if not form.year.errors %} {{ form.year }} {% else %}
+				<!-- Invalid field -->
+				{{ form.year | addclass:'is-invalid' }} {% endif %}
+				<span class="input-group-text col-6" id="next-year"></span>
+				<div class="invalid-feedback">{{ form.year.errors | first | striptags }}</div>
+			</div>
+		</label>
+
+		<!-- Course number -->
+		<label for="{{ form.course_number.id_for_label }}" class="form-label">
+			Номер курса {% if not form.course_number.errors %} {{ form.course_number }} {% else %}
+			<!-- Invalid field -->
+			{{ form.course_number | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form.course_number.errors | first | striptags }}</div>
+			{% endif %}
+		</label>
+
+		<!-- Alert -->
+		{% if form.non_field_errors %}
+		<div class="alert alert-danger my-1 w-100 d-flex gap-3 align-items-center" role="alert">
+			<svg
+				class="bi flex-shrink-0"
+				xmlns="http://www.w3.org/2000/svg"
+				height="1.6rem"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path stroke-linecap="round" stroke-width="1.5" d="M12 7v6" />
+				<circle cx="12" cy="16" r="0.5" fill="currentColor" />
+				<path
+					stroke-linecap="round"
+					stroke-width="1.5"
+					d="M9.22 3c1.18-.67 1.95-1 2.78-1 1.11 0 2.13.6 4.16 1.8l.68.4c2.03 1.21 3.05 1.81 3.6 2.8.56.99.56 2.2.56 4.6v.8c0 2.4 0 3.61-.56 4.6-.55.99-1.57 1.59-3.6 2.8l-.68.4C14.13 21.4 13.1 22 12 22c-1.11 0-2.13-.6-4.16-1.8l-.68-.4c-2.03-1.21-3.05-1.81-3.6-2.8C3 16.01 3 14.8 3 12.4v-.8c0-2.4 0-3.61.56-4.6C4 6.22 4.72 5.68 6 4.9"
+				/>
+			</svg>
+
+			{{ form.non_field_errors | first | striptags }}
+		</div>
+		{% endif %} {% if success %}
+		<div class="alert alert-success my-1 w-100 d-flex gap-3 align-items-center" role="alert">
+			<svg
+				class="bi flex-shrink-0"
+				xmlns="http://www.w3.org/2000/svg"
+				height="1.6em"
+				stroke="currentColor"
+				fill="none"
+				viewBox="0 0 24 24"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m8.5 12.5 2 2 5-5" />
+				<path stroke-linecap="round" stroke-width="1.5" d="M7 3.34A10 10 0 1 1 3.34 7" />
+			</svg>
+
+			Группа успешно создана
+		</div>
+		{% endif %}
+		<button type="submit" class="btn btn-primary align-self-center shadow-none mt-3 col-9">Создать группу</button>
+		<a class="btn btn-secondary align-self-center shadow-none mt-3 col-9" href="{% url 'manage' %}">Назад</a>
+	</form>
+</main>
+{%endblock%} {%block script%}
+<script type="text/javascript" src="{% static 'js/year_select.js' %}" defer></script>
+{%endblock script%}

@@ -1,53 +1,99 @@
 {% extends "base.html" %}
-{% block content %}
 
-{%if right%}
-    {%if groups_exist%}
-        <table class="table table-borderless">
-            <thead class = 'table-light active-text non-border'>
-            <tr class = 'table-top-border'>
-                <th scope="col" class = 'cell-padding section-head-text'>Id</th>
-                <th scope="col" class='section-head-text'>Название</th>
-                <th scope="col" class='section-head-text'>Номер курса</th>
-                <th scope="col" class='section-head-text'>Учебный год</th>
-                <th scope="col" class='section-head-text'></th>
-            </tr>
-            </thead>
-            <tbody>
-            {%for group in groups%}
-            <tr class = 'selectable-table-row cell-paddings'>
-                <td scope="row" class = 'cell-padding index-cell'>{{group.id_group}}</td>
-                <td class = 'cell-padding'>{{group.group_name}}</td>
-                <td class = 'cell-padding'>{{group.course_number}}</td>
-                <td class = 'cell-padding'>{{group.enrollement_date}}</td>
-                <td class = 'cell-padding'>
-                    <div class='container'>
-                        <div class='row'>
-                            <div class = 'col-md'>
-                            </div>
-                            <div class = 'col-md'>
-                                <a class = 'btn shadow-none update-button' href = "{{group.id_group}}">Изменить</a>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-            {%endfor%}
-        </tbody>
-        </table>
-    {%else%}
-    Нет созданных групп
-    {%endif%}
-{%else%}
-Сервис недоступен (Недостаточно прав)
-{%endif%}
-<div class='card-header non-padding'>
-    <div class='container-fluid'>
-        <div class = 'row'>
-            <div class = 'col'>
-                <a class = 'mt-2 btn shadow-none decline-button' href="{% url 'manage'%}">Назад</a>
-            </div>
-        </div>
-    </div>
-</div>
-{%endblock%}
+<!-- Content -->
+{% block content %}
+<main class="container my-4">
+	<h2 class="text-center text-primary mb-4">Управление группами</h2>
+	<form method="GET" action="" class="col-6 col-md-4 my-4">
+		<div class="input-group">
+			<input
+				class="form-control"
+				type="search"
+				name="group-filter"
+				autocomplete="off"
+				value="{% if filter %}{{filter}}{% endif %}"
+				placeholder="Поиск группы"
+			/>
+			<button class="btn btn-primary shadow-sm" type="submit">
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="1.6em"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="2"
+						d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+					/>
+				</svg>
+			</button>
+		</div>
+	</form>
+	{% if groups %}
+	<table class="table table-responsive bg-white shadow table-hover px-5 card-rounded">
+		<thead class="table-light">
+			<tr>
+				<th class="text-secondary col-1" scope="col">ID</th>
+				<th scope="col" class="col-2">Название</th>
+				<th scope="col" class="col-2">Номер курса</th>
+				<th scope="col" class="col-4">Учебный год</th>
+				<th scope="col" class="col-3"></th>
+			</tr>
+		</thead>
+		<tbody>
+			{%for group in groups%}
+			<tr>
+				<td class="text-secondary">{{group.id_group}}</td>
+				<td>{{group.group_name}}</td>
+				<td>{{group.course_number}}</td>
+				<td>{{group.enrollment_date}}</td>
+				<td>
+					<a class="btn shadow-none update-button link-primary" href="{{group.id_group}}">
+						<svg
+							class="bi"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<circle cx="12" cy="12" r="3" stroke-width="1.5" />
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M3.66 10.64c.47.3.78.8.78 1.36s-.3 1.06-.78 1.36A2 2 0 0 0 2.6 15.4c.05.4.28.8.75 1.61.47.8.7 1.21 1.01 1.45a2 2 0 0 0 1.48.4c.24-.03.49-.13.82-.3.5-.27 1.09-.28 1.57 0s.77.8.79 1.35c.01.38.05.64.14.87a2 2 0 0 0 1.08 1.08c.37.15.84.15 1.77.15s1.4 0 1.77-.15a2 2 0 0 0 1.08-1.08c.09-.23.13-.49.14-.87.02-.56.3-1.07.8-1.35a1.62 1.62 0 0 1 1.56 0c.33.17.58.27.82.3a2 2 0 0 0 1.48-.4c.31-.24.54-.64 1.01-1.45l.49-.87m-.81-2.77c-.47-.3-.78-.8-.78-1.36s.3-1.06.78-1.36A2 2 0 0 0 21.4 8.6c-.05-.4-.28-.8-.75-1.61-.47-.8-.7-1.21-1.01-1.45a2 2 0 0 0-1.48-.4c-.24.03-.49.13-.82.3-.5.27-1.09.28-1.57 0s-.77-.8-.79-1.35a2.47 2.47 0 0 0-.14-.87 2 2 0 0 0-1.08-1.08C13.4 2 12.93 2 12 2s-1.4 0-1.77.15a2 2 0 0 0-1.08 1.08c-.09.23-.13.49-.14.87-.02.56-.3 1.07-.8 1.35-.47.28-1.06.27-1.56 0a2.46 2.46 0 0 0-.82-.3 2 2 0 0 0-1.48.4c-.31.24-.54.64-1.01 1.45l-.49.87"
+							/>
+						</svg>
+						Настройки группы
+					</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	{%else%}
+	<!-- Alert -->
+	<div class="alert alert-warning my-1 w-100 d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m10.5 15 3-3m0 3-3-3M22 11.8c0-2.63 0-3.95-.77-4.8a2.98 2.98 0 0 0-.22-.23C20.15 6 18.83 6 16.2 6h-.38c-1.16 0-1.73 0-2.27-.15a4 4 0 0 1-.85-.35c-.49-.28-.9-.68-1.71-1.5l-.55-.55a4 4 0 0 0-2.73-1.43C7.53 2 7.34 2 6.95 2c-.88 0-1.32 0-1.7.07a4 4 0 0 0-3.18 3.19C2 5.63 2 6.06 2 6.95M22 16c-.04 2.48-.23 3.89-1.17 4.83C19.66 22 17.77 22 14 22h-4c-3.77 0-5.66 0-6.83-1.17S2 17.77 2 14v-3"
+			/>
+		</svg>
+
+		<p class="m-0">Группы не найдены <a href="{% url 'group_creation'%}" class="alert-link">Создайте группу</a></p>
+	</div>
+	{%endif%} {%endblock%}
+</main>

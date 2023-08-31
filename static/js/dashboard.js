@@ -8,7 +8,7 @@ var list_texts = []
 var list_text_types = []
 var list_data = []
 var list_data_grade = []
-var list_enrollement_date = []
+var list_enrollment_date = []
 
 async function get_resquest_data_errors(){
     var languages = []
@@ -18,7 +18,7 @@ async function get_resquest_data_errors(){
     var text_types = []
     var data = []
     var data_grade = []
-    var enrollement_date = []
+    var enrollment_date = []
 
     await axios({
                 method: 'get',
@@ -36,7 +36,7 @@ async function get_resquest_data_errors(){
                         courses = response.data.list_courses
                         texts = response.data.list_texts
                         data_grade = response.data.data_grade_errors
-                        enrollement_date = response.data.enrollement_date
+                        enrollment_date = response.data.enrollment_date
                     })
 
     list_languages = languages
@@ -46,7 +46,7 @@ async function get_resquest_data_errors(){
     list_text_types = text_types
     list_data = data
     list_data_grade = data_grade
-    list_enrollement_date = enrollement_date
+    list_enrollment_date = enrollment_date
 }
 
 async function post_request_data_errors(text_type, text, surname, name, patronymic, course, groups, date){
@@ -107,7 +107,7 @@ async function actions(){
             selected_course: '',
             texts: list_texts.filter(text => text.language==list_languages[0].id_language),
             selected_text: '',
-            group_dates: list_enrollement_date,
+            group_dates: list_enrollment_date,
             selected_date: '',
         },
         methods:{

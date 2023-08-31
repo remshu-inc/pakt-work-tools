@@ -31,9 +31,8 @@ class TblUser(AbstractBaseUser, PermissionsMixin):
     is_superuser = None
     groups = None
 
-    # TODO: Логин и Пароль blank=False и null=False
-    login = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    password = models.CharField(max_length=128, blank=True, null=True)
+    login = models.CharField(max_length=100, unique=True, blank=False, null=False)
+    password = models.CharField(max_length=128, blank=False, null=False)
     last_name = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     patronymic = models.CharField(max_length=100, blank=True, null=True)
@@ -110,14 +109,12 @@ class TblStudent(models.Model):
 
     # ???: поле birthdate пустое?
     birthdate = models.DateField(blank=True, null=True)
-    gender = models.BooleanField(blank=True, null=True, choices=GENDER)
-    # group_number = models.IntegerField()
-    course_number = models.IntegerField()
+    gender = models.BooleanField(blank=True, null=True, choices=GENDER, default=0)
+    course_number = models.SmallIntegerField(default=1, validators=[MaxValueValidator(10), MinValueValidator(1)], blank=False, null=False)
     deduction = models.DateField(blank=True, null=True)
 
-    # TODO: исправить
     def __str__(self):
-        return self.user.last_name + ' ' + self.user.name
+        return self.user.name + ' ' + self.user.last_name
 
     def save(self, *args, **kwargs):
         super(TblStudent, self).save(*args, **kwargs)
@@ -130,16 +127,16 @@ class TblGroup(models.Model):
 
     id_group = models.AutoField(primary_key=True)
     group_name = models.CharField(max_length=256)
-    enrollement_date = models.DateField(blank=True, null=True)
-    course_number = models.SmallIntegerField(blank=False, null=False, default=0, validators=[
+    enrollment_date = models.DateField(blank=True, null=True)
+    course_number = models.SmallIntegerField(blank=False, null=False, default=1, validators=[
         MaxValueValidator(10),
-        MinValueValidator(0)
+        MinValueValidator(1)
     ])
     language = models.ForeignKey(TblLanguage, on_delete=models.PROTECT, default=1)
     active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.group_name + ' - ' + str(self.enrollement_date)
+        return self.group_name + ' - ' + str(self.enrollment_date)
 
 
 class TblStudentGroup(models.Model):

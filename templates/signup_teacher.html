@@ -1,106 +1,120 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% load filters %} {% load static %}
+<!-- Styles -->
 {% block link %}
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/signup.css' %}" />
 {% endblock %}
 
+<!-- Content -->
 {% block content %}
+<main class="container my-4">
+	<h2 class="text-primary text-center">Регистрация преподавателя</h2>
+	<form method="post" novalidate class="col-6 col-lg-3 mx-auto my-5 d-flex flex-column gap-2 text-secondary">
+		{% comment %} {% csrf_token %} {% endcomment %}
 
-<div class="container">
-    <main class="justify-content-center form-signup d-flex">
-        
-        <div class="signup-page col-4">
-            <h3 class="text-center">Регистрация преподавателя</h3>
-            {% load filters %}
-            <div class="form-group mt-4"></div>
-                <form method="post" novalidate>
-                    {% comment %} {% csrf_token %} {% endcomment %}
+		<!-- Login -->
+		<label for="{{ form_user.login.id_for_label }}" class="form-label">
+			Логин {% if not form_user.login.errors %} {{ form_user.login }} {% else %}
+			<!-- Invalid field -->
+			{{ form_user.login | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form_user.login.errors | first | striptags }}</div>
+			{% endif %}
+		</label>
 
-                    <div class="main-invalid-feedback text-center">
-                        {% for error in form_user.non_field_errors %}
-                            {{ error | striptags }}
-                        {% endfor %}
-                    </div>
+		<!-- Password -->
+		<label for="{{ form_user.password.id_for_label }}" class="form-label">
+			Пароль
 
-                    <div class="row mb-3 justify-content-between">
-                        <div class="col-12 custom-input mt-3">
-                            <label for="{{ form_user.login.id_for_label }}" class="form-label">Логин</label>
-                            {% if not form_user.login.errors %}
-                            {{ form_user.login }}
-                            {% else %}
-                            {{ form_user.login|addclass:'is-invalid' }}
-                            <div class="invalid-feedback">
-                                {% for error in form_user.login.errors %}
-                                    {{ error | striptags }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
+			<div class="input-group">
+				{% if not form_user.password.errors %} {{ form_user.password }} {% else %}
+				<!-- Invalid field -->
+				{{ form_user.password | addclass:'is-invalid' }} {% endif %}
+				<button
+					class="btn btn-outline-primary shadow-none w-auto p-1 active-primary"
+					type="button"
+					title="Показать пароль"
+					id="show_password"
+					onclick="showPassword()"
+					data-bs-toggle="button"
+				>
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M9 4.46A9.84 9.84 0 0 1 12 4c4.18 0 7.03 2.5 8.73 4.7C21.57 9.8 22 10.36 22 12s-.43 2.2-1.27 3.3C19.03 17.5 16.18 20 12 20c-4.18 0-7.03-2.5-8.73-4.7C2.42 14.2 2 13.64 2 12s.42-2.2 1.27-3.3C3.76 8.08 4.33 7.43 5 6.82"
+						/>
+						<path stroke-width="1.5" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+					</svg>
+				</button>
 
-                        <div class="col-12 custom-input mt-3">
-                            <label for="{{ form_user.password.id_for_label }}" class="form-label">Пароль</label>
-                            {% if not form_user.password.errors %}
-                            {{ form_user.password }}
-                            {% else %}
-                            {{ form_user.password|addclass:'is-invalid' }}
-                            <div class="invalid-feedback">
-                                {% for error in form_user.password.errors %}
-                                    {{ error | striptags }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
+				<div class="invalid-feedback">{{ form_user.password.errors | first | striptags }}</div>
+			</div>
+			<button
+				type="button"
+				class="text-start ps-0 btn btn-link shadow-none link-secondary text-decoration-none my-2"
+				onclick="passwordGenerate()"
+			>
+				<svg
+					class="bi me-2"
+					xmlns="http://www.w3.org/2000/svg"
+					stroke="currentColor"
+					height="1.6em"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="1.5"
+						d="M21.07 5a6.3 6.3 0 0 1-5.39 9.59c-.64 0-2.09-.15-2.8-.73l-.87.87c-.74.73-.15.73.14 1.32 0 0 .74 1.02 0 2.05-.44.58-1.67 1.4-3.08 0l-.3.3s.89 1.02.15 2.04c-.44.59-1.62 1.17-2.64.15L5.25 21.6c-.7.7-1.57.3-1.91 0l-.89-.88c-.82-.82-.34-1.7 0-2.05l7.65-7.6s-.74-1.18-.74-2.79A6.3 6.3 0 0 1 18 2.44"
+					/>
+					<path stroke-width="1.5" d="M17.89 8.3a2.2 2.2 0 1 1-4.4-.02 2.2 2.2 0 0 1 4.4.01Z" />
+				</svg>
 
-                        <div class="col-12 custom-input mt-3">
-                            <label for="{{ form_user.last_name.id_for_label }}" class="form-label">Фамилия</label>
-                            {% if not form_user.last_name.errors %}
-                            {{ form_user.last_name }}
-                            {% else %}
-                            {{ form_user.last_name|addclass:'is-invalid' }}
-                            <div class="invalid-feedback">
-                                {% for error in form_user.last_name.errors %}
-                                    {{ error | striptags }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
+				<label class="form-check-label" for="password_generate">Сгенерировать пароль</label>
+			</button>
+		</label>
 
-                        <div class="col-12 custom-input mt-3">
-                            <label for="{{ form_user.name.id_for_label }}" class="form-label">Имя</label>
-                            {% if not form_user.name.errors %}
-                            {{ form_user.name }}
-                            {% else %}
-                            {{ form_user.name|addclass:'is-invalid' }}
-                            <div class="invalid-feedback">
-                                {% for error in form_user.name.errors %}
-                                    {{ error | striptags }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
+		<!-- Name -->
+		<label for="{{ form_user.name.id_for_label }}" class="form-label">
+			Имя {% if not form_user.name.errors %} {{ form_user.name }} {% else %}
+			<!-- Invalid field -->
+			{{ form_user.name | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form_user.name.errors | first | striptags }}</div>
+			{% endif %}
+		</label>
 
-                        <div class="col-12 custom-input mt-3">
-                            <label for="{{ form_user.patronymic.id_for_label }}" class="form-label">Отчество</label>
-                            {% if not form_user.patronymic.errors %}
-                            {{ form_user.patronymic }}
-                            {% else %}
-                            {{ form_user.patronymic|addclass:'is-invalid' }}
-                            <div class="invalid-feedback">
-                                {% for error in form_user.patronymic.errors %}
-                                    {{ error | striptags }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                    </div>
+		<!-- Last name -->
+		<label for="{{ form_user.last_name.id_for_label }}" class="form-label">
+			Фамилия {% if not form_user.last_name.errors %} {{ form_user.last_name }} {% else %}
+			<!-- Invalid field -->
+			{{ form_user.last_name | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form_user.last_name.errors | first | striptags }}</div>
+			{% endif %}
+		</label>
 
-                    <button type="submit" class="col-12 mt-2 btn shadow-none update-button">Зарегистрировать преподавателя</button>
-                </form>
-            </div>
-        </div>
+		<!-- Patronymic -->
+		<label for="{{ form_user.patronymic.id_for_label }}" class="form-label">
+			Отчество {% if not form_user.patronymic.errors %} {{ form_user.patronymic }} {% else %}
+			<!-- Invalid field -->
+			{{ form_user.patronymic | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form_user.patronymic.errors | first | striptags }}</div>
+			{% endif %}
+		</label>
 
-    </main>
-</div>
+		<button type="submit" class="btn btn-primary shadow-none my-4 align-self-center col-12">
+			Зарегистрировать преподавателя
+		</button>
+		<a class="btn btn-secondary align-self-center shadow-none col-12" href="{% url 'manage' %}">Назад</a>
+	</form>
+</main>
 
-{%endblock%}
+{% endblock content %} {% block script %}
+<script type="text/javascript" src="{% static 'js/password_input.js' %}" defer></script>
+{% endblock script %}

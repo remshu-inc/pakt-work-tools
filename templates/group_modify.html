@@ -1,188 +1,356 @@
-{% extends "base.html" %}
-{% block content %}
-{%if right%}
-{%if exist%}
-{%if bad_name%}
-<div class="alert alert-danger top-notification" role="alert" id = 'warning-message'>
-    Ошибка в названии группы (должна присутствовать хотя бы одна буква или цифра)
-</div>
-{%endif%}
+{% extends "base.html" %} {% load filters %} {% load static %} {% block link %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link
+	rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/select2.css' %}" />
+{% endblock %} {% block content %}
 
-{%if bad_year%}
-    <div class="alert alert-danger top-notification" role="alert" id = 'warning-message'>
-        Неверно указан год 
-    </div>
-{%endif%}
-<div class="card non-round">
-    <div class="card-header non-padding non-border">
-        <div class = "section-head-text">
-            <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#group_info" role="button" aria-expanded="false" aria-controls="group_info">
-                Информация о группе
-              </a>
-        </div>
-    </div>
-        <div class="collapse" id="group_info">
-            <div class="card-body">
-                <ul class="list-group">
-                    <form method="POST" novalidate>
-                        <div class = 'mb-3'>
-                            {% comment %} {% csrf_token %} {% endcomment %}
-                            <label title = 'Не более 256 символов'>Название группы</label>
-                            <div>{{data_form.group_name}}</div>
-                        </div>
-                        <div class = 'mb-3'>
-                            {% comment %} {% csrf_token %} {% endcomment %}
-                            <label title = 'Год формирования группы'>Год обучения</label>
-                            <div class='container-fluid non-padding'>
-                                <div class = 'row'>
-                                    <div id = 'start-year' class="col-1">{{data_form.year}}</div><div id='end-year'  class="col col-10 field-append">/</div>
-                            </div>
-                            </div>
-                            <label title = 'Число обозначающее номер курса группы'>Номер курса обучения</label>
-                            <div class='container-fluid non-padding'>
-                                <div class = 'row'>
-                                    <div id = 'course-number' class="col">{{data_form.course_number}}</div>
-                            </div>
-                            </div>
-                        </div>
-                        <script>
-                            var year = document.getElementById('start-year').children[0]
-                            
-                            document.getElementById('end-year').innerHTML =
-                                    "/  "+(parseInt(year.value)+1).toString();
-                            year.oninput = function() {
-                                document.getElementById('end-year').innerHTML =
-                                    "/  "+(parseInt(year.value)+1).toString();
-                                }; 
-                        </script>
-                        <input type="submit" value="Сохранить" class = 'mt-2 btn shadow-none update-button', name = 'group_info_modify'>
-                    </form>
-                </ul>
-            </div>
-        </div>
-</div>
+<!-- Content -->
+<main class="container my-4">
+	<!-- Not found alert -->
+	{%if group_not_found %}
+	<div class="alert alert-danger my-1 w-100 d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m10.5 15 3-3m0 3-3-3M22 11.8c0-2.63 0-3.95-.77-4.8a2.98 2.98 0 0 0-.22-.23C20.15 6 18.83 6 16.2 6h-.38c-1.16 0-1.73 0-2.27-.15a4 4 0 0 1-.85-.35c-.49-.28-.9-.68-1.71-1.5l-.55-.55a4 4 0 0 0-2.73-1.43C7.53 2 7.34 2 6.95 2c-.88 0-1.32 0-1.7.07a4 4 0 0 0-3.18 3.19C2 5.63 2 6.06 2 6.95M22 16c-.04 2.48-.23 3.89-1.17 4.83C19.66 22 17.77 22 14 22h-4c-3.77 0-5.66 0-6.83-1.17S2 17.77 2 14v-3"
+			/>
+		</svg>
 
-<div class="card non-round">
-    <div class="card-header non-padding non-border">
-        <div class = "section-head-text">
-            <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#student-list" role="button" aria-expanded="false" aria-controls="student-list">
-                Список студентов
-              </a>
-        </div>
-    </div>
-    <div class="collapse" id="student-list">
-        <div class="card-body non-padding">
-            <table class="table table-borderless">
-                <thead class = 'table-light active-text non-border'>
-                <tr class = 'table-top-border'>
-                    <th scope="col" class = 'cell-padding section-head-text'>Id</th>
-                    <th scope="col" class='section-head-text'>Фамилия</th>
-                    <th scope="col" class='section-head-text'>Имя</th>
-                    <th scope="col" class='section-head-text'>Отчество</th>
-                    <th scope="col" class='section-head-text'>Логин</th>
-                </tr>
-                </thead>
-                <tbody>
-                {%for student in group_students%}
-                <tr class = 'selectable-table-row cell-paddings'>
-                    <td scope="row" class = 'cell-padding index-cell'>{{student.id_str}}</td>
-                    <td >{{student.last_name}}</td>
-                    <td >{{student.name}}</td>
-                    <td >{{student.patronymic}}</td>
-                    <td >{{student.login}}</td>
-                </tr>
-                {%endfor%}
-            </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+		<p class="m-0">Группа не найдена</p>
+	</div>
+	{% else %}
+	<h2 class="text-center text-primary">Группа {{ group_name }}</h2>
 
-<div class="card non-round">
-    <div class="card-header non-padding non-border">
-        <div class = "section-head-text">
-            <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#add_studs" role="button" aria-expanded="false" aria-controls="add_studs">
-                Добавление студентов
-              </a>
-        </div>
-    </div>
-        <div class="collapse" id="add_studs">
-            <div class="card-body">
-                <ul class="list-group">
-                    <form method="POST" novalidate>
-                        <div class = 'mb-3'>
-                            {% comment %} {% csrf_token %} {% endcomment %}
-                            <p title = 'Выберите студентов для удаления (CTRL+ЛКМ)'>Выбор студентов:</p>
-                            <div>{{add_std_form.studs}}</div>
-                        </div>
-                        <input type="submit" value="Добавить" class = 'mt-2 btn shadow-none update-button', name = 'add_studs'>
-                    </form>
-                </ul>
-            </div>
-        </div>
-</div>
+	<!-- Group info -->
+	<div class="card card-rounded col-12 mx-auto shadow-sm my-4">
+		<div class="card-header">
+			<div class="section-head-text">
+				<a
+					class="btn list-option-btn shadow-none"
+					data-bs-toggle="collapse"
+					href="#group_info"
+					role="button"
+					aria-expanded="true"
+					aria-controls="group_info"
+				>
+					<svg
+						class="bi me-2"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M10.5 14H17M7 14h.5M7 10.5h.5M7 17.5h.5M10.5 10.5H17M10.5 17.5H17"
+						/>
+						<path
+							stroke-width="1.5"
+							d="M8 3.5C8 2.67 8.67 2 9.5 2h5c.83 0 1.5.67 1.5 1.5v1c0 .83-.67 1.5-1.5 1.5h-5A1.5 1.5 0 0 1 8 4.5v-1Z"
+						/>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M21 16c0 2.83 0 4.24-.88 5.12-.88.88-2.3.88-5.12.88H9c-2.83 0-4.24 0-5.12-.88C3 20.24 3 18.82 3 16v-3m13-9c2.18.01 3.35.11 4.12.88.88.88.88 2.3.88 5.12v2M8 4c-2.18.01-3.35.11-4.12.88S3 6.83 3 9"
+						/>
+					</svg>
 
-<div class="card non-round">
-    <div class="card-header non-padding non-border">
-        <div class = "section-head-text">
-            <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#del_studs" role="button" aria-expanded="false" aria-controls="del_studs">
-                Удаление студентов
-              </a>
-        </div>
-    </div>
-        <div class="collapse" id="del_studs">
-            <div class="card-body">
-                <ul class="list-group">
-                    <form method="POST" novalidate>
-                        <div class = 'mb-3'>
-                            {% comment %} {% csrf_token %} {% endcomment %}
-                            <p title = 'Выберите студентов для удаления (CTRL+ЛКМ)'>Выбор студентов:</p>
-                            <div>{{del_std_form.studs}}</div>
-                        </div>
-                        <input type="submit" value="Удалить" class = 'mt-2 btn shadow-none del-button', name = 'del_studs'>
-                    </form>
-                </ul>
-            </div>
-        </div>
-</div>
+					Информация о группе
+				</a>
+			</div>
+		</div>
+		<div class="collapse show" id="group_info">
+			<div class="card-body">
+				<div class="px-3 m-0 d-flex flex-column gap-3">
+					<form method="POST" novalidate class="d-flex flex-column gap-3 text-secondary">
+						{% comment %} {% csrf_token %} {% endcomment %}
+						<label class="col-12 col-md-6">
+							Название группы {% if not data_form.group_name.errors %} {{ data_form.group_name }}
+							<!-- Invalid field -->
+							{% else %} {{ data_form.group_name | addclass:'is-invalid' }}
+							<div class="invalid-feedback">{{ data_form.group_name.errors | first | striptags }}</div>
+							{% endif %}
+						</label>
 
-<div class="card non-round">
-    <div class="card-header non-padding non-border">
-        <div class = "section-head-text">
-            <a class="btn list-option-btn shadow-none" data-bs-toggle="collapse" href="#del_group" role="button" aria-expanded="false" aria-controls="del_group">
-                Удаление группы
-              </a>
-        </div>
-    </div>
-        <div class="collapse" id="del_group">
-            <div class="card-body">
-                <ul class="list-group">
-                    <form method="POST" novalidate onSubmit="return confirm('Удалить группу?');">
-                        {% comment %} {% csrf_token %} {% endcomment %}
-                        <input type="submit" value="Удалить группу" class = 'mt-2 btn shadow-none del-button', name = 'del_group' hre>
-                    </form>
-                </ul>
-            </div>
-        </div>
-</div>
+						<div class="d-flex gap-3">
+							<!-- Year -->
+							<label for="{{ form.year.id_for_label }}" class="form-label col-7 col-md-3">
+								Год обучения
 
-{%else%}
-<div class='card-header non-padding non-border'>
-   <b> Группы не существует</b>
-</div>
-{%endif%}
-{%else%}
-<div class='card-header non-padding'>
-    <b>Недостаточно прав или произошла ошибка записи</b>
-</div>
-{%endif%}
-<div class='card-header non-padding'>
-    <div class='container-fluid'>
-        <div class = 'row'>
-            <div class = 'col'>
-                <a class = 'mt-2 mb-3 btn shadow-none decline-button' href="{% url 'group_selection'%}">Назад</a>
-            </div>
-        </div>
-    </div>
-</div>
-{%endblock%}
+								<div class="input-group has-validation">
+									{% if not data_form.year.errors %} {{ data_form.year }} {% else %}
+									<!-- Invalid field -->
+									{{ data_form.year | addclass:'is-invalid' }} {% endif %}
+									<span class="input-group-text col-6" id="next-year"></span>
+									<div class="invalid-feedback">{{ data_form.year.errors | first | striptags }}</div>
+								</div>
+							</label>
+
+							<!-- Course number -->
+							<label for="{{ form.course_number.id_for_label }}" class="form-label col-4 col-md-2">
+								Номер курса {% if not data_form.course_number.errors %} {{ data_form.course_number }}
+								<!-- Invalid field -->
+								{% else %} {{ data_form.course_number | addclass:'is-invalid' }}
+								<div class="invalid-feedback">
+									{{ data_form.course_number.errors | first | striptags }}
+								</div>
+								{% endif %}
+							</label>
+						</div>
+
+						<!-- Alert -->
+						{% if data_form.non_field_errors %}
+						<div
+							class="alert alert-danger my-1 d-flex gap-3 align-items-center col-12 col-md-6"
+							role="alert"
+						>
+							<svg
+								class="bi flex-shrink-0"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6rem"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path stroke-linecap="round" stroke-width="1.5" d="M12 7v6" />
+								<circle cx="12" cy="16" r="0.5" fill="currentColor" />
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M9.22 3c1.18-.67 1.95-1 2.78-1 1.11 0 2.13.6 4.16 1.8l.68.4c2.03 1.21 3.05 1.81 3.6 2.8.56.99.56 2.2.56 4.6v.8c0 2.4 0 3.61-.56 4.6-.55.99-1.57 1.59-3.6 2.8l-.68.4C14.13 21.4 13.1 22 12 22c-1.11 0-2.13-.6-4.16-1.8l-.68-.4c-2.03-1.21-3.05-1.81-3.6-2.8C3 16.01 3 14.8 3 12.4v-.8c0-2.4 0-3.61.56-4.6C4 6.22 4.72 5.68 6 4.9"
+								/>
+							</svg>
+
+							{{ data_form.non_field_errors | first | striptags }}
+						</div>
+						{% endif %}
+						<input
+							type="submit"
+							value="Сохранить"
+							class="mt-2 btn btn-primary shadow-none col-12 col-md-4"
+							name="group_info_modify"
+						/>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Students -->
+	<div class="card card-rounded col-12 mx-auto shadow-sm my-4">
+		<div class="card-header">
+			<div class="section-head-text">
+				<a
+					class="btn list-option-btn shadow-none"
+					data-bs-toggle="collapse"
+					href="#students"
+					role="button"
+					aria-expanded="true"
+					aria-controls="students"
+				>
+					<svg
+						class="bi me-2"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<circle cx="12" cy="6" r="4" stroke="#1C274C" stroke-width="1.5" />
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M18 9c1.66 0 3-1.12 3-2.5S19.66 4 18 4M6 9C4.34 9 3 7.88 3 6.5S4.34 4 6 4M17.2 15c.5.59.8 1.27.8 2 0 2.2-2.69 4-6 4s-6-1.8-6-4 2.69-4 6-4a9 9 0 0 1 1 .06M20 19c1.75-.38 3-1.36 3-2.5s-1.25-2.12-3-2.5M4 19c-1.75-.38-3-1.36-3-2.5s1.25-2.12 3-2.5"
+						/>
+					</svg>
+
+					Список студентов
+				</a>
+			</div>
+		</div>
+		<div class="collapse show" id="students">
+			<div class="card-body">
+				<div class="px-3 m-0 d-flex flex-column gap-3 align-items-center">
+					{% if group_students %}
+					<!-- Table -->
+					<table class="table table-hover table-responsive fs-6">
+						<thead class="table-light">
+							<tr class="">
+								<th scope="col" class="text-secondary col-auto">ID</th>
+								<th scope="col" class="d-none d-md-table-cell">Фамилия</th>
+								<th scope="col" class="d-none d-md-table-cell">Имя</th>
+								<th scope="col" class="d-none d-md-table-cell">Отчество</th>
+								<th scope="col" class="d-table-cell d-md-none">Ф.И.О.</th>
+								<th scope="col" class="">Логин</th>
+								<th scope="col"></th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for student in group_students %}
+							<tr class="">
+								<td class="text-secondary">{{student.id_str}}</td>
+								<td class="d-none d-md-table-cell">{{student.last_name}}</td>
+								<td class="d-none d-md-table-cell">{{student.name}}</td>
+								<td class="d-none d-md-table-cell">
+									{% if student.patronymic %}{{student.patronymic}}{% endif %}
+								</td>
+								<td class="d-table-cell d-md-none">
+									{{student.last_name}} {{student.name}}
+									<!--  -->
+									{% if student.patronymic %}{{student.patronymic}}{% endif %}
+								</td>
+								<td>{{student.login}}</td>
+								<td>
+									<a
+										class="link-secondary"
+										title="Удалить из группы"
+										onclick="return confirm('Удалить студента {{student.last_name}} {{student.name}} из группы {{group_name}}?');"
+										href="{% url 'group_delete_student' group_id=group_id student_id=student.id %}"
+									>
+										<svg
+											class="bi"
+											xmlns="http://www.w3.org/2000/svg"
+											height="1.6em"
+											stroke="currentColor"
+											fill="none"
+											viewBox="0 0 24 24"
+										>
+											<circle cx="10" cy="6" r="4" stroke-width="1.5" />
+											<path
+												stroke-linecap="round"
+												stroke-width="1.5"
+												d="M21 10h-4M18 18v-.5c0-2.49-3.58-4.5-8-4.5s-8 2.01-8 4.5S2 22 10 22c2.23 0 3.84-.16 5-.44"
+											/>
+										</svg>
+									</a>
+								</td>
+							</tr>
+							{%endfor%}
+						</tbody>
+					</table>
+					{% else %}
+					<div class="alert alert-warning my-1 w-100 d-flex gap-3 align-items-center" role="alert">
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6rem"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<circle cx="10" cy="6" r="4" stroke-width="1.5" />
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M20.41 11.41 19 10m0 0-1.41-1.41M19 10l1.41-1.41M19 10l-1.41 1.41M18 18v-.5c0-2.49-3.58-4.5-8-4.5s-8 2.01-8 4.5S2 22 10 22c2.23 0 3.84-.16 5-.44"
+							/>
+						</svg>
+
+						<p class="m-0">В этой группе пока нет студентов</p>
+					</div>
+					{% endif %}
+					<div class="col-12 d-flex gap-4 align-items-center">
+						<p class="col-4 col-md-auto fs-6 m-0 text-primary">Добавить студента</p>
+						<div class="col-6">
+							<select class="select2 d-none" id="add-select">
+								{% for student in not_group_students %}
+								<option value="{% url 'group_add_student' group_id=group_id student_id=student.id %}">
+									{{ student.name }} {{ student.last_name}} ({{ student.login }})
+								</option>
+								{% endfor %}
+							</select>
+						</div>
+						<a class="btn btn-primary" id="add-link" title="Добавить в группу" href="">
+							<svg
+								class="bi"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								stroke="currentColor"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<circle cx="10" cy="6" r="4" stroke-width="1.5" />
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M21 10h-2m0 0h-2m2 0V8m0 2v2M18 18v-.5c0-2.49-3.58-4.5-8-4.5s-8 2.01-8 4.5S2 22 10 22c2.23 0 3.84-.16 5-.44"
+								/>
+							</svg>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Delete group -->
+	<div class="card card-rounded col-12 mx-auto shadow-sm my-4">
+		<div class="card-header">
+			<div class="section-head-text">
+				<a
+					class="btn list-option-btn shadow-none text-secondary"
+					data-bs-toggle="collapse"
+					href="#delete_group"
+					role="button"
+					aria-expanded="false"
+					aria-controls="delete_group"
+				>
+					<svg
+						class="bi me-2"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path stroke-linecap="round" stroke-width="1.5" d="M20.5 6h-17M9.5 11l.5 5M14.5 11l-.5 5" />
+						<path
+							stroke-width="1.5"
+							d="M6.5 6h.1a2 2 0 0 0 1.84-1.32l.03-.1.1-.3c.08-.24.13-.37.18-.47a1.5 1.5 0 0 1 1.1-.8l.5-.01h3.3c.26 0 .39 0 .5.02.47.07.88.37 1.1.79.05.1.1.23.18.48l.1.29.03.1A2 2 0 0 0 17.5 6"
+						/>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M18.37 15.4c-.17 2.65-.26 3.98-1.13 4.8-.86.8-2.2.8-4.85.8h-.78c-2.66 0-3.99 0-4.85-.8-.87-.82-.96-2.15-1.13-4.8l-.46-6.9m13.66 0-.2 3"
+						/>
+					</svg>
+					Удалить группу
+				</a>
+			</div>
+		</div>
+		<div class="collapse" id="delete_group">
+			<div class="card-body">
+				<div class="px-3 m-0 d-flex flex-column gap-3">
+					<a
+						class="btn btn-danger w-auto mx-auto"
+						onclick="return confirm('Удалить группу {{group_name}}?');"
+						href="{% url 'delete_group' group_id %}"
+					>
+						Удалить группу
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	{%endif%}
+</main>
+{%endblock%} {% block plugins %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
+{% endblock plugins %} {% block script %}
+<script type="text/javascript" src="{% static 'js/year_select.js' %}" defer></script>
+<script type="text/javascript" src="{% static 'js/apply_select2.js' %}" defer></script>
+<script type="text/javascript" src="{% static 'js/select_student.js' %}" defer></script>
+{% endblock %}

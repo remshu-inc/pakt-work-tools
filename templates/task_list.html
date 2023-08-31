@@ -1,0 +1,231 @@
+{% extends "base.html" %} {% load static %} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/table_fix.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
+{% block content %}
+<main class="container my-4">
+	{% if author %}
+	<h3 class="text-primary my-4">{{author.last_name}} {{author.name}} {{author.patronymic}}</h3>
+	{% else %}
+	<div class="alert alert-warning my-3 w-100 d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<circle cx="10" cy="6" r="4" stroke-width="1.5" />
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="M20.41 11.41 19 10m0 0-1.41-1.41M19 10l1.41-1.41M19 10l-1.41 1.41M18 18v-.5c0-2.49-3.58-4.5-8-4.5s-8 2.01-8 4.5S2 22 10 22c2.23 0 3.84-.16 5-.44"
+			/>
+		</svg>
+		<p class="m-0">Автор текстов не зарегистрирован как студент</p>
+	</div>
+	{% endif %}
+	<h4 class="my-4 text-secondary">Список работ</h4>
+
+	<div class="row align-items-center">
+		<form method="GET" action="" class="col-6 col-md-4 my-4">
+			<div class="input-group">
+				<input
+					class="form-control"
+					type="search"
+					name="title-filter"
+					autocomplete="off"
+					value="{% if filter %}{{filter}}{% endif %}"
+					placeholder="Поиск по названию"
+				/>
+				<button class="btn btn-primary shadow-sm" type="submit">
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="2"
+							d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+						/>
+					</svg>
+				</button>
+			</div>
+		</form>
+
+		<div class="col-auto">
+			<a href="{% url 'new_text' %}" class="btn btn-primary col-12">
+				<svg
+					class="bi me-1"
+					xmlns="http://www.w3.org/2000/svg"
+					height="1.6em"
+					stroke="currentColor"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="1.5"
+						d="M15 12h-3m0 0H9m3 0V9m0 3v3M7 3.338A9.954 9.954 0 0 1 12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12c0-1.821.487-3.53 1.338-5"
+					/>
+				</svg>
+
+				Новый текст
+			</a>
+		</div>
+	</div>
+	{% if tasks %}
+
+	<!-- Table medium screen -->
+	<table class="table table-responsive bg-white shadow card-rounded d-none d-md-table table-hover">
+		<thead class="table-light">
+			<tr class="">
+				<th scope="col" class="ps-4 col-3">Название</th>
+				<th scope="col" class="col-2">Тип текста</th>
+				<th scope="col">Дата создания</th>
+				<th scope="col" class="text-center">Проверка ошибок</th>
+				<th scope="col" class="text-center">Оценка</th>
+				<th scope="col" class="pe-4">Количество ошибок</th>
+			</tr>
+		</thead>
+		<tbody>
+			{%for task in tasks %}
+			<tr class="">
+				<td class="ps-4">
+					<a
+						class="link-primary text-decoration-none"
+						title="Разбор текста"
+						href="{% url 'text_view' text_id=task.path.id%}"
+					>
+						{{task.header}}
+					</a>
+				</td>
+				<td class="">{{task.path.type}}</td>
+				<td class="">
+					{%if task.date %}{{task.date}}{%else%}<span class="text-secondary">Неизвестно</span>{%endif%}
+				</td>
+				<td class="text-center">
+					{% if task.error_check == 'Да' %}
+					<span title="Проверено">
+						<svg
+							class="bi text-success"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="m8.5 12.5 2 2 5-5"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M7 3.34A10 10 0 1 1 3.34 7" />
+						</svg>
+					</span>
+					{% else %}
+					<span title="Не проверено">
+						<svg
+							class="bi text-secondary"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="m14.5 9.5-5 5m0-5 5 5M7 3.34A10 10 0 1 1 3.34 7"
+							/></svg
+					></span>
+					{% endif %}
+				</td>
+				<td class="text-center">{{task.assessment}}</td>
+				<td class="pe-4">{{task.err_count}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<!-- Table small screen -->
+	<div class="d-block d-md-none accordion" id="text-list-accordion">
+		{% for task in tasks %}
+		<div class="accordion-item">
+			<h2 class="accordion-header">
+				<button
+					class="accordion-button collapsed shadow-none"
+					type="button"
+					data-bs-toggle="collapse"
+					data-bs-target="#text-{{ task.path.id }}"
+					aria-expanded="false"
+					aria-controls="text-{{ task.path.id }}"
+				>
+					<span class="col-8 ellipsis">{{ task.header }}</span
+					><span class="text-secondary ms-3 col-3 text-center">{%if task.date %}{{task.date}}{%endif%}</span>
+				</button>
+			</h2>
+			<div id="text-{{ task.path.id }}" class="accordion-collapse collapse" data-bs-parent="#text-list-accordion">
+				<div class="accordion-body">
+					<p class="fs-6"><span class="text-secondary">Тип текста:</span> {{task.path.type}}</p>
+					<p class="fs-6"><span class="text-secondary">Проверка ошибок:</span> {{task.error_check}}</p>
+					<p class="fs-6">
+						<span class="text-secondary">Оценка:</span> {% if task.assesment %}{{task.assessment}}
+						<!-- -->
+						{% else %}<span class="text-secondary">Неизвестно</span>{% endif %}
+					</p>
+					<p class="fs-6">
+						<span class="text-secondary">Количество ошибок:</span> {% if task.err_count%}
+						{{task.err_count}}{% else %}<span class="text-secondary">Неизвестно</span>{% endif %}
+					</p>
+					<a href="{% url 'text_view' text_id=task.path.id%}" class="btn btn-primary mt-3 shadow-none">
+						<svg
+							class="bi me-2"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M22 7V6c0-1.89 0-2.83-.59-3.41C20.83 2 19.9 2 18 2h-2c-1.89 0-2.83 0-3.41.59C12 3.17 12 4.1 12 6v12c0 1.89 0 2.83.59 3.41.58.59 1.52.59 3.41.59h2c1.89 0 2.83 0 3.41-.59.59-.58.59-1.52.59-3.41v-7M12 12h2m-2-6h2m-2 12h2m-2-3h3m-3-6h3M2 6V5a3 3 0 0 1 6 0v1M2 6s1.13 1 3 1c1.88 0 3-1 3-1M2 6v4.55M8 6v9.2c0 .62 0 .93-.04 1.23a5 5 0 0 1-.25 1.06c-.1.29-.24.57-.52 1.13l-1.18 2.36m0 0-.29.57a.8.8 0 0 1-1.44 0l-.3-.57m2.03 0H4m0 0L2.8 18.62c-.28-.56-.42-.84-.52-1.13a5 5 0 0 1-.25-1.06C2 16.13 2 15.82 2 15.2v-.87"
+							/>
+						</svg>
+						Разбор текста
+					</a>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+	{% else %}
+	<div class="alert alert-warning my-3 w-100 d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m10.5 15 3-3m0 3-3-3M22 11.8c0-2.63 0-3.95-.77-4.8a2.98 2.98 0 0 0-.22-.23C20.15 6 18.83 6 16.2 6h-.38c-1.16 0-1.73 0-2.27-.15a4 4 0 0 1-.85-.35c-.49-.28-.9-.68-1.71-1.5l-.55-.55a4 4 0 0 0-2.73-1.43C7.53 2 7.34 2 6.95 2c-.88 0-1.32 0-1.7.07a4 4 0 0 0-3.18 3.19C2 5.63 2 6.06 2 6.95M22 16c-.04 2.48-.23 3.89-1.17 4.83C19.66 22 17.77 22 14 22h-4c-3.77 0-5.66 0-6.83-1.17S2 17.77 2 14v-3"
+			/>
+		</svg>
+
+		<p class="m-0">{% if filter %}Не найдено работ по данному запросу{% else %}Список работ пока пуст{% endif %}</p>
+	</div>
+	{% endif %}
+</main>
+{%endblock%}

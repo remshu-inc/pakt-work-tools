@@ -1,74 +1,85 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "index.html" %}
 
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/search.css' %}">
+<!-- Main page content -->
+{% block indexContent %}
+<div class="container col-md-10 mx-auto">
+	{% if error_search %}
+	<!-- Alert -->
+	<div class="alert alert-danger my-1 w-75 mx-auto d-flex gap-3 align-items-center" role="alert">
+		<svg
+			class="bi flex-shrink-0"
+			xmlns="http://www.w3.org/2000/svg"
+			height="1.6rem"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m14.5 9.5-5 5m0-5 5 5M22 12c0 4.71 0 7.07-1.46 8.54C19.07 22 16.7 22 12 22c-4.71 0-7.07 0-8.54-1.46C2 19.07 2 16.7 2 12c0-4.71 0-7.07 1.46-8.54C4.93 2 7.3 2 12 2c4.71 0 7.07 0 8.54 1.46.97.98 1.3 2.35 1.4 4.54"
+			/>
+		</svg>
 
-<div class="container-sm">
-    <main>
-        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
+		<p class="m-0">{{ error_search }}</p>
+	</div>
+	{% endif %}
 
-        <div><a href="{% url 'cql_faq' %}">FAQ по CQL</a></div>
-        <form action="{% url 'search' %}" method="post">
-            {% csrf_token %}
-            <div class="input-group">
-                <input type="text" name="corpus_search" class="form-control non-round" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2" value = "{{ search_value }}">
+	<!-- Result -->
+	{% if count_search %}
+	<span class="text-secondary fs-4 mb-4">Всего результатов: {{ count_search }}</span>
+	{% endif %}
 
-                <button type="submit" class="btn btn-outline-secondary non-round" id="button-addon2">Поиск</button>
-            </div>
-        </form>
-
-        <div class="search_list mt-5">
-            {% if error_search %}
-            <div class="search_result mt-3">
-                <h1 style="color: red;">{{ error_search }}</h1>
-            </div>
-            {% endif %}
-
-            {% if count_search %}
-            <div>Всего результатов: {{ count_search }}</div>
-            {% endif %}
-
-            {% if list_search %}
-            {% for search in list_search  %}
-            <div class="search_result mt-3">
-                <div class="row">
-                    <div class="col-1">
-                        {{ forloop.counter }}
-                    </div>
-                    <div class="col">
-                        <div class="search_header">
-                            <a href="{% url 'text' text_id=search.text_id %}">{{ search.language }}/{{ search.text_type }}/{{ search.header }}</a>
-                            {% if search.create_date != None %}
-                            , {{ search.create_date }}
-                            {% endif %}
-                            {% if is_registered %}
-                            [<a href="{% url 'text_view' language=search.language text_type=search.text_type text_id=search.text_id %}">Разбор</a>]
-                            {% endif %}
-                        </div>
-                        <div class="search_text">
-                            {% for token in search.tokens  %}
-                                {% if token.primary %}
-                                    <span style="color: red;">
-                                        {{ token.text }}
-                                    </span>
-                                {% else %}
-                                    {{ token.text }}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-            {% endif %}
-        </div>
-
-        <div>
-
-        </div>
-
-    </main>
+	<!-- List -->
+	{% if list_search %}
+	<div class="d-flex flex-column gap-2 my-3">
+		{% for search in list_search %}
+		<!-- Result card -->
+		<div class="card rouded-4 p-3 search-result-card">
+			<div class="row">
+				<div class="col-auto text-secondary">{{ forloop.counter }}</div>
+				<div class="col">
+					<div class="d-flex justify-content-between align-content-center w-auto align-items-start mb-1">
+						<div>
+							<a href="{% url 'text' text_id=search.text_id %}" class="link-primary text-decoration-none">
+								{{ search.language }} / {{ search.text_type }} / {{ search.header }}
+							</a>
+							{% if search.create_date != None %}
+							<span class="text-secondary">: {{ search.create_date }} </span>{% endif %}
+						</div>
+						{% if is_registered %}
+						<a
+							class="ms-3 details-btn link-secondary"
+							href="{% url 'text_view' text_id=search.text_id %}"
+							title="Разбор текста"
+						>
+							<svg
+								class="bi"
+								xmlns="http://www.w3.org/2000/svg"
+								height="32"
+								stroke="currentColor"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M22 7V6c0-1.89 0-2.83-.59-3.41C20.83 2 19.9 2 18 2h-2c-1.89 0-2.83 0-3.41.59C12 3.17 12 4.1 12 6v12c0 1.89 0 2.83.59 3.41.58.59 1.52.59 3.41.59h2c1.89 0 2.83 0 3.41-.59.59-.58.59-1.52.59-3.41v-7M12 12h2m-2-6h2m-2 12h2m-2-3h3m-3-6h3M2 6V5a3 3 0 0 1 6 0v1M2 6s1.13 1 3 1c1.88 0 3-1 3-1M2 6v4.55M8 6v9.2c0 .62 0 .93-.04 1.23a5 5 0 0 1-.25 1.06c-.1.29-.24.57-.52 1.13l-1.18 2.36m0 0-.29.57a.8.8 0 0 1-1.44 0l-.3-.57m2.03 0H4m0 0L2.8 18.62c-.28-.56-.42-.84-.52-1.13a5 5 0 0 1-.25-1.06C2 16.13 2 15.82 2 15.2v-.87"
+								/>
+							</svg>
+						</a>
+						{% endif %}
+					</div>
+					<div class="search_text">
+						{% for token in search.tokens %}{% if token.primary %}
+						<span class="text-danger"><b> {{ token.text }} </b></span>
+						{% else %} {{ token.text }} {% endif %}{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+	{% endif %}
 </div>
-
-{%endblock%}
+{% endblock indexContent %}

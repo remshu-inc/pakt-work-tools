@@ -1,75 +1,65 @@
 {% extends "base.html" %}
+
+<!-- Styles -->
+{% load static %} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
 {% block content %}
+<main class="container main my-5">
+	<div class="text-center text-primary display-3 mb-5">
+		<a class="" href="{% url 'home' %}">
+			<svg xmlns="http://www.w3.org/2000/svg" height="1em" fill="none" viewBox="0 0 202 47">
+				<path
+					fill="currentColor"
+					d="M.26 46.23V.2h38.4c1.4 0 2.69.36 3.84 1.09a7.39 7.39 0 0 1 3.84 6.6v13.5c0 1.4-.34 2.68-1.03 3.84a8.09 8.09 0 0 1-2.81 2.81 7.39 7.39 0 0 1-3.84 1.03H5.44v17.15H.26Zm7.68-22.4h30.72c.68 0 1.26-.24 1.73-.7.5-.47.76-1.05.76-1.73V7.9c0-.69-.25-1.27-.76-1.74a2.25 2.25 0 0 0-1.73-.76H7.94c-.68 0-1.28.25-1.8.76-.46.47-.7 1.05-.7 1.73v13.5c0 .69.24 1.27.7 1.73.52.47 1.12.7 1.8.7Zm43.7 22.4V7.83c0-1.41.34-2.69 1.02-3.84a7.58 7.58 0 0 1 2.75-2.82 7.73 7.73 0 0 1 3.9-1.02h30.73c1.4 0 2.68.34 3.84 1.02A7.44 7.44 0 0 1 96.69 4a7.39 7.39 0 0 1 1.03 3.84v38.4h-5.19V29.4h-35.7v16.83h-5.2Zm5.18-22.02h35.71V7.83c0-.68-.25-1.26-.77-1.73a2.25 2.25 0 0 0-1.72-.77H59.32c-.69 0-1.28.26-1.8.77-.46.47-.7 1.05-.7 1.73V24.2Zm55.87 22.02c-1.4 0-2.71-.34-3.9-1.03a7.73 7.73 0 0 1-2.76-2.75 7.73 7.73 0 0 1-1.02-3.9V7.83c0-1.41.34-2.69 1.02-3.84a7.58 7.58 0 0 1 2.75-2.82 7.73 7.73 0 0 1 3.9-1.02h38.28v5.18H112.7c-.68 0-1.28.26-1.8.77-.46.47-.7 1.05-.7 1.73v30.72c0 .68.24 1.28.7 1.79.52.47 1.12.7 1.8.7h38.27v5.19H112.7Zm63.12 0V5.33h-20.48V.15h46.08v5.18h-20.42v40.9h-5.18Z"
+				/>
+			</svg>
+		</a>
+	</div>
+	<!-- Search  bar -->
+	<div class="col col-md-8 col-11 mx-auto mt-4">
+		<form action="{% url 'search' %}" method="post">
+			{% comment %} {% csrf_token %} {% endcomment %}
+			<div class="input-group input-group-lg mb-3 mx-auto search-bar">
+				<input
+					name="corpus_search"
+					type="search"
+					class="form-control shadow-sm border-2 fs-5 py-3"
+					placeholder="Поиск по корпусу"
+					aria-label="Поиск по корпусу"
+					aria-describedby="search-btn"
+					autocomplete="off"
+					value="{% if search_value %}{{ search_value }}{% endif %}"
+				/>
+				<button class="btn btn-primary shadow-sm search-btn" type="submit" id="search-btn">
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						height="28"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="2"
+							d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+						/>
+					</svg>
+				</button>
+			</div>
+		</form>
+		<!-- FAQ links -->
+		<div class="container mb-5 d-flex flex-row justify-content-start gap-3 fs-6">
+			<a class="btn btn-secondary rounded-pill" href="{% url 'cql_faq' %}">Язык запросов</a>
+			<a class="btn btn-secondary rounded-pill" href="{% url 'tag_list_de' %}">Справочник немецких тегов</a>
+			<a class="btn btn-secondary rounded-pill" href="{% url 'tag_list_fr' %}">Справочник французских тегов</a>
+		</div>
+	</div>
 
-<div class="container-sm">
-    <main>
-        <h1 class="head-text text-center mt-5 mb-5"><a class="nav-link active" aria-current="page" href="{% url 'home' %}">- ПАКТ -</a></h1>
-
-        <div><a href="{% url 'cql_faq' %}">FAQ по CQL</a><a href="{% url 'tag_list' %}" style="margin-left:15px;">Справочник тегов</a></div>
-        <form action="{% url 'search' %}" method="post">
-            {% csrf_token %}
-            <div class="input-group">
-                <input type="text" name="corpus_search" class="form-control non-round" placeholder="Поиск по корпусу" aria-label="Поиск по корпусу" aria-describedby="button-addon2">
-
-                <button type="submit" class="btn shadow-none update-button" id="button-addon2">Поиск</button>
-            </div>
-        </form>
-        
-        <br><br>
-
-        <div class="main-text mt-5">
-            Петрозаводский аннотированный корпус текстов(ПАКТ) - корпус, содержащий набор аннотированных студенческих текстов как на немецком, так и на французском языке. Так как на данный момент корпус является закрытым, то доступ для исследовательских целей возможен только по прямому обращению на почтовый адрес: <span class="email"><b>	koturova@petrsu.ru</b></span> <span style="font-size: 18px;">(Котюрова Ирина Аврамовна)</span>
-            <hr>
-            В качестве аннотаций выступает автоматическая частеречная разметка и ручная разметка ошибок.
-            <br><br>
-        </div>
-
-        <div class="row">
-            <div class="col">
-                <h1>Немецкий корпус</h1>
-                <b>Размер корпуса в токенах:  </b>{{tokens_count.1}}
-                <br>
-                <b>Частеречная разметка: </b><br>TreeTagger, набор тегов STTS
-                <br>
-                <b>Разметка ошибок:</b> 
-                <ul>
-                    <li>неограниченная область ошибки</li>
-                    <li>трехступенчатая степень критичности ошибки</li>
-                    <li>три варианта возможной причины ошибки</li>
-                    <li>90 типов возможных ошибок</li>
-                </ul>
-            </div>
-            <div class="col">
-                <h1>Французский корпус</h1>
-                <b>Размер корпуса в токенах:  </b>{{tokens_count.2}}
-
-                <br>
-                <b>Частеречная разметка: </b><br>CoreNLP, набор тегов Treebank
-                <br>
-                <b>Разметка ошибок:</b>
-                <ul>
-                    <li>неограниченная область ошибки</li>
-                    <li>трехступенчатая степень критичности ошибки</li>
-                    <li>три варианта возможной причины ошибки</li>
-                    <li>71 тип возможных ошибок</li>
-                </ul>
-            </div>
-        </div>
-        <div style = 'text-align:  center;'>
-            <span style="font-size: 12px; color: gray;">Дата последнего обновления показателей: {{update_time}} (UTC+3)</span>
-        </div>
-        <hr>
-        <div class="main-text" style="margin-top: 0;">
-            Часть корпуса имеет разметку эмоциональных компонентов для возможности проведения дополнительных исследований.
-            <br><br>
-        </div>
-
-        <div class="bottom-text">
-            Так как система, которая позволяет взаимодействовать с корпусом, находится в процессе разработки, то во время использования можно столкнуться с непредвиденными ошибками. Чтобы улучшить дальнейший пользовательский опыт, просьба уведомлять о найденных проблемах на почтовый адрес: <span class="email"><b>remshu.nikita@gmail.com</b></span> <span style="font-size: 14px;">(Ремшу Никита Леонидович)</span> или <span class="email"><b>	koturova@petrsu.ru</b></span> <span style="font-size: 14px;">(Котюрова Ирина Аврамовна)</span>.
-
-        </div>
-
-    </main>
-</div>
-
-{%endblock%}
+	<!-- Page content -->
+	{% block indexContent %} {% endblock indexContent %}
+</main>
+{% endblock content%}

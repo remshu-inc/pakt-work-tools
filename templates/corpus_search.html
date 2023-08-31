@@ -1,285 +1,315 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% load static %} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/table_fix.css' %}" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link
+	rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/select2.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
 {% block content %}
+<main class="container-fluid my-4">
+	<div class="container">
+		<!-- Search menu -->
+		<form
+			action="{% url 'corpus_search' %}"
+			method="post"
+			novalidate
+			class="text-secondary col-11 col-lg-6 mx-auto"
+		>
+			{% comment %}{% csrf_token %}{% endcomment %}
+			<div class="input-group">
+				{{ search_form.header }}
+				<button
+					type="button"
+					class="btn btn-outline-secondary shadow-none"
+					title="Фильтр"
+					data-bs-toggle="collapse"
+					data-bs-target="#filter"
+					aria-expanded="false"
+					aria-controls="filter"
+				>
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M20.058 9.723c.948-.534 1.423-.801 1.682-1.232.26-.43.26-.949.26-1.987v-.69c0-1.326 0-1.99-.44-2.402C21.122 3 20.415 3 19 3H5c-1.414 0-2.121 0-2.56.412C2 3.824 2 4.488 2 5.815v.69c0 1.037 0 1.556.26 1.986.26.43.733.698 1.682 1.232l2.913 1.64c.636.358.955.537 1.183.735.474.411.766.895.898 1.49.064.284.064.618.064 1.285v2.67c0 .909 0 1.364.252 1.718.252.355.7.53 1.594.88 1.879.734 2.818 1.101 3.486.683.668-.417.668-1.372.668-3.282v-2.67c0-.666 0-1 .064-1.285a2.68 2.68 0 0 1 .899-1.49"
+						/>
+					</svg>
+				</button>
+				<button type="submit" class="btn btn-primary shadow-none" title="Поиск">
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M18.5 18.5 22 22M6.75 3.27a9.5 9.5 0 1 1-3.48 3.48"
+						/>
+					</svg>
+				</button>
+			</div>
+			<div class="collapse" id="filter">
+				<div class="p-3 card d-flex flex-column gap-2">
+					<div class="row justify-content-between align-items-end">
+						<label for="{{ search_form.user.id_for_label }}" class="form-label col-6">
+							Автор {{ search_form.user }}
+						</label>
+					</div>
+					<div class="row justify-content-evenly align-items-end">
+						<label for="{{ search_form.language.id_for_label }}" class="form-label col-6">
+							Язык {{ search_form.language }}
+						</label>
+						<label for="{{ search_form.text_type.id_for_label }}" class="form-label col-6">
+							Тип текста {{ search_form.text_type }}
+						</label>
+					</div>
+					<div class="row justify-content-evenly align-items-end">
+						<label for="{{ search_form.emotional.id_for_label }}" class="form-label col-6">
+							Эмоционально-физиологическое состояние {{ search_form.emotional }}
+						</label>
+						<label for="{{ search_form.error_tag_check.id_for_label }}" class="form-label col-6">
+							Проверка разметки ошибок {{ search_form.error_tag_check }}
+						</label>
+					</div>
+					<div class="row justify-content-evenly align-items-end">
+						<label for="{{ search_form.write_place.id_for_label }}" class="form-label col-6">
+							Где написан текст {{ search_form.write_place }}
+						</label>
+						<label for="{{ search_form.create_date.id_for_label }}" class="form-label col-6">
+							Дата создания {{ search_form.create_date }}
+						</label>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<h3 class="text-secondary my-3 ms-4">Результаты поиска</h3>
 
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/corpus.css' %}">
+	{% if text_list %}
+	<!-- large screen table -->
+	<table class="d-none d-lg-table table table-hover card-rounded bg-white shadow my-4">
+		<thead class="table-light">
+			<tr class="">
+				<th class="px-3 py-2 col-xxl-3">Название текста</th>
+				<th>Автор</th>
+				<th>Язык</th>
+				<th>Тип текста</th>
+				<th>Эмоционально-физиологическое состояние</th>
+				<th>Проверка разметки ошибок</th>
+				<th>Где написан текст</th>
+				<th>Дата создания</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for text in text_list %}
+			<tr>
+				<td class="ps-3">
+					<a
+						class="link-primary text-decoration-none d-flex gap-2"
+						href="{% url 'text_view' text_id=text.id_text %}"
+					>
+						<svg
+							class="bi flex-shrink-0"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-width="1.5"
+								d="m18.18 8.04.463-.464a1.966 1.966 0 1 1 2.781 2.78l-.463.464M18.18 8.04s.058.984.927 1.853 1.854.927 1.854.927M18.18 8.04l-4.26 4.26c-.29.288-.434.433-.558.592-.146.188-.271.39-.374.606-.087.182-.151.375-.28.762l-.413 1.24-.134.401m8.8-5.081-4.26 4.26c-.29.29-.434.434-.593.558-.188.146-.39.271-.606.374-.182.087-.375.151-.762.28l-1.24.413-.401.134m0 0-.401.134a.53.53 0 0 1-.67-.67l.133-.402m.938.938-.938-.938"
+							/>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M8 13h2.5M8 9h6.5M8 17h1.5M3 14v-4c0-3.771 0-5.657 1.172-6.828C5.343 2 7.229 2 11 2h2c3.771 0 5.657 0 6.828 1.172M21 14c0 3.771 0 5.657-1.172 6.828m-15.656 0C5.343 22 7.229 22 11 22h2c3.771 0 5.657 0 6.828-1.172m0 0c.944-.943 1.127-2.348 1.163-4.828"
+							/>
+						</svg>
+						<span class="ellipsis">{{ text.header }} </span>
+					</a>
+				</td>
+				<td>{{ text.user }}</td>
+				<td>{{ text.language }}</td>
+				<td>
+					{% if text.text_type %}{{ text.text_type }} {%else%}
+					<span class="text-secondary"> Неизвестно </span>
+					{%endif%}
+				</td>
+				<td>
+					{% if text.emotional %}{{ text.emotional }} {%else%}
+					<span class="text-secondary"> Неизвестно </span>
+					{%endif%}
+				</td>
+				<td>
+					{% if text.error_tag_check %}
+					<span title="Проверено">
+						<svg
+							class="bi text-success"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="m8.5 12.5 2 2 5-5"
+							/>
+							<path stroke-linecap="round" stroke-width="1.5" d="M7 3.34A10 10 0 1 1 3.34 7" />
+						</svg>
+					</span>
+					{% else %}
+					<span title="Не проверено">
+						<svg
+							class="bi text-secondary"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							stroke="currentColor"
+							fill="none"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="m14.5 9.5-5 5m0-5 5 5M7 3.34A10 10 0 1 1 3.34 7"
+							/>
+						</svg>
+					</span>
+					{% endif %}
+				</td>
+				<td>
+					{% if text.write_place %}{{ text.write_place }} {%else%}
+					<span class="text-secondary"> Неизвестно </span>
+					{%endif%}
+				</td>
+				<td>
+					{% if text.create_date %}{{ text.create_date }}{%else%}
+					<span class="text-secondary"> Неизвестно </span>
+					{%endif%}
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 
-<div class="container">
-    <div class="row">
+	<!-- Meduim- screen accordion -->
+	<div class="d-block d-lg-none accordion" id="text-list-accordion">
+		{% for text in text_list %}
+		<div class="accordion-item">
+			<h2 class="accordion-header">
+				<button
+					class="accordion-button collapsed shadow-none"
+					type="button"
+					data-bs-toggle="collapse"
+					data-bs-target="#text-{{ text.id_text }}"
+					aria-expanded="false"
+					aria-controls="text-{{ text.id_text }}"
+				>
+					<span class="text-primary col-6 ellipsis">{{ text.header }}</span>
+					<span class="text-secondary ms-3 col-4">{{text.user}}</span>
+				</button>
+			</h2>
+			<div id="text-{{ text.id_text }}" class="accordion-collapse collapse" data-bs-parent="#text-list-accordion">
+				<div class="accordion-body d-flex flex-column gap-3">
+					<div class="fs-6"><span class="text-secondary">Язык: </span>{{ text.language }}</div>
+					<div class="fs-6">
+						<span class="text-secondary">Тип текста: </span>
+						{% if text.text_type %}{{ text.text_type }} {%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Эмоционально-физиологическое состояние: </span>
+						{% if text.emotional %}{{ text.emotional }} {%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Проверка разметки ошибок: </span>
+						{{ text.error_tag_check | yesno:"Проверено,Не проверено"}}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Где написан текст: </span>
+						{% if text.write_place %}{{ text.write_place }} {%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6">
+						<span class="text-secondary">Дата создания: </span>
+						{% if text.create_date %}{{ text.create_date }}{%else%}
+						<span class="text-secondary"> Неизвестно </span>
+						{%endif%}
+					</div>
+					<div class="fs-6 mt-3">
+						<a href="{% url 'text_view' text_id=text.id_text %}" class="btn btn-primary w-auto shadow-none">
+							<svg
+								class="bi me-2"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								stroke="currentColor"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M22 7V6c0-1.89 0-2.83-.59-3.41C20.83 2 19.9 2 18 2h-2c-1.89 0-2.83 0-3.41.59C12 3.17 12 4.1 12 6v12c0 1.89 0 2.83.59 3.41.58.59 1.52.59 3.41.59h2c1.89 0 2.83 0 3.41-.59.59-.58.59-1.52.59-3.41v-7M12 12h2m-2-6h2m-2 12h2m-2-3h3m-3-6h3M2 6V5a3 3 0 0 1 6 0v1M2 6s1.13 1 3 1c1.88 0 3-1 3-1M2 6v4.55M8 6v9.2c0 .62 0 .93-.04 1.23a5 5 0 0 1-.25 1.06c-.1.29-.24.57-.52 1.13l-1.18 2.36m0 0-.29.57a.8.8 0 0 1-1.44 0l-.3-.57m2.03 0H4m0 0L2.8 18.62c-.28-.56-.42-.84-.52-1.13a5 5 0 0 1-.25-1.06C2 16.13 2 15.82 2 15.2v-.87"
+								/>
+							</svg>
+							Разбор текста
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
 
-        {# ERROR #}
-        {% if error %}
+	{% else %}
+	<div class="alert alert-warning fs-6 my-4" role="alert" id="warning-message">
+		<svg
+			class="bi me-2"
+			xmlns="http://www.w3.org/2000/svg"
+			stroke="currentColor"
+			height="1.6em"
+			fill="none"
+			viewBox="0 0 24 24"
+		>
+			<path
+				stroke-width="1.5"
+				d="M8 3.5A1.5 1.5 0 0 1 9.5 2h5A1.5 1.5 0 0 1 16 3.5v1A1.5 1.5 0 0 1 14.5 6h-5A1.5 1.5 0 0 1 8 4.5v-1Z"
+			/>
+			<path
+				stroke-linecap="round"
+				stroke-width="1.5"
+				d="m14.5 11-5 5m0-5 5 5M21 16c0 2.829 0 4.243-.879 5.122C19.243 22 17.828 22 15 22H9c-2.828 0-4.243 0-5.121-.878C3 20.242 3 18.829 3 16v-3m13-8.998c2.175.012 3.353.109 4.121.877C21 5.758 21 7.172 21 10v2M8 4.002c-2.175.012-3.353.109-4.121.877-.769.768-.865 1.946-.877 4.121"
+			/>
+		</svg>
 
-        <h1 class="text-center mt-5 text-danger">
-            {{ text_html }} 
-        </h1>
-
-        {% endif %}
-
-        {# For anonymous users #}
-        {% if not user.is_authenticated %}
-
-        <h1 class="text-center mt-5 text-danger">
-            You need to log in. 
-        </h1>
-
-        {% else %}
-
-        {# Search for teachers #}
-        {% if user.is_teacher %}
-
-        <div class="d-flex justify-content-center mt-5">
-            <div class="col-6">
-                <form method="post" novalidate>
-                    {% comment %} {% csrf_token %} {% endcomment %}
-                    <div class="input-group mb-1">
-                        {{ form_search.header }}
-                        <button class="btn btn-outline-secondary" type="button" v-on:click = "ShowDiv" id="button-filter">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
-                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                            </svg>
-                            Фильтр
-                        </button>
-                        <button class="btn btn-outline-secondary" type="submit">Поиск</button>
-                    </div>
-
-                    <div class="filter" id="list-filter">
-                        <div class="row">
-                            <div class="col-4">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.user.id_for_label }}" class="form-label">Автор</label>
-                                    {{ form_search.user }}
-                                </div>
-                            </div>
-        
-                            <div class="col-4">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.create_date.id_for_label }}" class="form-label">Дата создания</label>
-                                    {{ form_search.create_date }}
-                                </div>
-                            </div>
-        
-                            <div class="col-4">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.modified_date.id_for_label }}" class="form-label">Дата модификации</label>
-                                    {{ form_search.modified_date }}
-                                </div>
-                            </div>
-                        </div>
-    
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.language.id_for_label }}" class="form-label">Язык</label>
-                                    {{ form_search.language }}
-                                </div>
-                            </div>
-    
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.text_type.id_for_label }}" class="form-label">Тип текста</label>
-                                    {{ form_search.text_type }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.pos_check.id_for_label }}" class="form-label">Проверка частеречной разметки</label>
-                                    {{ form_search.pos_check }}
-                                </div>
-                            </div>
-    
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.error_tag_check.id_for_label }}" class="form-label">Проверка разметки ошибок</label>
-                                    {{ form_search.error_tag_check }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.emotional.id_for_label }}" class="form-label">Эмоционально-физиологическое состояние</label>
-                                    {{ form_search.emotional }}
-                                </div>
-                            </div>
-    
-                            <div class="col-6">
-                                <div class="mb-1">
-                                    <label for="{{ form_search.write_place.id_for_label }}" class="form-label">Где написан текст</label>
-                                    {{ form_search.write_place }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-    
-                </form>
-            </div>
-        </div>
-            
-        <div class="col-md-10 mt-3">
-            <!-- TODO: ССЫЛКА ВСЯ СТРОКА -->
-            
-            {# For Text #}
-            {% if list_text %}
-
-            <table class="table table-hover table-sm">
-                <thead class="thead-dark">
-                    <tr class='corpus-tr'>
-                        <th class="text-center">#</th>
-                        {% comment %} TODO: Добавить сортировку {% endcomment %}
-                        {% comment %} <th><a href="?order_by=header"> {% endcomment %}
-                        <th>
-                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg> {% endcomment %}
-                            Название текста
-                        {% comment %} </a></th> {% endcomment %}
-                        </th>
-                        <th class="text-center">
-                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg> {% endcomment %}
-                            Язык
-                        </th>
-                        <th class="text-center">
-                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg> {% endcomment %}
-                            Тип текста
-                        </th>
-                        <th class="text-center">
-                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg> {% endcomment %}
-                            Пользователь
-                        </th>
-                        <th class="text-center">
-                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg> {% endcomment %}
-                            Дата создания
-                        </th>
-                        <th class="text-center">
-                            {% comment %} <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-arrow-down-short" viewBox="0 0 16 18">
-                                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4z"/>
-                            </svg> {% endcomment %}
-                            Дата модификации
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for text in list_text  %}
-                    
-                    <tr class='corpus-tr'>
-                        <td class="text-center">{{ forloop.counter }}</td>
-                        <td >
-                            <a href="../corpus/{{ text.language }}/{{ text.text_type }}/{{ text.id_text }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark" viewBox="0 0 16 16">
-                                    <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/>
-                                </svg>
-                                {{ text.header }}
-                            </a>
-                        </td>
-                        <td class="text-center">{{ text.language }}</td>
-                        <td class="text-center">{{ text.text_type }}</td>
-                        <td class="text-center">{{ text.user }}</td>
-                        <td class="text-center">{{ text.create_date }}</td>
-                        <td class="text-center">{{ text.modified_date }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            {% endif %}
-            
-        </div>
-
-        {% endif %}
-        {% endif %}
-    </div>
-</div>
-{%endblock%}
-
-{% block script %}
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-
-<script>
-    var text_types = {
-        1: [{'text_type_name': '---------', 'id_text_type': ''}], 
-        2: [{'text_type_name': '---------', 'id_text_type': ''}]
-    };
-
-    {% for text_type in form_search.text_type.field.queryset %}
-
-        {% if text_type.language_id == 1 %}
-            text_types[1].push({'text_type_name': '{{ text_type.text_type_name }}', 'id_text_type': '{{ text_type.id_text_type }}'})
-        {% else %}
-            text_types[2].push({'text_type_name': '{{ text_type.text_type_name }}', 'id_text_type': '{{ text_type.id_text_type }}'})
-        {% endif %}
-
-    {% endfor %}
-
-    var type_selector = document.getElementById("id_text_type")
-    while (type_selector.firstChild) {
-        type_selector.removeChild(type_selector.firstChild);
-    }
-    var field = document.createElement("option")
-    field.setAttribute("value",``)
-    field.innerHTML = '---------'
-    type_selector.appendChild(field)
-
-    var lang_select = new Vue({
-        el:"#id_language",
-        methods:{
-            ChangeTypes:function(event){
-                var lang_id = event.target.options[event.target.selectedIndex].value
-
-                var type_selector = document.getElementById("id_text_type")
-                type_selector.selectedIndex = -1
-
-                while (type_selector.firstChild) {
-                    type_selector.removeChild(type_selector.firstChild);
-                }
-                if (lang_id == '')
-                {
-                    var field = document.createElement("option")
-                    field.setAttribute("value",``)
-                    field.innerHTML = '---------'
-                    type_selector.appendChild(field)
-                }
-                else
-                {
-                    for(var i = 0; i < text_types[lang_id].length; i++){
-                        var field = document.createElement("option")
-                        field.setAttribute("value",`${text_types[lang_id][i]['id_text_type']}`)
-                        field.innerHTML = text_types[lang_id][i]['text_type_name']
-                        type_selector.appendChild(field)
-                    }
-                }
-
-                type_selector.selectedIndex = 0
-
-            }
-        }
-    })
-
-    new Vue({
-        el: "#button-filter",
-        methods:{
-            ShowDiv: function(event){
-                // document.getElementById("list-filter").style.display = "block"}}})
-                if(document.getElementById("list-filter").style.display == "none")
-                {
-                    document.getElementById("list-filter").style.display = "block"
-                } else {
-                    document.getElementById("list-filter").style.display = "none"
-                }
-            }
-        }
-    })
-</script>
-{%endblock%}
+		Не нашлось текстов, соответствующих фильтру
+	</div>
+	{% endif %}
+</main>
+{% endblock content %} {% block plugins %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock plugins %} {% block script %}
+<script type="text/javascript" src="{% static 'js/apply_select2.js' %}" defer></script>
+{% endblock %}

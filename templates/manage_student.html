@@ -1,0 +1,135 @@
+{% extends "base.html" %} {% block link %} {% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/manage.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
+{% block content %}
+<main class="container">
+	<div class="card card-rounded col-11 col-md-8 mx-auto shadow-sm my-4">
+		<div class="card-header">
+			<div class="section-head-text">
+				<a
+					class="btn fs-5 list-option-btn shadow-none"
+					data-bs-toggle="collapse"
+					href="#my-works"
+					role="button"
+					aria-expanded="false"
+					aria-controls="my-works"
+				>
+					<svg
+						class="bi me-2"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-width="1.5"
+							d="m18.18 8.04.46-.46a1.97 1.97 0 1 1 2.78 2.78l-.46.46m-2.78-2.78s.06.98.93 1.85c.87.87 1.85.93 1.85.93m-2.78-2.78-4.26 4.26c-.29.29-.43.43-.56.6-.14.18-.27.38-.37.6-.09.18-.15.37-.28.76l-.42 1.24-.13.4m8.8-5.08-4.26 4.26c-.29.29-.43.43-.6.56-.18.14-.38.27-.6.37-.18.09-.37.15-.76.28l-1.24.42-.4.13m0 0-.4.13a.53.53 0 0 1-.67-.67l.13-.4m.94.94-.94-.94"
+						/>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M8 13h2.5M8 9h6.5M8 17h1.5M3 14v-4c0-3.77 0-5.66 1.17-6.83S7.23 2 11 2h2c3.77 0 5.66 0 6.83 1.17M21 14c0 3.77 0 5.66-1.17 6.83m-15.66 0C5.34 22 7.23 22 11 22h2c3.77 0 5.66 0 6.83-1.17m0 0c.94-.94 1.13-2.35 1.16-4.83"
+						/>
+					</svg>
+
+					Мои работы
+				</a>
+			</div>
+		</div>
+		<div class="collapse" id="my-works">
+			<div class="card-body">
+				<div class="px-3 m-0 d-flex flex-column gap-3 align-items-center">
+					<a href="{% url 'tasks_info' user_id=request.user.id_user%}" class="btn btn-primary manage-link">
+						<svg
+							class="bi me-2"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="m11.78 10 4.83 1.3M11 12.9l2.9.77M20.31 12.65c-.6 2.25-.9 3.38-1.59 4.11a4 4 0 0 1-2.3 1.21c-.92.12-2.04-.18-4.07-.73-2.25-.6-3.38-.9-4.11-1.59a4 4 0 0 1-1.16-2c-.23-.98.07-2.11.67-4.37l.52-1.93.25-.9c.45-1.67.76-2.59 1.34-3.21a4 4 0 0 1 2.01-1.16c.98-.23 2.1.07 4.36.67 2.26.6 3.39.91 4.12 1.6a4 4 0 0 1 1.16 2c.16.7.05 1.46-.23 2.65"
+							/>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M3.27 16.65c.6 2.25.9 3.38 1.6 4.11a4 4 0 0 0 2 1.16c.98.23 2.1-.07 4.36-.68 2.26-.6 3.39-.9 4.12-1.59a4 4 0 0 0 1.06-1.68M8.51 6.45l-1.16.3c-2.25.6-3.38.91-4.11 1.6a4 4 0 0 0-1.16 2c-.17.7-.06 1.46.23 2.65"
+							/>
+						</svg>
+
+						Список работ
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="card card-rounded col-11 col-md-8 mx-auto shadow-sm my-4">
+		<div class="card-header">
+			<div class="section-head-text">
+				<a
+					class="btn fs-5 list-option-btn shadow-none"
+					data-bs-toggle="collapse"
+					href="#settings"
+					role="button"
+					aria-expanded="false"
+					aria-controls="settings"
+				>
+					<svg
+						class="bi me-2"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<circle cx="12" cy="12" r="3" stroke-width="1.5" />
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M3.66 10.64c.47.3.78.8.78 1.36s-.3 1.06-.78 1.36A2 2 0 0 0 2.6 15.4c.05.4.28.8.75 1.61.47.8.7 1.21 1.01 1.45a2 2 0 0 0 1.48.4c.24-.03.49-.13.82-.3.5-.27 1.09-.28 1.57 0s.77.8.79 1.35c.01.38.05.64.14.87a2 2 0 0 0 1.08 1.08c.37.15.84.15 1.77.15s1.4 0 1.77-.15a2 2 0 0 0 1.08-1.08c.09-.23.13-.49.14-.87.02-.56.3-1.07.8-1.35a1.62 1.62 0 0 1 1.56 0c.33.17.58.27.82.3a2 2 0 0 0 1.48-.4c.31-.24.54-.64 1.01-1.45l.49-.87m-.81-2.77c-.47-.3-.78-.8-.78-1.36s.3-1.06.78-1.36A2 2 0 0 0 21.4 8.6c-.05-.4-.28-.8-.75-1.61-.47-.8-.7-1.21-1.01-1.45a2 2 0 0 0-1.48-.4c-.24.03-.49.13-.82.3-.5.27-1.09.28-1.57 0s-.77-.8-.79-1.35a2.47 2.47 0 0 0-.14-.87 2 2 0 0 0-1.08-1.08C13.4 2 12.93 2 12 2s-1.4 0-1.77.15a2 2 0 0 0-1.08 1.08c-.09.23-.13.49-.14.87-.02.56-.3 1.07-.8 1.35-.47.28-1.06.27-1.56 0a2.46 2.46 0 0 0-.82-.3 2 2 0 0 0-1.48.4c-.31.24-.54.64-1.01 1.45l-.49.87"
+						/>
+					</svg>
+
+					Настройки пользователя
+				</a>
+			</div>
+		</div>
+		<div class="collapse" id="settings">
+			<div class="card-body">
+				<div class="px-3 m-0 d-flex flex-column gap-3 align-items-center">
+					<a href="{% url 'change_password_self' %}" class="btn btn-primary manage-link">
+						<svg
+							class="bi me-2"
+							xmlns="http://www.w3.org/2000/svg"
+							height="1.6em"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								fill="currentColor"
+								d="M9 16a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM13 16a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM17 16a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+							/>
+							<path
+								stroke-linecap="round"
+								stroke-width="1.5"
+								d="M6 10V8c0-.34.03-.67.08-1M18 10V8A6 6 0 0 0 7.5 4.03M11 22H8c-2.83 0-4.24 0-5.12-.88C2 20.24 2 18.82 2 16c0-2.83 0-4.24.88-5.12C3.76 10 5.18 10 8 10h8c2.83 0 4.24 0 5.12.88.88.88.88 2.3.88 5.12 0 2.83 0 4.24-.88 5.12-.88.88-2.3.88-5.12.88h-1"
+							/>
+						</svg>
+
+						Смена пароля
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</main>
+{% endblock %}

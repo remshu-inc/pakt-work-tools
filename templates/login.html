@@ -1,97 +1,133 @@
-{% extends "base.html" %}
-{% block link %}
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}">
-{% endblock %}
+{% extends "base.html" %} {% load filters %} {% load static %}
 
+<!-- Content -->
 {% block content %}
+<main class="container d-flex flex-column align-items-center my-5">
+	<h2 class="text-primary mb-4">Авторизация</h2>
 
-<div class="container">
-    <main class="justify-content-center form-signup d-flex">
-        
-        <div class="asd auth-page col-4">
-            <h1 class="mt-2 mb-5 text-center">Авторизация</h1>
-            {% load filters %}
-            <div class="form-group mt-4">
-                <form method="post" novalidate>
-                    
-                    {% comment %} {% csrf_token %} {% endcomment %}
-                    <div class="main-invalid-feedback text-center">
-                        {% for error in form_login.non_field_errors %}
-                            {{ error | striptags }}
-                        {% endfor %}
-                    </div>
+	<form method="post" class="d-flex flex-column gap-3 align-items-center col-6 col-lg-3" novalidate>
+		{% comment %} {% csrf_token %} {% endcomment %}
 
-                    <div class="mb-3">
-                        <div class="mt-4 custom-input">
-                            <label for="{{ form_login.login.id_for_label }}" class="form-label">Логин</label>
-                            {% if not form_login.login.errors %}
-                            {{ form_login.login }}
-                            {% else %}
-                            {{ form_login.login|addclass:'is-invalid' }}
-                            <div class="invalid-feedback">
-                                {% for error in form_login.login.errors %}
-                                    {{ error | striptags }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
+		<div class="input-group">
+			<span class="input-group-text">
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="24"
+					stroke="currentColor"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<circle cx="12" cy="9" r="2" stroke-width="1.5" />
+					<path stroke-width="1.5" d="M16 15c0 1.1 0 2-4 2s-4-.9-4-2 1.8-2 4-2 4 .9 4 2Z" />
+					<path
+						stroke-linecap="round"
+						stroke-width="1.5"
+						d="M3 10.42c0-3.2 0-4.8.38-5.34S5.26 4.03 8.26 3l.58-.2C10.4 2.27 11.19 2 12 2s1.6.27 3.16.8l.58.2c3 1.03 4.5 1.54 4.88 2.08.38.54.38 2.14.38 5.34v1.57a9.3 9.3 0 0 1-2 5.91M3.2 14c.85 4.3 4.38 6.51 6.7 7.53.72.31 1.08.47 2.1.47s1.38-.16 2.1-.47c.58-.26 1.23-.58 1.9-1"
+					/>
+				</svg>
+			</span>
+			{% if not form_login.login.errors %} {{ form_login.login }} {% else %}
+			<!-- Invalid field -->
+			{{ form_login.login | addclass:'is-invalid' }}
+			<div class="invalid-feedback">{{ form_login.login.errors | first | striptags }}</div>
+			{% endif %}
+		</div>
 
-                        <div class="mt-4 custom-input">
-                            <label for="{{ form_login.password.id_for_label }}" class="form-label">Пароль</label>
-                            {% if not form_login.password.errors %}
-                            {{ form_login.password }}
-                            {% else %}
-                            {{ form_login.password|addclass:'is-invalid' }}
-                            <div class="invalid-feedback">
-                                {% for error in form_login.password.errors %}
-                                    {{ error | striptags }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
+		<div class="input-group">
+			<span class="input-group-text">
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					height="24"
+					stroke="currentColor"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						fill="#currentColor"
+						d="M9 16a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM13 16a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM17 16a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+					/>
+					<path
+						stroke-linecap="round"
+						stroke-width="1.5"
+						d="M6 10V8c0-.34.03-.67.08-1M18 10V8A6 6 0 0 0 7.5 4.03M11 22H8c-2.83 0-4.24 0-5.12-.88C2 20.24 2 18.82 2 16c0-2.83 0-4.24.88-5.12C3.76 10 5.18 10 8 10h8c2.83 0 4.24 0 5.12.88.88.88.88 2.3.88 5.12 0 2.83 0 4.24-.88 5.12-.88.88-2.3.88-5.12.88h-1"
+					/>
+				</svg>
+			</span>
+			{% if not form_login.password.errors %} {{ form_login.password }} {% else %}
+			<!-- Invalid field -->
+			{{ form_login.password | addclass:'is-invalid' }} {% endif %}
+			<button
+				class="btn btn-outline-primary shadow-none w-auto p-1 active-primary"
+				type="button"
+				title="Показать пароль"
+				id="show_password"
+				onclick="showPassword()"
+				data-bs-toggle="button"
+			>
+				<svg
+					class="bi"
+					xmlns="http://www.w3.org/2000/svg"
+					width="1.6em"
+					stroke="currentColor"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-width="1.5"
+						d="M9 4.46A9.84 9.84 0 0 1 12 4c4.18 0 7.03 2.5 8.73 4.7C21.57 9.8 22 10.36 22 12s-.43 2.2-1.27 3.3C19.03 17.5 16.18 20 12 20c-4.18 0-7.03-2.5-8.73-4.7C2.42 14.2 2 13.64 2 12s.42-2.2 1.27-3.3C3.76 8.08 4.33 7.43 5 6.82"
+					/>
+					<path stroke-width="1.5" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+				</svg>
+			</button>
+			<div class="invalid-feedback">{{ form_login.password.errors | first | striptags }}</div>
+		</div>
 
-                    <button type="submit" class="mt-2 btn pakt-btn">Авторизация</button>
-                </form>
+		<!-- Error alert -->
+		{% for error in form_login.non_field_errors %}
+		<div class="alert alert-danger my-1 w-100 d-flex gap-3 align-items-center" role="alert">
+			<svg
+				class="bi flex-shrink-0"
+				xmlns="http://www.w3.org/2000/svg"
+				height="1.6rem"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path stroke-linecap="round" stroke-width="1.5" d="M12 7v6" />
+				<circle cx="12" cy="16" r="0.5" fill="currentColor" />
+				<path
+					stroke-linecap="round"
+					stroke-width="1.5"
+					d="M9.22 3c1.18-.67 1.95-1 2.78-1 1.11 0 2.13.6 4.16 1.8l.68.4c2.03 1.21 3.05 1.81 3.6 2.8.56.99.56 2.2.56 4.6v.8c0 2.4 0 3.61-.56 4.6-.55.99-1.57 1.59-3.6 2.8l-.68.4C14.13 21.4 13.1 22 12 22c-1.11 0-2.13-.6-4.16-1.8l-.68-.4c-2.03-1.21-3.05-1.81-3.6-2.8C3 16.01 3 14.8 3 12.4v-.8c0-2.4 0-3.61.56-4.6C4 6.22 4.72 5.68 6 4.9"
+				/>
+			</svg>
 
+			{{ error | striptags }}
+		</div>
+		{% endfor %}
 
-            </div>
-            <div class="login-info">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
-                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                    <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-                </svg>
-                Если вы хотите зарегистрироваться или восстановить пароль, обратитесь к своему преподавателю.
-            </div>
-        </div>
-    </main>
-</div>
+		<button type="submit" class="btn btn-primary w-auto px-4 my-2">Войти</button>
+	</form>
 
-{%endblock%}
-
-{% block script %}
-
-<script>
-    (function () {
-        'use strict'
-
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
-        var forms = document.querySelectorAll('.needs-validation')
-
-        // Loop over them and prevent submission
-        Array.prototype.slice.call(forms)
-            .forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                event.preventDefault()
-                event.stopPropagation()
-                }
-
-                form.classList.add('was-validated')
-            }, false)
-            })
-    })()
-</script>
-
+	<p class="col-lg-4 col-8 fs-6 mx-auto text-center text-secondary my-5">
+		<svg
+			class="bi me-1"
+			xmlns="http://www.w3.org/2000/svg"
+			stroke="currentColor"
+			height="1.6em"
+			fill="none"
+			viewBox="0 0 24 24"
+		>
+			<path stroke-linecap="round" stroke-width="1.5" d="M12 17v-6" />
+			<circle cx="1" cy="1" r="0.5" fill="currentColor" transform="matrix(1 0 0 -1 11 9)" />
+			<path stroke-linecap="round" stroke-width="1.5" d="M7 3.34A10 10 0 1 1 3.34 7" />
+		</svg>
+		Если вы хотите зарегистрироваться или восстановить пароль, обратитесь к своему преподавателю.
+	</p>
+</main>
+{% endblock content %} {% block script %}
+<script type="text/javascript" src="{% static 'js/password_input.js' %}" defer></script>
 {% endblock %}

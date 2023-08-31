@@ -1,48 +1,42 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% load filters %} {% block content %}
 
-{%if right%}
-<div class="container">
-    <main class="d-flex justify-content-center align-items-center">
-        <div class="row">
-            <div class="col-12">
-            <form method="POST" novalidate>
-                        <div class = 'mb-3'>
-                            {% comment %} {% csrf_token %} {% endcomment %}
-                            <label>Эмоционально-физиологическое состояние</label>
-                            {{form.emotional}}
-                        </div>
+<main class="container my-4">
+	<h2 class="text-primary text-center">Редактировать метаданные</h2>
+	<form method="POST" novalidate class="col-12 col-lg-6 mx-auto my-4 text-secondary">
+		{% comment %} {% csrf_token %} {% endcomment %}
 
-                        <div class = 'mb-3'>
-                            <label>Место написания</label>
-                            {{form.write_place}}
-                        </div>
+		<div class="mb-3 row col-12 align-items-end">
+			<label for="{{form.emotional.id_for_label}}">
+				Эмоционально-физиологическое состояние {{form.emotional}}
+			</label>
+		</div>
 
-                        <div class = 'mb-3'>
-                            <label>Текущий год изучения языка</label>
-                            {{form.education_level}}
-                        </div>
-                        
-                        <div class = 'mb-3'>
-                            <label>Самооценка работы</label>
-                            {{form.self_rating}}
-                        </div>
-                        
-                        <div class = 'mb-3'>
-                            <label>Оценка задания студентом</label>
-                            {{form.student_assesment}}
-                        </div>
-                        
-                        
+		<div class="mb-3 row col-12 align-items-end">
+			<label for="{{form.write_place.id_for_label}}"> Место написания {{form.write_place}} </label>
+		</div>
 
-                        <input type="submit" value="Сохранить" class = 'col-12 mt-2 btn shadow-none update-button'>
-            </form>
-            <button class = 'col-12 mt-2 btn shadow-none decline-button' onclick="history.back()">Назад</button>
-        </div>
-    </div>
-    </main>
-</div>
-{%else%}
-Сервис недоступен (Недостаточно прав)
-{%endif%}
+		<div class="mb-3 row col-12 align-items-end">
+			<label class="col-4" for="{{form.education_level.id_for_label}}">
+				Текущий год изучения языка {% if not form.education_level.errors %}
+				<!--  -->
+				{{ form.education_level }} {% else %}
+				<!-- Invalid field -->
+				{{ form.education_level | addclass:'is-invalid' }}
+				<div class="invalid-feedback">{{ form.education_level.errors | first | striptags }}</div>
+				{% endif %}
+			</label>
+			<label class="col-4" for="{{form.self_rating.id_for_label}}">Самооценка работы {{form.self_rating}} </label>
+			<label class="col-4" for="{{form.student_assesment.id_for_label}}">
+				Оценка задания студентом {{form.student_assesment}}
+			</label>
+		</div>
+
+		<div class="d-flex col-12 flex-column align-items-center">
+			<button type="submit" class="my-3 btn btn-primary col-6 mx-auto shadow-none">Сохранить</button>
+			<button type="button" class="btn btn-secondary col-6 mx-auto shadow-none" onclick="history.back()">
+				Назад
+			</button>
+		</div>
+	</form>
+</main>
 {%endblock%}
