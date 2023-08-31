@@ -123,7 +123,7 @@ class CQLTestCase(TestCase):
         """
         Проверка получения списка тегов
         """
-        resp = self.client.get('/tag_list')
+        resp = self.client.get('/tag_list_deutsche')
         self.assertEqual(resp.status_code, 200)
 
     def test_search_text(self):

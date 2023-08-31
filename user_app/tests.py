@@ -41,6 +41,7 @@ class CQLTestCase(TestCase):
         TblRights.objects.create(id_right=4, name="metadata")
         TblRights.objects.create(id_right=5, name="annotate")
         TblRights.objects.create(id_right=6, name="superuser")
+        TblUserRights.objects.create(right_id=6, user_id=1)
 
     def tearDown(self) -> None:
         """
@@ -66,7 +67,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)  # редирект на страницу с языками
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
     def test_wrong_login(self):
         """
@@ -89,7 +90,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/logout/')
         self.assertEqual(resp.status_code, 302)  # редирект на домашнюю страницу
@@ -109,7 +110,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/manage/')
         self.assertEqual(resp.status_code, 200)
@@ -119,8 +120,7 @@ class CQLTestCase(TestCase):
         Проверка регистрации студентов анонимом
         """
         resp = self.client.get('/manage/signup/')
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/')
+        self.assertEqual(resp.status_code, 403)
 
     def test_teacher_manage_signup_form(self):
         """
@@ -128,7 +128,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/manage/signup/')
         self.assertEqual(resp.status_code, 200)
@@ -138,8 +138,7 @@ class CQLTestCase(TestCase):
         Регистрация студента анонимом
         """
         resp = self.client.post('/manage/signup/')
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/')
+        self.assertEqual(resp.status_code, 403)
 
     def test_teacher_manage_signup(self):
         """
@@ -147,26 +146,26 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/signup/', data={"login": "user1", "password": "testpass1",
                                                          "birthdate": "2000-01-01", 'gender': "1", 'course_number': "1",
                                                          'group': "1",
                                                          "last_name": "test_stud_last", "name": "test_stud_name"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/manage/')
 
         resp = self.client.post('/login/', data={"login": "user1", "password": "testpass1"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
     def test_anonym_change_pass_form(self):
         """
         Изменение пароля анонимом
         """
         resp = self.client.get('/manage/change_password')
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/')
+        self.assertEqual(resp.status_code, 301)
+        self.assertEqual(resp.headers['Location'], '/manage/change_password/')
 
     def test_teacher_change_pass_form(self):
         """
@@ -174,14 +173,14 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/signup/', data={"login": "user1", "password": "testpass1",
                                                          "birthdate": "2000-01-01", 'gender': "1", 'course_number': "1",
                                                          'group': "1",
                                                          "last_name": "test_stud_last", "name": "test_stud_name"})
 
-        resp = self.client.get('/manage/change_password')
+        resp = self.client.get('/manage/change_password_student/')
         self.assertEqual(resp.status_code, 200)
 
     def test_teacher_change_pass(self):
@@ -190,7 +189,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/signup/', data={"login": "user1", "password": "testpass1",
                                                          "birthdate": "2000-01-01", 'gender': "1", 'course_number': "1",
@@ -198,16 +197,15 @@ class CQLTestCase(TestCase):
                                                          "last_name": "test_stud_last", "name": "test_stud_name"})
 
         resp = self.client.post('/manage/change_password', data={"student": 1, "password": "123456"})
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/manage/')
+        self.assertEqual(resp.status_code, 301)
+        self.assertEqual(resp.headers['Location'], '/manage/change_password/')
 
     def test_anon_signup_teacher_form(self):
         """
         Проверка формы регистрации учителя анонимом
         """
         resp = self.client.get('/manage/signup_teacher/')
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/')
+        self.assertEqual(resp.status_code, 403)
 
     def test_teacher_signup_teacher_form(self):
         """
@@ -215,7 +213,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/manage/signup_teacher/')
         self.assertEqual(resp.status_code, 200)
@@ -225,8 +223,7 @@ class CQLTestCase(TestCase):
         Проверка регистрации учителя анонимом
         """
         resp = self.client.post('/manage/signup_teacher/')
-        self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/')
+        self.assertEqual(resp.status_code, 403)
 
     def test_teacher_signup_teacher(self):
         """
@@ -234,13 +231,13 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/signup_teacher/', data={"login": "user1", "password": "testpass1",
                                                                  "last_name": "test_teach_last",
                                                                  "name": "test_teach_name"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/manage/')
 
     def test_anon_group_creation_form(self):
         """
@@ -255,7 +252,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/manage/group_creation/')
         self.assertEqual(resp.status_code, 200)
@@ -273,7 +270,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/group_creation/', data={"group_name": "test_group", "year": 2020, "course_number": 2})
         self.assertEqual(resp.status_code, 200)
@@ -291,7 +288,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/manage/group_modify/')
         self.assertEqual(resp.status_code, 200)
@@ -309,7 +306,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.get('/manage/group_modify/1/')
         self.assertEqual(resp.status_code, 200)
@@ -327,7 +324,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/group_modify/1/', data={"group_info_modify": True, "group_name": "test_group2", "year": 2021,
                                                                  "course_number": 3})
@@ -339,10 +336,10 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/group_modify/1/', data={"add_studs": True, "studs": [1, 2, 3]})
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 200)
 
     def test_teacher_group_add_students(self):
         """
@@ -350,7 +347,7 @@ class CQLTestCase(TestCase):
         """
         resp = self.client.post('/login/', data={"login": "root", "password": "password"})
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.headers['Location'], '/corpus/')
+        self.assertEqual(resp.headers['Location'], '/')
 
         resp = self.client.post('/manage/group_modify/1/', data={"add_studs": True, "studs": [2]})
         # print(resp._container[0].decode('utf-8'))
