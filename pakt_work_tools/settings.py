@@ -93,8 +93,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'lingo',
-        'USER': 'lingo',
-        'PASSWORD': 'password',
+        'USER': 'root',
+        'PASSWORD': 'Vh7PPkk7HvuzEmK9',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'CHARSET': 'utf8mb4',
@@ -151,8 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SEARCH_TMP_FOLDER_LOCAL = 'search_app/tmp/'
 SEARCH_TMP_FOLDER_SERVER = 'var/www/lingo/pakt-work-tools/search_app/tmp/'
-SEARCH_TMP_FOLDER = SEARCH_TMP_FOLDER_LOCAL
-# SEARCH_TMP_FOLDER = SEARCH_TMP_FOLDER_SERVER
+SEARCH_TMP_FOLDER = SEARCH_TMP_FOLDER_SERVER
 
 # путь до каталога с RFTagger
 RFTAGGER_PATH = '/opt/rftagger'
