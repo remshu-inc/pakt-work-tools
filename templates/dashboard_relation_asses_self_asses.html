@@ -100,15 +100,21 @@
 	var list_data_relation = []
 	var data_relation_for_language = []
 
+	function update_data() {
+            relation_self_asses_asses_lines.get_data()
+            relation_self_asses_asses_lines.update_chart()
+    	}
+
+	function update_data_for_language() {
+            selected_language = document.getElementById("selected_language").value
+            data_relation_for_language = list_data_relation.filter(data => data.language == selected_language)
+            update_data()
+    	}
+
 	function on_change_language() {
 	    selected_language = document.getElementById("selected_language").value
-
 	    filters.text_types = list_text_types.filter(text_type => text_type.language_id==selected_language)
-
-	    data_relation_for_language = list_data_relation.filter(data => data.language == selected_language)
-
-	    relation_self_asses_asses_lines.get_data()
-	    relation_self_asses_asses_lines.update_chart()
+	    update_data_for_language()
 	}
 
 	async function post_request_data_errors(text_type, surname, name, patronymic){
@@ -122,15 +128,13 @@
 	            'surname': surname,
 	            'name': name,
 	            'patronymic': patronymic
-	        }
+	        },
+                headers:{
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
 	    })
 	        .then(function (response){
-	            const isJson = response.headers.get('content-type')?.includes('application/json')
-	            if (isJson) {
-	                data_relation = response.data.relation
-	            }
-	            else {
-	            }
+	            data_relation = response.data.relation
 	        })
 
 	    list_data_relation = data_relation
@@ -150,12 +154,7 @@
 	        async update_diagrams(){
 	            await post_request_data_errors(this.selected_text_type, this.surname, this.name, this.patronymic)
 
-	            selected_language = document.getElementById("selected_language").value
-
-	            data_relation_for_language = list_data_relation.filter(data => data.language == selected_language)
-
-	            relation_self_asses_asses_lines.get_data()
-	            relation_self_asses_asses_lines.update_chart()
+	            update_data_for_language()
 	            document.getElementById("btn-download").disabled = false
 	        },
 	        on_change_student(){
@@ -196,10 +195,10 @@
 	        on_download(){
 	            var data = []
 	            data.push([this.surname, this.name, this.patronymic])
-	            data.push(["language", "student_assesment", "self_rating"])
+	            data.push(["language", "assesment", "self_rating"])
 	            for (let i=0; i<data_relation_for_language.length; i++){
-	                data.push([data_relation_for_language[i].language, data_relation_for_language[i].student_assesment,
-	                data_relation_for_language[i].self_rating])
+	                data.push([data_relation_for_language[i].language, data_relation_for_language[i].assessment_text,
+	                data_relation_for_language[i].self_rating_text])
 	            }
 
 	            var workbook = XLSX.utils.book_new(),
