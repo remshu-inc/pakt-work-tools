@@ -83,6 +83,16 @@
 			{% endverbatim %}
 		</div>
 
+		<hr style="margin: 2% 0 1%; clear:left" />
+            	<div id="filter_type_static" class="certain_filter">
+                	<span style="margin: 2%">Статистика</span>
+                	{% verbatim %}
+                    	<select v-model="selected_type_static" @change="on_change_type_static">
+                        	<option v-for="type in type_static">{{ type }}</option>
+                    	</select>
+                	{% endverbatim%}
+            	</div>
+
 		<hr style="margin: 2% 0 1%; clear: left" />
 		<input
 			id="btn-download"
@@ -113,16 +123,24 @@
 	var list_data = []
 	var data_for_language = []
 
+	function update_data() {
+            student_dynamics_bar.get_data()
+            student_dynamics_bar.update_chart()
+    	}
+
+	function update_data_for_language() {
+            selected_language = document.getElementById("selected_language").value
+            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+            update_data()
+    	}
+
 	function on_change_language() {
 	    selected_language = document.getElementById("selected_language").value
 
 	    filters.text_types = list_text_types.filter(text_type => text_type.language_id==selected_language)
 	    filters.tags = list_tags.filter(tag => tag.tag_language==selected_language)
 
-	    data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
-
-	    student_dynamics_bar.get_data()
-	    student_dynamics_bar.update_chart()
+	    update_data_for_language()
 	}
 
 	async function post_request_data_errors(text_type, surname, name, patronymic, tag){
@@ -160,18 +178,15 @@
 	        selected_tag_type: '',
 	        text_types: list_text_types.filter(text_type => text_type.language_id==list_languages[0].id_language),
 	        selected_text_type: '',
+		type_static: ['абсолютная', 'на 100 токенов'],
+		selected_type_static: 'абсолютная',
 	    },
 	    methods:{
 	        async update_diagrams(){
 	            await post_request_data_errors(this.selected_text_type, this.surname, this.name,
 	                this.patronymic, this.selected_tag_type)
 
-	            selected_language = document.getElementById("selected_language").value
-
-	            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
-
-	            student_dynamics_bar.get_data()
-	            student_dynamics_bar.update_chart()
+	            update_data_for_language()
 	            document.getElementById("btn-download").disabled = false
 	        },
 	        on_change_student(){
@@ -218,6 +233,9 @@
 	                this.update_diagrams()
 	            }
 	        },
+		on_change_type_static(){
+                    update_data()
+            	},
 	        on_download(){
 	            var data = []
 
@@ -225,10 +243,10 @@
 	            data.push([tag_selected[0].tag_text_russian])
 	            data.push([this.surname, this.name, this.patronymic])
 
-	            data.push(["tag_language", "create_date", "count_data"])
+	            data.push(["tag_language", "create_date", "count_data", "count_data_on_100_tokens"])
 	            for (let i=0; i<data_for_language.length; i++){
 	                data.push([data_for_language[i].tag__tag_language, data_for_language[i].sentence__text_id__create_date,
-	                data_for_language[i].count_data])
+	                data_for_language[i].count_data, data_for_language[i].count_data_on_tokens])
 	            }
 
 	            var workbook = XLSX.utils.book_new(),
@@ -292,9 +310,15 @@
 	            var points = []
 
 	            for (let i=0; i<data_for_language.length; i++) {
-	                labels.push(data_for_language[i].sentence__text_id__create_date)
-	                points.push(data_for_language[i].count_data)
-	            }
+                        labels.push(data_for_language[i].sentence__text_id__create_date)
+
+                        if (filters.selected_type_static=='абсолютная'){
+                            points.push(data_for_language[i].count_data)
+                        }
+                        else {
+                            points.push(data_for_language[i].count_data_on_tokens)
+                        }
+                    }
 
 	            this.labels = labels
 	            this.stars = points
