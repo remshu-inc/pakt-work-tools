@@ -28,13 +28,24 @@
 		<div class="filter_group_with_title">
 			<p class="filter_group" @click="on_change_filters_for_student">Фильтры по студентам</p>
 			<div id="filters_for_student" class="filters_for_student">
+				<div id="without_filters" class="filter">
+                        	<input 
+					type="radio" 
+					id="all" 
+					value="all" 
+					v-model="checked_student_filter" 
+					@click="on_cancel_student_filters"
+				/>
+                        	<span>Все</span>
+                    	</div>
+				
 				<div id="groups" class="filter">
 					<input
-						type="checkbox"
+						type="radio"
 						id="filter_groups"
 						value="groups"
-						v-model="checked_filters"
-						@change="on_change_choice_group"
+						v-model="checked_student_filter"
+						@click="on_change_choice_group"
 					/>
 					<span>Группа</span>
 					{% verbatim %}
@@ -62,11 +73,11 @@
 
 				<div id="student" class="filter">
 					<input
-						type="checkbox"
+						type="radio"
 						id="filter_student"
 						value="student"
-						v-model="checked_filters"
-						@change="on_change_choice_student"
+						v-model="checked_student_filter"
+						@click="on_change_choice_student"
 					/>
 					<span>Студент</span>
 					<div id="filter_students" class="filter_students">
@@ -86,11 +97,11 @@
 
 				<div id="courses" class="filter">
 					<input
-						type="checkbox"
+						type="radio"
 						id="filter_courses"
 						value="courses"
-						v-model="checked_filters"
-						@change="on_change_choice_course"
+						v-model="checked_student_filter"
+						@click="on_change_choice_course"
 					/>
 					<span>Курс</span>
 					{% verbatim %}
@@ -161,6 +172,26 @@
 			{% endverbatim %}
 		</div>
 
+		<hr style="margin: 2% 0 1%; clear:left" />
+            	<div id="filter_type_static" class="certain_filter">
+                	<span style="margin: 2%">Статистика</span>
+                	{% verbatim %}
+                    	<select v-model="selected_type_static" @change="on_change_type_static">
+	                       	<option v-for="type in type_static">{{ type }}</option>
+                    	</select>
+                	{% endverbatim%}
+            	</div>
+
+		<hr style=" margin: 2% 0 1%; clear: left" />
+            	<div id="filter_language_labels" class="certain_filter">
+                	<span style="margin: 2%">Подписи на</span>
+                	{% verbatim %}
+                    	<select v-model="selected_language_labels" @change="on_change_language_labels">
+                        	<option v-for="language_label in language_labels">{{ language_label }}</option>
+                    	</select>
+                	{% endverbatim %}
+            	</div>
+
 		<hr style="margin: 2% 0 1%; clear: left" />
 		<div id="tags" class="certain_filter">
 			<span>Эмоция</span>
@@ -185,6 +216,12 @@
 </form>
 
 <hr class="line_all_width" style="clear: right" />
+<div id="legend_checked_filters" class="legend_checked_filters">
+        <dl>
+            <dt id="list_checked_filters" style="font-weight:normal;"> Выбранные фильтры:</dt>
+        </dl>
+</div>
+
 <div id="diagram">
 	<div id="diagrams_emotions">
 		<div id="emotions_bar">
@@ -209,6 +246,20 @@
 	var list_emotions = {{emotions | safe}}
 	var list_data = []
 	var data_for_language = []
+	var legend_checked_filters = []
+
+	function update_data() {
+            emotions_bar.get_data()
+            emotions_bar.update_chart()
+            emotions_pie.get_data()
+            emotions_pie.update_chart()
+    	}
+
+	function update_data_for_language() {
+            selected_language = document.getElementById("selected_language").value
+            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+            update_data()
+    	}
 
 	function on_change_language() {
 	    selected_language = document.getElementById("selected_language").value
@@ -217,12 +268,11 @@
 	    filters.text_types = list_text_types.filter(text_type => text_type.language_id==selected_language)
 	    filters.groups = list_groups.filter(group => group.language==selected_language)
 
-	    data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+	    language_record = list_languages.filter(language => language.id_language==selected_language)
+            filters.language_labels[1] = language_record[0].language_name
+            filters.selected_language_labels = filters.language_labels[1]
 
-	    emotions_bar.get_data()
-	    emotions_bar.update_chart()
-	    emotions_pie.get_data()
-	    emotions_pie.update_chart()
+            update_data_for_language()
 	}
 
 	async function post_request_data_errors(text_type, text, surname, name, patronymic, course, groups, date, emotions, level){
@@ -258,6 +308,7 @@
 	    el: '#filters',
 	    data: {
 	        checked_filters: [],
+		checked_student_filter: 'all',
 	        groups: list_groups.filter(group => group.language==list_languages[0].id_language),
 	        selected_group: [],
 	        group_dates: list_enrollment_date,
@@ -273,6 +324,10 @@
 	        selected_text_type: '',
 	        levels: list_levels,
 	        selected_level_type: list_levels[0],
+		type_static: ['абсолютная', 'на 100 токенов'],
+		selected_type_static: 'абсолютная',
+		language_labels:  ['Русском', list_languages[0].language_name],
+		selected_language_labels:   list_languages[0].language_name,
 	        emotions: list_emotions,
 	        selected_emotion: '',
 	    },
@@ -282,16 +337,58 @@
 	                this.patronymic, this.selected_course, this.selected_group, this.selected_date,
 	                this.selected_emotion, this.selected_level_type)
 
-	            selected_language = document.getElementById("selected_language").value
-
-	            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
-
-	            emotions_bar.get_data()
-	            emotions_bar.update_chart()
-	            emotions_pie.get_data()
-	            emotions_pie.update_chart()
+	            update_data_for_language()
 	            document.getElementById("btn-download").disabled = false
 	        },
+		create_legend_checked_filters(filters){
+                    dt = document.getElementById("list_checked_filters")
+
+                     while (dt.lastElementChild) {
+                        dt.removeChild(dt.lastElementChild);
+                     }
+
+                    for (let i=0; i<filters.length; i++){
+                        let dd = document.createElement("dd")
+                        dd.appendChild(document.createTextNode(filters[i].name+": "+filters[i].value))
+                        dd.style.margin='0% 2% 0%';
+                        dt.appendChild(dd)
+                    }
+            	},
+		get_legend_checked_filters(filter_name, filter_value, canceled_filter_1, canceled_filter_2){
+                    document.getElementById("legend_checked_filters").style.display = 'block'
+
+                    filter_not_exist = true
+                    for (let i=0; i<legend_checked_filters.length; i++){
+                        if (legend_checked_filters[i].name == filter_name) {
+                            legend_checked_filters[i].value = filter_value
+                            filter_not_exist = false
+                        }
+                        if (legend_checked_filters[i].name == canceled_filter_1 ||
+                                legend_checked_filters[i].name == canceled_filter_2) {
+                            legend_checked_filters.splice(i, 1)
+                        }
+                    }
+
+                    if (filter_not_exist){
+                        legend_checked_filters.push({'name': filter_name, 'value': filter_value})
+                    }
+
+                    this.create_legend_checked_filters(legend_checked_filters)
+            	},
+		cancel_all_filters(filter_1, filter_2, filter_3){
+                    for (let i=0; i<legend_checked_filters.length; i++){
+                        if (legend_checked_filters[i].name == filter_1 || legend_checked_filters[i].name == filter_2 ||
+                            legend_checked_filters[i].name == filter_3) {
+                            legend_checked_filters.splice(i, 1)
+                        }
+                    }
+
+                    this.create_legend_checked_filters(legend_checked_filters)
+
+                    if (legend_checked_filters.length==0){
+                        document.getElementById("legend_checked_filters").style.display = 'none'
+                    }
+            	},
 	        on_change_filters_for_student(){
 	            div_student_filters = document.getElementById("filters_for_student")
 
@@ -302,82 +399,77 @@
 	                div_student_filters.style.display = "block"
 	            }
 	        },
-	        on_change_choice_group(){
-	            filter_group = document.getElementById("filter_group")
-	            filter_date = document.getElementById("filter_date")
-	            if (this.checked_filters.indexOf("groups") == -1){
-	                filter_date.style.display = "none"
-	                filter_group.style.visibility = "hidden"
-	                document.getElementById("error_group").style.display = 'none'
-	                this.selected_group = ''
-	                this.selected_date = ''
-	                this.update_diagrams()
-	            }
-	            else {
-	                filter_date.style.display = "block"
-	                filter_group.style.visibility = "visible"
-	            }
+		cancel_group_filter(){
+                    document.getElementById("filter_date").style.display = "none"
+                    document.getElementById("filter_group").style.visibility = "hidden"
+                    document.getElementById("error_group").style.display = 'none'
 
-	            document.getElementById("filter_student").disabled = !document.getElementById("filter_student").disabled
-	            document.getElementById("filter_courses").disabled = !document.getElementById("filter_courses").disabled
+                    this.selected_group = ''
+                    this.selected_date = ''
+                },
+                cancel_student_filter(){
+                    document.getElementById("filter_students").style.display = "none"
+                    document.getElementById("error_student").style.display = "none"
+
+                    this.surname = ''
+                    this.name = ''
+                    this.patronymic = ''
+                },
+                cancel_course_filter(){
+                    document.getElementById("filter_course").style.visibility = "hidden"
+                    this.selected_course = ''
+                },
+		on_cancel_student_filters(){
+                    this.cancel_group_filter()
+                    this.cancel_student_filter()
+                    this.cancel_course_filter()
+
+                    this.cancel_all_filters('Курс', 'Группа', 'Студент')
+                    this.update_diagrams()
+                },
+	        on_change_choice_group(){
+	            document.getElementById("filter_date").style.display = "block"
+                    document.getElementById("filter_group").style.visibility = "visible"
+
+                    this.cancel_student_filter()
+                    this.cancel_course_filter()
 	        },
 	        on_change_group(){
-	            if (this.checked_filters.indexOf("groups") != -1){
-	                if (this.selected_group=='' || this.selected_date==''){
-	                    document.getElementById("error_group").style.display = 'block'
-	                }
-	                else {
-	                    document.getElementById("error_group").style.display = 'none'
-	                    this.update_diagrams()
-	                }
+	            if (this.selected_group=='' || this.selected_date==''){
+	                document.getElementById("error_group").style.display = 'block'
+	            }
+	            else {
+	                document.getElementById("error_group").style.display = 'none'
+			this.get_legend_checked_filters('Группа', this.selected_group+' ('+this.selected_date+')',
+                            'Курс','Студент')
+	                this.update_diagrams()
 	            }
 	        },
 	         on_change_choice_student(){
-	            filter_student = document.getElementById("filter_students")
-	                if (this.checked_filters.indexOf("student") == -1){
-	                    filter_student.style.display = "none"
-	                    document.getElementById("error_student").style.display = "none"
-	                    this.surname = ''
-	                    this.name = ''
-	                    this.patronymic = ''
-	                    this.update_diagrams()
-	            }
-	            else {
-	                filter_student.style.display = "block"
-	            }
+	            document.getElementById("filter_students").style.display = "block"
 
-	            document.getElementById("filter_groups").disabled = !document.getElementById("filter_groups").disabled
-	            document.getElementById("filter_courses").disabled = !document.getElementById("filter_courses").disabled
+                   this.cancel_group_filter()
+                   this.cancel_course_filter()
 	        },
 	         on_change_student(){
-	            if(this.checked_filters.indexOf("student") != -1){
-	                if (this.surname == '' || this.name == ''){
-	                    document.getElementById("error_student").style.display = "block"
-	                }
-	                else {
-	                    document.getElementById("error_student").style.display = "none"
-	                    this.update_diagrams()
-	                }
+	            if (this.surname == '' || this.name == ''){
+	                document.getElementById("error_student").style.display = "block"
+	            }
+	            else {
+	                document.getElementById("error_student").style.display = "none"
+			this.get_legend_checked_filters('Студент', this.surname+' '+this.name+' '+this.patronymic,
+                            'Курс','Группа')
+	                this.update_diagrams()
 	            }
 	        },
 	        on_change_choice_course(){
-	            filter_course = document.getElementById("filter_course")
-	            if (this.checked_filters.indexOf("courses") == -1){
-	                filter_course.style.visibility = "hidden"
-	                this.selected_course = ''
-	                this.update_diagrams()
-	            }
-	            else {
-	                filter_course.style.visibility = "visible"
-	            }
-
-	            document.getElementById("filter_groups").disabled = !document.getElementById("filter_groups").disabled
-	            document.getElementById("filter_student").disabled = !document.getElementById("filter_student").disabled
+	            document.getElementById("filter_course").style.visibility = "visible"
+                    this.cancel_group_filter()
+                    this.cancel_student_filter()
 	        },
 	        on_change_course(){
-	            if (this.checked_filters.indexOf("courses") != -1){
-	                this.update_diagrams()
-	            }
+	            this.get_legend_checked_filters('Курс', this.selected_course, 'Группа', 'Студент')
+	            this.update_diagrams()
 	        },
 	        on_change_filters_for_texts(){
 	            div_texts_filters = document.getElementById("filters_for_texts")
@@ -394,6 +486,7 @@
 	            if (this.checked_filters.indexOf("all_texts") == -1){
 	                filter_text.style.visibility = "hidden"
 	                this.selected_text = ''
+			this.cancel_all_filters('Заголовок', '', '')
 	                this.update_diagrams()
 	            }
 	            else {
@@ -402,6 +495,7 @@
 	        },
 	        on_change_text(){
 	            if (this.checked_filters.indexOf("all_texts") != -1){
+			this.get_legend_checked_filters('Заголовок', this.selected_text, '', '')
 	                this.update_diagrams()
 	            }
 	        },
@@ -410,6 +504,7 @@
 	            if (this.checked_filters.indexOf("text_types") == -1){
 	                filter_text_type.style.visibility = "hidden"
 	                this.selected_text_type = ''
+			this.cancel_all_filters('Тип текста', '', '')
 	                this.update_diagrams()
 	            }
 	            else {
@@ -418,12 +513,20 @@
 	        },
 	        on_change_text_type(){
 	            if (this.checked_filters.indexOf("text_types") != -1) {
+			this.get_legend_checked_filters('Тип текста', this.text_types.filter(text_type =>
+                            text_type.id_text_type == this.selected_text_type)[0].text_type_name, '', '')
 	                this.update_diagrams()
 	            }
 	        },
 	        on_change_level_type(){
 	            this.update_diagrams()
 	        },
+		on_change_type_static(){
+                    update_data()
+            	},
+		on_change_language_labels(){
+                    update_data()
+            	},
 	        on_change_emotion(){
 	            this.update_diagrams()
 	        },
@@ -433,11 +536,13 @@
 	            emotion_selected = list_emotions.filter(emotion => emotion.id_emotional==this.selected_emotion),
 	            data.push([emotion_selected[0].emotional_name])
 
-	            data.push(["id_tag", "tag_parent", "tag_language", "tag_text", "tag_text_russian", "count_data"])
+	            data.push(["id_tag", "tag_parent", "tag_language", "tag_text", "tag_text_russian", "count_data",
+			      "count_data_on_100_tokens"])
 	            for (let i=0; i<data_for_language.length; i++){
 	                data.push([data_for_language[i].tag__id_tag, data_for_language[i].tag__tag_parent,
 	                data_for_language[i].tag__tag_language, data_for_language[i].tag__tag_text,
-	                data_for_language[i].tag__tag_text_russian, data_for_language[i].count_data])
+	                data_for_language[i].tag__tag_text_russian, data_for_language[i].count_data,
+			data_for_language[i].count_data_on_tokens])
 	            }
 
 	            var workbook = XLSX.utils.book_new(),
@@ -501,9 +606,20 @@
 	            var points = []
 
 	            for (let i=0; i<data_for_language.length; i++) {
-	                labels.push(data_for_language[i].tag__tag_text)
-	                points.push(data_for_language[i].count_data)
-	            }
+                        if (filters.selected_language_labels=='Русском') {
+                            labels.push(data_for_language[i].tag__tag_text_russian)
+                        }
+                        else {
+                            labels.push(data_for_language[i].tag__tag_text)
+                        }
+
+                        if (filters.selected_type_static=='абсолютная'){
+                            points.push(data_for_language[i].count_data)
+                        }
+                        else {
+                            points.push(data_for_language[i].count_data_on_tokens)
+                        }
+                    }
 
 	            this.labels = labels
 	            this.stars = points
@@ -644,14 +760,27 @@
 	            var points = []
 
 	            var count = 0
+		    var count_on_tokens = 0
 	            for (let i=0; i<data_for_language.length; i++) {
 	                count += data_for_language[i].count_data
+			count_on_tokens += data_for_language[i].count_data_on_tokens
 	            }
 
 	            for (let i=0; i<data_for_language.length; i++) {
-	                labels.push(data_for_language[i].tag__tag_text)
-	                points.push(data_for_language[i].count_data * 100 / count)
-	            }
+                         if (filters.selected_language_labels=='Русском'){
+                            labels.push(data_for_language[i].tag__tag_text_russian)
+                         }
+                         else {
+                            labels.push(data_for_language[i].tag__tag_text)
+                         }
+
+                         if (filters.selected_type_static=='абсолютная'){
+                            points.push(data_for_language[i].count_data * 100 / count)
+                         }
+                         else {
+                            points.push(data_for_language[i].count_data_on_tokens * 100 / count_on_tokens)
+                         }
+                    }
 
 	            this.labels = labels
 	            this.stars = points
