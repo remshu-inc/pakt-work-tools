@@ -96,6 +96,16 @@
 		/>
 		<p id="error_groups" class="message">Выберете группы и тип ошибки.</p>
 
+		<hr style="margin: 2% 0 1%; clear:left" />
+            	<div id="filter_type_static" class="certain_filter">
+                	<span style="margin: 2%">Статистика</span>
+                	{% verbatim %}
+                    	<select v-model="selected_type_static" @change="on_change_type_static">
+                        	<option v-for="type in type_static">{{ type }}</option>
+                    	</select>
+                	{% endverbatim%}
+            	</div>
+
 		<hr style="margin: 2% 0 1%; clear: left" />
 		<input
 			id="btn-download"
@@ -132,6 +142,19 @@
 	var list_data = []
 	var data_for_language = []
 
+	function update_data() {
+            groups_bar.get_data()
+            groups_bar.update_chart()
+            groups_pie.get_data()
+            groups_pie.update_chart()
+    	}
+
+	function update_data_for_language() {
+            selected_language = document.getElementById("selected_language").value
+            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+            update_data()
+    	}
+
 	function on_change_language() {
 	    selected_language = document.getElementById("selected_language").value
 
@@ -140,12 +163,7 @@
 	    filters.tags = list_tags.filter(tag => tag.tag_language==selected_language)
 	    filters.groups = list_groups.filter(group => group.language==selected_language)
 
-	    data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
-
-	    groups_bar.get_data()
-	    groups_bar.update_chart()
-	    groups_pie.get_data()
-	    groups_pie.update_chart()
+	    update_data_for_language()
 	}
 
 	async function post_request_data_errors(text_type, text, groups, tag){
@@ -183,20 +201,15 @@
 	        selected_text: '',
 	        text_types: list_text_types.filter(text_type => text_type.language_id==list_languages[0].id_language),
 	        selected_text_type: '',
+		type_static: ['абсолютная', 'на 100 токенов'],
+		selected_type_static: 'абсолютная',
 	    },
 	    methods:{
 	        async update_diagrams(){
 	            await post_request_data_errors(this.selected_text_type, this.selected_text, this.selected_group,
 	                this.selected_tag_type)
 
-	            selected_language = document.getElementById("selected_language").value
-
-	            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
-
-	            groups_bar.get_data()
-	            groups_bar.update_chart()
-	            groups_pie.get_data()
-	            groups_pie.update_chart()
+	            update_data_for_language()
 	            document.getElementById("btn-download").disabled = false
 	        },
 	        on_change_groups(){
@@ -250,17 +263,21 @@
 	                this.update_diagrams()
 	            }
 	        },
+		on_change_type_static(){
+                    update_data()
+            	},
 	        on_download(){
 	            var data = []
 
 	            tag_selected = list_tags.filter(tag => tag.id_tag==this.selected_tag_type),
 	            data.push([tag_selected[0].tag_text_russian])
 
-	            data.push(["tag_language", "id_group", "group_number", "enrollment_date", "count_data"])
+	            data.push(["tag_language", "id_group", "group_number", "enrollment_date", "count_data",
+			      "count_data_on_100_tokens"])
 	            for (let i=0; i<data_for_language.length; i++){
 	                data.push([data_for_language[i].tag__tag_language, data_for_language[i].id_group,
 	                data_for_language[i].number, data_for_language[i].date,
-	                data_for_language[i].count_data])
+	                data_for_language[i].count_data, data_for_language[i].count_data_on_tokens])
 	            }
 
 	            var workbook = XLSX.utils.book_new(),
@@ -324,10 +341,16 @@
 	            var points = []
 
 	            for (let i=0; i<data_for_language.length; i++) {
-	                group = data_for_language[i].number + ' (' + data_for_language[i].date + ')'
-	                labels.push(group)
-	                points.push(data_for_language[i].count_data)
-	            }
+                        group = data_for_language[i].number + ' (' + data_for_language[i].date + ')'
+                        labels.push(group)
+
+                        if (filters.selected_type_static=='абсолютная'){
+                            points.push(data_for_language[i].count_data)
+                        }
+                        else {
+                            points.push(data_for_language[i].count_data_on_tokens)
+                        }
+                    }
 
 	            this.labels = labels
 	            this.stars = points
@@ -468,15 +491,23 @@
 	            var points = []
 
 	            var count = 0
+		    var count_on_tokens = 0
 	            for (let i=0; i<data_for_language.length; i++) {
 	                count += data_for_language[i].count_data
+			count_on_tokens += data_for_language[i].count_data_on_tokens
 	            }
 
 	            for (let i=0; i<data_for_language.length; i++) {
-	                group = data_for_language[i].number + ' (' + data_for_language[i].date + ')'
-	                labels.push(group)
-	                points.push(data_for_language[i].count_data * 100 / count)
-	            }
+                        group = data_for_language[i].number + ' (' + data_for_language[i].date + ')'
+                        labels.push(group)
+
+                        if (filters.selected_type_static=='абсолютная'){
+                            points.push(data_for_language[i].count_data * 100 / count)
+                        }
+                        else {
+                            points.push(data_for_language[i].count_data_on_tokens * 100 / count_on_tokens)
+                        }
+                    }
 
 	            this.labels = labels
 	            this.stars = points
