@@ -108,3 +108,16 @@
     font-size: 1.1em;
     display: none;
 }
+
+.update-button {
+    background-color: white;
+    color: #235ad1;
+    border: 1px #235ad1 solid;
+    border-radius: 0px;
+}
+
+.update-button:hover {
+    background-color: #235ad1;
+    color: white;
+    transition: 0.8s;
+}
