@@ -620,19 +620,40 @@ def get_levels():
 	return levels
 	
 	
-def get_data_on_tokens(data_count, id_data, is_unique_data, is_for_one_group):
-	count_tokens = list(TblToken.objects.values('sentence__text_id').annotate(count_tokens=Count('sentence__text_id')))
+def get_data_on_tokens(data_count, id_data, label_language, is_unique_data, is_for_one_group):
+	texts_id = {}
 	
 	for data in data_count:
-		idx = 0
-		while count_tokens[idx]['sentence__text_id'] != data['sentence__text_id']:
-			idx += 1
-		data['count_data_on_tokens'] = data['count_data'] * 100 / count_tokens[idx]['count_tokens']
+		if data[label_language] not in texts_id.keys():
+			texts_id[data[label_language]] = []
+	
+	if is_for_one_group:
+		count_errors = 0
+		
+		for data in data_count:
+			if data['sentence__text_id'] not in texts_id[data[label_language]]:
+				texts_id[data[label_language]].append(data['sentence__text_id'])
+			count_errors += data['count_data']
+
+		count_tokens = {}
+		for texts_id_key in texts_id.keys():
+			count_tokens_language = TblToken.objects.filter(sentence__text_id__in=texts_id[texts_id_key]).aggregate(
+				res=Count('sentence__text_id'))
+			count_tokens[texts_id_key] = count_tokens_language['res']
+
+		data_count[0]['count_data'] = count_errors
+		data_count[0]['count_data_on_tokens'] = count_errors * 100 / count_tokens[data_count[0][label_language]]
+				
+		return [data_count[0]]
 	
 	if is_unique_data:
 		data_count_on_tokens = []
 		id_data_count_on_tokens = []
+		
 		for data in data_count:
+			if data['sentence__text_id'] not in texts_id[data[label_language]]:
+				texts_id[data[label_language]].append(data['sentence__text_id'])
+				
 			if data[id_data] not in id_data_count_on_tokens:
 				id_data_count_on_tokens.append(data[id_data])
 				del data['sentence__text_id']
@@ -642,18 +663,61 @@ def get_data_on_tokens(data_count, id_data, is_unique_data, is_for_one_group):
 				while data_count_on_tokens[idx][id_data] != data[id_data]:
 					idx += 1
 				data_count_on_tokens[idx]['count_data'] += data['count_data']
-				data_count_on_tokens[idx]['count_data_on_tokens'] += data['count_data_on_tokens']
+		
+		count_tokens = {}
+		for texts_id_key in texts_id.keys():
+			count_tokens_language = TblToken.objects.filter(sentence__text_id__in=texts_id[texts_id_key]).aggregate(
+				res=Count('sentence__text_id'))
+			count_tokens[texts_id_key] = count_tokens_language['res']
+
+		for data in data_count_on_tokens:
+			data['count_data_on_tokens'] = data['count_data'] * 100 / count_tokens[data[label_language]]
+		
 		return data_count_on_tokens
+
+	for data in data_count:
+		count_tokens = TblToken.objects.filter(sentence__text_id=data['sentence__text_id']).aggregate(
+			res=Count('sentence__text_id'))
+		data['count_data_on_tokens'] = data['count_data'] * 100 / count_tokens['res']
 	
-	if is_for_one_group:
-		for i in range(1, len(data_count)):
-			data_count[0]['count_data'] += data_count[i]['count_data']
-			data_count[0]['count_data_on_tokens'] += data_count[i]['count_data_on_tokens']
-		
-		del data_count[0]['sentence__text_id']
-		
-		return [data_count[0]]
+	return data_count
+
+
+def get_texts_id_and_data_on_tokens(data_count, texts_id):
+	data_count_on_tokens = []
+	id_data_count_on_tokens = []
 	
+	for data in data_count:
+		if data['tag__tag_language'] not in texts_id.keys():
+			texts_id[data['tag__tag_language']] = []
+			
+	for data in data_count:
+		if data['sentence__text_id'] not in texts_id[data['tag__tag_language']]:
+			texts_id[data['tag__tag_language']].append(data['sentence__text_id'])
+			
+		if data['tag__id_tag'] not in id_data_count_on_tokens:
+			id_data_count_on_tokens.append(data['tag__id_tag'])
+			del data['sentence__text_id']
+			data_count_on_tokens.append(data)
+		else:
+			idx = 0
+			while data_count_on_tokens[idx]['tag__id_tag'] != data['tag__id_tag']:
+				idx += 1
+			data_count_on_tokens[idx]['count_data'] += data['count_data']
+			
+	return data_count_on_tokens, texts_id
+
+
+def get_on_tokens(texts_id, data_count):
+	count_tokens = {}
+	for texts_id_key in texts_id.keys():
+		count_tokens_language = TblToken.objects.filter(sentence__text_id__in=texts_id[texts_id_key]).aggregate(
+			res=Count('sentence__text_id'))
+		count_tokens[texts_id_key] = count_tokens_language['res']
+		
+	for data in data_count:
+		data['count_data_on_tokens'] = data['count_data'] * 100 / count_tokens[data['tag__tag_language']]
+		
 	return data_count
 
 
@@ -685,7 +749,7 @@ def chart_errors_types(request):
 						 'tag__tag_text_russian', 'sentence__text_id').filter(
 				tag__markup_type=1).annotate(count_data=Count('tag__id_tag')))
 		
-		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', True, False)
+		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
 		data = get_data_errors(data_count_on_tokens, 0)
 		levels = get_levels()
 
@@ -871,7 +935,7 @@ def chart_errors_types(request):
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					tag__markup_type=1).annotate(count_data=Count('tag__id_tag')))
 		
-		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', True, False)
+		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
 		data = get_data_errors(data_count_on_tokens, level)
 
 		return JsonResponse({'data_type_errors': data}, status=200)
@@ -898,7 +962,7 @@ def chart_grade_errors(request):
 							   'sentence__text_id').filter(Q(tag__markup_type=1) & Q(
 			grade__id_grade__isnull=False)).annotate(count_data=Count('grade__id_grade')))
 		
-		data_grade = get_data_on_tokens(data_grade, 'grade__id_grade', True, False)
+		data_grade = get_data_on_tokens(data_grade, 'grade__id_grade', 'grade__grade_language', True, False)
 
 		return render(request, 'dashboard_error_grade.html', {'right': True, 'languages': languages,
 								      				'courses': courses, 'groups': groups,
@@ -1082,7 +1146,7 @@ def chart_grade_errors(request):
 							 'sentence__text_id').filter(tag__markup_type=1).annotate(
 					count_data=Count('grade__id_grade')))
 			
-		data_grade = get_data_on_tokens(data_grade, 'grade__id_grade', True, False)
+		data_grade = get_data_on_tokens(data_grade, 'grade__id_grade', 'grade__grade_language', True, False)
 		
 		return JsonResponse({'data_grade_errors': data_grade}, status=200)
 
@@ -1105,16 +1169,21 @@ def chart_types_grade_errors(request):
 			
 		grades = list(TblGrade.objects.values('id_grade', 'grade_name', 'grade_language'))
 		
-		data = []
+		data_on_tokens = []
+		texts_id = {}
 		for grade in grades:
 			data_count_errors = list(
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(grade=grade["id_grade"])).annotate(
 					count_data=Count('tag__id_tag')))
-			data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', True, False)
-			data_errors = get_data_errors(data_count_on_tokens, 0)
-			data.append(data_errors)
+			data_count_on_tokens, texts_id = get_texts_id_and_data_on_tokens(data_count_errors, texts_id)
+			data_on_tokens.append(data_count_on_tokens)
+
+		data = []
+		for i in range(len(data_on_tokens)):
+			data_count = get_on_tokens(texts_id, data_on_tokens[i])
+			data.append(get_data_errors(data_count, 0))
 			
 		levels = get_levels()
 		
@@ -1138,7 +1207,8 @@ def chart_types_grade_errors(request):
 		
 		grades = list(TblGrade.objects.values('id_grade', 'grade_name', 'grade_language'))
 		
-		data = []
+		data_on_tokens = []
+		texts_id = {}
 		for grade in grades:
 			if surname and name and patronymic and text and text_types_id:
 				data_count_errors = list(
@@ -1326,9 +1396,13 @@ def chart_types_grade_errors(request):
 						Q(tag__markup_type=1) & Q(grade=grade["id_grade"])).annotate(
 						count_data=Count('tag__id_tag')))
 				
-			data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', True, False)
-			data_errors = get_data_errors(data_count_on_tokens, level)
-			data.append(data_errors)
+			data_count_on_tokens, texts_id = get_texts_id_and_data_on_tokens(data_count_errors, texts_id)
+			data_on_tokens.append(data_count_on_tokens)
+
+		data = []
+		for i in range(len(data_on_tokens)):
+			data_errors = get_on_tokens(texts_id, data_on_tokens[i])
+			data.append(get_data_errors(data_errors, level))
 			
 		return JsonResponse({'data': data}, status=200)
 
@@ -1430,7 +1504,7 @@ def chart_student_dynamics(request):
 				count_data=Value(0, output_field=IntegerField())))
 			
 		data_count_errors.extend(texts_without_markup)
-		data_count_errors = get_data_on_tokens(data_count_errors, '', False, False)
+		data_count_errors = get_data_on_tokens(data_count_errors, '', 'tag__tag_language', False, False)
 		
 		texts_with_create_date = []
 		for data in data_count_errors:
@@ -1526,7 +1600,7 @@ def chart_group_errors(request):
 						tag__id_tag=tag)).annotate(count_data=Count('id_group')))
 				
 			if d != []:
-				d = get_data_on_tokens(d, '', False, True)
+				d = get_data_on_tokens(d, '', 'tag__tag_language', False, True)
 			else:
 				d = list(TblGroup.objects.annotate(tag__tag_language=F('language'), number=F('group_name'),
 								   date=F('enrollment_date')).values('tag__tag_language',
@@ -1773,7 +1847,7 @@ def chart_emotion_errors(request):
 					Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions)).annotate(
 					count_data=Count('tag__id_tag')))
 			
-		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', True, False)
+		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
 		data_errors = get_data_errors(data_count_on_tokens, level)
 		
 		return JsonResponse({'data': data_errors}, status=200)
@@ -2018,7 +2092,7 @@ def chart_self_asses_errors(request):
 					Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses)).annotate(
 					count_data=Count('tag__id_tag')))
 			
-		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', True, False)
+		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
 		data_errors = get_data_errors(data_count_on_tokens, level)
 		
 		return JsonResponse({'data': data_errors}, status=200)
