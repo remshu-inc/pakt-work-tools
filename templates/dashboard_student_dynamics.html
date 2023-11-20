@@ -107,6 +107,23 @@
 </form>
 
 <hr class="line_all_width" style="clear: right" />
+<div id="font_size" class="font_size_filter">
+	<label>Размер шрифта</label>
+	<select id="selected_font_size" onchange="on_change_font_size()">
+		<option>10</option>
+		<option>11</option>
+		<option>12</option>
+		<option>13</option>
+		<option>14</option>
+		<option>15</option>
+		<option selected>16</option>
+		<option>17</option>
+		<option>18</option>
+		<option>19</option>
+		<option>20</option>
+	</select>
+</div>
+
 <div id="diagram">
 	<div id="diagrams_student_dynamics">
 		<div id="student_dynamics_bar">
@@ -141,6 +158,12 @@
 	    filters.tags = list_tags.filter(tag => tag.tag_language==selected_language)
 
 	    update_data_for_language()
+	}
+
+	function on_change_font_size() {
+	    selected_font_size = document.getElementById("selected_font_size").value
+	    Chart.defaults.font.size = selected_font_size;
+	    update_data()
 	}
 
 	async function post_request_data_errors(text_type, surname, name, patronymic, tag){
@@ -259,6 +282,7 @@
 	    }
 	})
 
+	Chart.defaults.font.size = 16;
 	var student_dynamics_bar = new Vue({
 	    el: '#student_dynamics_bar',
 	    data:{

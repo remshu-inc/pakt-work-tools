@@ -553,7 +553,7 @@ def get_data_errors_DFS(v, d, d_on_tokens, level, level_input, h, flags_levels, 
 		return 0, 0
 
 
-def get_data_errors(data_count_errors, level):
+def get_data_errors(data_count_errors, level, is_sorted):
 	list_tags_id_in_markup = []
 	for data in data_count_errors:
 		list_tags_id_in_markup.append(data["tag__id_tag"])
@@ -583,7 +583,10 @@ def get_data_errors(data_count_errors, level):
 				data[i]["tag__tag_parent"] = -1
 			data_grouped.append(data[i])
 
-	data = sorted(data_grouped, key=lambda d: d['tag__id_tag'])
+	if is_sorted:
+		data = sorted(data_grouped, key=lambda d: d['count_data'], reverse=True)
+	else:
+		data = sorted(data_grouped, key=lambda d: d['tag__id_tag'])
 
 	return data
 
@@ -737,7 +740,7 @@ def chart_errors_types(request):
 		text_types = list(TblTextType.objects.values())
 		groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
 		enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
-		courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+		courses =list(TblText.objects.values('creation_course').distinct().order_by('creation_course'))
 		texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
 		for date in enrollment_date:
@@ -750,7 +753,7 @@ def chart_errors_types(request):
 				tag__markup_type=1).annotate(count_data=Count('tag__id_tag')))
 		
 		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
-		data = get_data_errors(data_count_on_tokens, 0)
+		data = get_data_errors(data_count_on_tokens, 0, True)
 		levels = get_levels()
 
 		return render(request, 'dashboard_error_types.html', {'right': True, 'languages': languages,
@@ -838,7 +841,7 @@ def chart_errors_types(request):
 			data_count_errors = list(
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
 					count_data=Count('tag__id_tag')))
 
@@ -846,21 +849,21 @@ def chart_errors_types(request):
 			data_count_errors = list(
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
 
 		elif course and text_types_id:
 			data_count_errors = list(
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 
 		elif course:
 			data_count_errors = list(
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course)).annotate(
 					count_data=Count('tag__id_tag')))
 
 		elif groups and text and text_types_id:
@@ -936,7 +939,7 @@ def chart_errors_types(request):
 					tag__markup_type=1).annotate(count_data=Count('tag__id_tag')))
 		
 		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
-		data = get_data_errors(data_count_on_tokens, level)
+		data = get_data_errors(data_count_on_tokens, level, True)
 
 		return JsonResponse({'data_type_errors': data}, status=200)
 
@@ -951,7 +954,7 @@ def chart_grade_errors(request):
 		text_types = list(TblTextType.objects.values())
 		groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
 		enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
-		courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+		courses = list(TblText.objects.values('creation_course').distinct().order_by('creation_course'))
 		texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
 		for date in enrollment_date:
@@ -963,6 +966,7 @@ def chart_grade_errors(request):
 			grade__id_grade__isnull=False)).annotate(count_data=Count('grade__id_grade')))
 		
 		data_grade = get_data_on_tokens(data_grade, 'grade__id_grade', 'grade__grade_language', True, False)
+		data_grade = sorted(data_grade, key=lambda d: d['count_data'], reverse=True)
 
 		return render(request, 'dashboard_error_grade.html', {'right': True, 'languages': languages,
 								      				'courses': courses, 'groups': groups,
@@ -1049,7 +1053,7 @@ def chart_grade_errors(request):
 			data_grade = list(
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language',
 							 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
 					count_data=Count('grade__id_grade')))
 			
@@ -1057,21 +1061,21 @@ def chart_grade_errors(request):
 			data_grade = list(
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language',
 							 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text)).annotate(count_data=Count('grade__id_grade')))
 			
 		elif course and text_types_id:
 			data_grade = list(
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language',
 							 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course) & Q(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('grade__id_grade')))
 			
 		elif course:
 			data_grade = list(
 				TblMarkup.objects.values('grade__id_grade', 'grade__grade_name', 'grade__grade_language',
 							 'sentence__text_id').filter(
-					Q(tag__markup_type=1) & Q(sentence__text_id__user__tblstudent__course_number=course)).annotate(
+					Q(tag__markup_type=1) & Q(sentence__text_id__creation_course=course)).annotate(
 					count_data=Count('grade__id_grade')))
 			
 		elif groups and text and text_types_id:
@@ -1147,6 +1151,7 @@ def chart_grade_errors(request):
 					count_data=Count('grade__id_grade')))
 			
 		data_grade = get_data_on_tokens(data_grade, 'grade__id_grade', 'grade__grade_language', True, False)
+		data_grade = sorted(data_grade, key=lambda d: d['count_data'], reverse=True)
 		
 		return JsonResponse({'data_grade_errors': data_grade}, status=200)
 
@@ -1160,7 +1165,7 @@ def chart_types_grade_errors(request):
 		text_types = list(TblTextType.objects.values())
 		groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
 		enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
-		courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+		courses = list(TblText.objects.values('creation_course').distinct().order_by('creation_course'))
 		texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 		
 		for date in enrollment_date:
@@ -1183,9 +1188,23 @@ def chart_types_grade_errors(request):
 		data = []
 		for i in range(len(data_on_tokens)):
 			data_count = get_on_tokens(texts_id, data_on_tokens[i])
-			data.append(get_data_errors(data_count, 0))
+			data.append(get_data_errors(data_count, 0, False))
 			
 		levels = get_levels()
+
+		for i in range(len(data[0])):
+			sum_count = data[0][i]['count_data'] + data[1][i]['count_data'] + data[2][i]['count_data']
+			data[0][i]['sum_count'] = sum_count
+			data[1][i]['sum_count'] = sum_count
+			data[2][i]['sum_count'] = sum_count
+
+			sum_count_fr = data[3][i]['count_data'] + data[4][i]['count_data'] + data[5][i]['count_data']
+			data[3][i]['sum_count'] = sum_count_fr
+			data[4][i]['sum_count'] = sum_count_fr
+			data[5][i]['sum_count'] = sum_count_fr
+
+		for i in range(len(data)):
+			data[i] = sorted(data[i], key=lambda d: d['sum_count'], reverse=True)
 		
 		return render(request, 'dashboard_error_types_grade.html', {'right': True, 'languages': languages,
 									    				'courses': courses, 'groups': groups,
@@ -1284,7 +1303,7 @@ def chart_types_grade_errors(request):
 					TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 								 'tag__tag_text_russian', 'sentence__text_id').filter(
 						Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
-							sentence__text_id__user__tblstudent__course_number=course) & Q(
+							sentence__text_id__creation_course=course) & Q(
 							sentence__text_id__header=text) & Q(
 							sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 				
@@ -1293,7 +1312,7 @@ def chart_types_grade_errors(request):
 					TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 								 'tag__tag_text_russian', 'sentence__text_id').filter(
 						Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
-							sentence__text_id__user__tblstudent__course_number=course) & Q(
+							sentence__text_id__creation_course=course) & Q(
 							sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
 				
 			elif course and text_types_id:
@@ -1301,7 +1320,7 @@ def chart_types_grade_errors(request):
 					TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 								 'tag__tag_text_russian', 'sentence__text_id').filter(
 						Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
-							sentence__text_id__user__tblstudent__course_number=course) & Q(
+							sentence__text_id__creation_course=course) & Q(
 							sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 				
 			elif course:
@@ -1309,7 +1328,7 @@ def chart_types_grade_errors(request):
 					TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 								 'tag__tag_text_russian', 'sentence__text_id').filter(
 						Q(tag__markup_type=1) & Q(grade=grade["id_grade"]) & Q(
-							sentence__text_id__user__tblstudent__course_number=course)).annotate(
+							sentence__text_id__creation_course=course)).annotate(
 						count_data=Count('tag__id_tag')))
 				
 			elif groups and text and text_types_id:
@@ -1402,7 +1421,21 @@ def chart_types_grade_errors(request):
 		data = []
 		for i in range(len(data_on_tokens)):
 			data_errors = get_on_tokens(texts_id, data_on_tokens[i])
-			data.append(get_data_errors(data_errors, level))
+			data.append(get_data_errors(data_errors, level, False))
+
+		for i in range(len(data[0])):
+			sum_count = data[0][i]['count_data'] + data[1][i]['count_data'] + data[2][i]['count_data']
+			data[0][i]['sum_count'] = sum_count
+			data[1][i]['sum_count'] = sum_count
+			data[2][i]['sum_count'] = sum_count
+
+			sum_count_fr = data[3][i]['count_data'] + data[4][i]['count_data'] + data[5][i]['count_data']
+			data[3][i]['sum_count'] = sum_count_fr
+			data[4][i]['sum_count'] = sum_count_fr
+			data[5][i]['sum_count'] = sum_count_fr
+
+		for i in range(len(data)):
+			data[i] = sorted(data[i], key=lambda d: d['sum_count'], reverse=True)
 			
 		return JsonResponse({'data': data}, status=200)
 
@@ -1634,7 +1667,7 @@ def chart_emotion_errors(request):
 		text_types = list(TblTextType.objects.values())
 		groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
 		enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
-		courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+		courses = list(TblText.objects.values('creation_course').distinct().order_by('creation_course'))
 		texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
 		for date in enrollment_date:
@@ -1735,7 +1768,7 @@ def chart_emotion_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
-						sentence__text_id__user__tblstudent__course_number=course) & Q(
+						sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
 					count_data=Count('tag__id_tag')))
 			
@@ -1744,7 +1777,7 @@ def chart_emotion_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
-						sentence__text_id__user__tblstudent__course_number=course) & Q(
+						sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
 			
 		elif course and text_types_id and emotions:
@@ -1752,7 +1785,7 @@ def chart_emotion_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
-						sentence__text_id__user__tblstudent__course_number=course) & Q(
+						sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 			
 		elif course and emotions:
@@ -1760,7 +1793,7 @@ def chart_emotion_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__emotional=emotions) & Q(
-						sentence__text_id__user__tblstudent__course_number=course)).annotate(
+						sentence__text_id__creation_course=course)).annotate(
 					count_data=Count('tag__id_tag')))
 			
 		elif groups and text and text_types_id and emotions:
@@ -1848,7 +1881,7 @@ def chart_emotion_errors(request):
 					count_data=Count('tag__id_tag')))
 			
 		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
-		data_errors = get_data_errors(data_count_on_tokens, level)
+		data_errors = get_data_errors(data_count_on_tokens, level, True)
 		
 		return JsonResponse({'data': data_errors}, status=200)
 
@@ -1862,7 +1895,7 @@ def chart_self_asses_errors(request):
 		text_types = list(TblTextType.objects.values())
 		groups = list(TblGroup.objects.values('group_name', 'language').distinct().order_by('group_name'))
 		enrollment_date = list(TblGroup.objects.values('enrollment_date').distinct().order_by('enrollment_date'))
-		courses = list(TblStudent.objects.values('course_number').distinct().order_by('course_number'))
+		courses = list(TblText.objects.values('creation_course').distinct().order_by('creation_course'))
 		texts = list(TblText.objects.values('header', 'language').distinct().order_by('header'))
 
 		for date in enrollment_date:
@@ -1980,7 +2013,7 @@ def chart_self_asses_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
-						sentence__text_id__user__tblstudent__course_number=course) & Q(
+						sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text) & Q(sentence__text_id__text_type=text_types_id)).annotate(
 					count_data=Count('tag__id_tag')))
 			
@@ -1989,7 +2022,7 @@ def chart_self_asses_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
-						sentence__text_id__user__tblstudent__course_number=course) & Q(
+						sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__header=text)).annotate(count_data=Count('tag__id_tag')))
 			
 		elif course and text_types_id and self_asses:
@@ -1997,7 +2030,7 @@ def chart_self_asses_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
-						sentence__text_id__user__tblstudent__course_number=course) & Q(
+						sentence__text_id__creation_course=course) & Q(
 						sentence__text_id__text_type=text_types_id)).annotate(count_data=Count('tag__id_tag')))
 			
 		elif course and self_asses:
@@ -2005,7 +2038,7 @@ def chart_self_asses_errors(request):
 				TblMarkup.objects.values('tag__id_tag', 'tag__tag_parent', 'tag__tag_language', 'tag__tag_text',
 							 'tag__tag_text_russian', 'sentence__text_id').filter(
 					Q(tag__markup_type=1) & Q(sentence__text_id__self_rating=self_asses) & Q(
-						sentence__text_id__user__tblstudent__course_number=course)).annotate(
+						sentence__text_id__creation_course=course)).annotate(
 					count_data=Count('tag__id_tag')))
 			
 		elif groups and text and text_types_id and self_asses:
@@ -2093,7 +2126,7 @@ def chart_self_asses_errors(request):
 					count_data=Count('tag__id_tag')))
 			
 		data_count_on_tokens = get_data_on_tokens(data_count_errors, 'tag__id_tag', 'tag__tag_language', True, False)
-		data_errors = get_data_errors(data_count_on_tokens, level)
+		data_errors = get_data_errors(data_count_on_tokens, level, True)
 		
 		return JsonResponse({'data': data_errors}, status=200)
 
@@ -2117,6 +2150,7 @@ def chart_relation_asses_sel_asses(request):
 		if surname and name and patronymic and text_types_id:
 			data_relation = list(
 				TblText.objects.values('language', 'assessment', 'self_rating').filter(
+					Q(self_rating__gt=0) & Q(assessment__gt=0) &
 					Q(user__last_name=surname) & Q(
 						user__name=name) & Q(user__patronymic=patronymic) & Q(
 						text_type=text_types_id)).distinct())
@@ -2124,6 +2158,7 @@ def chart_relation_asses_sel_asses(request):
 		elif surname and name and patronymic:
 			data_relation = list(
 				TblText.objects.values('language', 'assessment', 'self_rating').filter(
+					Q(self_rating__gt=0) & Q(assessment__gt=0) &
 					Q(user__last_name=surname) & Q(
 						user__name=name) & Q(
 						user__patronymic=patronymic)).distinct())
@@ -2131,6 +2166,7 @@ def chart_relation_asses_sel_asses(request):
 		elif surname and name and text_types_id:
 			data_relation = list(
 				TblText.objects.values('language', 'assessment', 'self_rating').filter(
+					Q(self_rating__gt=0) & Q(assessment__gt=0) &
 					Q(user__last_name=surname) & Q(
 						user__name=name) & Q(
 						text_type=text_types_id)).distinct())
@@ -2138,27 +2174,18 @@ def chart_relation_asses_sel_asses(request):
 		else:
 			data_relation = list(
 				TblText.objects.values('language', 'assessment', 'self_rating').filter(
+					Q(self_rating__gt=0) & Q(assessment__gt=0) &
 					Q(user__last_name=surname) & Q(
 						user__name=name)).distinct())
 			
 		asses_types = TblText.TASK_RATES
-		not_all_data = []
 		
 		for data in data_relation:
-			if data["self_rating"] > 0:
-				idx = data["self_rating"]
-				data["self_rating_text"] = asses_types[idx - 1][1]
-			else:
-				not_all_data.append(data)
+			idx = data["self_rating"]
+			data["self_rating_text"] = asses_types[idx - 1][1]
 				
-			if data["assessment"] != None:
-				idx = data["assessment"]
-				data["assessment_text"] = asses_types[idx - 1][1]
-			else:
-				not_all_data.append(data)
-				
-		for data in not_all_data:
-			data_relation.remove(data)
+			idx = data["assessment"]
+			data["assessment_text"] = asses_types[idx - 1][1]
 			
 		return JsonResponse({'relation': data_relation}, status=200)
 

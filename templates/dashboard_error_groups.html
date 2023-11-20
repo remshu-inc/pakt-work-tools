@@ -120,6 +120,23 @@
 </form>
 
 <hr class="line_all_width" style="clear: right" />
+<div id="font_size" class="font_size_filter">
+	<label>Размер шрифта</label>
+	<select id="selected_font_size" onchange="on_change_font_size()">
+		<option>10</option>
+		<option>11</option>
+		<option>12</option>
+		<option>13</option>
+		<option>14</option>
+		<option>15</option>
+		<option selected>16</option>
+		<option>17</option>
+		<option>18</option>
+		<option>19</option>
+		<option>20</option>
+	</select>
+</div>
+
 <div id="diagram">
 	<div id="diagrams_groups">
 		<div id="groups_bar">
@@ -164,6 +181,12 @@
 	    filters.groups = list_groups.filter(group => group.language==selected_language)
 
 	    update_data_for_language()
+	}
+
+	function on_change_font_size() {
+	    selected_font_size = document.getElementById("selected_font_size").value
+	    Chart.defaults.font.size = selected_font_size;
+	    update_data()
 	}
 
 	async function post_request_data_errors(text_type, text, groups, tag){
@@ -264,6 +287,13 @@
 	            }
 	        },
 		on_change_type_static(){
+                    if (this.selected_type_static=='абсолютная'){
+	                data_for_language.sort((x, y) => y.count_data - x.count_data);
+                    }
+                    else {
+	                data_for_language.sort((x, y) => y.count_data_on_tokens - x.count_data_on_tokens);
+		    }
+			
                     update_data()
             	},
 	        on_download(){
@@ -290,6 +320,7 @@
 	    }
 	})
 
+	Chart.defaults.font.size = 16;
 	var groups_bar = new Vue({
 	    el: '#groups_bar',
 	    data:{
