@@ -111,7 +111,7 @@
 						id="filter_course"
 						class="filters_choices"
 					>
-						<option v-for="course in courses">{{ course.course_number }}</option>
+						<option v-for="course in courses">{{ course.creation_course }}</option>
 					</select>
 					{% endverbatim %}
 				</div>
@@ -186,8 +186,25 @@
 <hr class="line_all_width" style="clear: right" />
 <div id="legend_checked_filters" class="legend_checked_filters">
         <dl>
-            <dt id="list_checked_filters" style="font-weight:normal;"> Выбранные фильтры:</dt>
+		<dt id="list_checked_filters" style="font-weight:normal;"> Выбранные фильтры:</dt>
         </dl>
+</div>
+
+<div id="font_size" class="font_size_filter">
+	<label>Размер шрифта</label>
+	<select id="selected_font_size" onchange="on_change_font_size()">
+		<option>10</option>
+		<option>11</option>
+		<option>12</option>
+		<option>13</option>
+		<option>14</option>
+		<option>15</option>
+		<option selected>16</option>
+		<option>17</option>
+		<option>18</option>
+		<option>19</option>
+		<option>20</option>
+	</select>
 </div>
 
 <div id="diagrams">
@@ -233,6 +250,12 @@
 	    filters.groups = list_groups.filter(group => group.language==selected_language)
 
 	    update_data_for_language()
+	}
+
+	function on_change_font_size() {
+	    selected_font_size = document.getElementById("selected_font_size").value
+	    Chart.defaults.font.size = selected_font_size;
+	    update_data()
 	}
 
 	var data_grade_for_language = list_data_grade.filter(data => data.grade__grade_language==list_languages[0].id_language)
@@ -494,6 +517,7 @@
 	    }
 	})
 
+	Chart.defaults.font.size = 16;
 	var grade_errors_bar = new Vue({
 	el: '#grade_errors_bar',
 	data:{
@@ -534,7 +558,7 @@
 	                }
 	            }
 	        }));
-	        },
+	    },
 	    update_chart() {
 	        this.chart.data.labels = this.labels
 	        this.chart.data.datasets[0].data = this.stars
@@ -611,7 +635,7 @@
 	                }
 	            }
 	        }));
-	        },
+	    },
 	    update_chart() {
 	        this.chart.data.labels = this.labels
 	        this.chart.data.datasets[0].data = this.stars
