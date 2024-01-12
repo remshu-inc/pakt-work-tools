@@ -1324,11 +1324,7 @@
 				}
 </script>
 {% endblock script %} {%block plugins%}
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script
-	src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-	integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-	crossorigin="anonymous"
-></script>
+<script src="{% static 'js/external/vue.global.prod.js' %}"></script>
+<script src="{% static 'js/external/axios.min.js' %}"></script>
+<script src="{% static 'js/external/jquery-ui.min.js' %}"></script>
 {%endblock plugins%}

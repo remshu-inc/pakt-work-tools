@@ -1,9 +1,9 @@
 {% extends 'base.html' %} {%block plugins%}
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 {%endblock plugins%} {% block content %} {% load static %}
+<script src="{% static 'js/external/axios.min.js' %}"></script>
+<script src="{% static 'js/external/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/external/xlsx.full.min.js' %}"></script>
 <link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}" />
 
 <div class="mt-3 text-center">

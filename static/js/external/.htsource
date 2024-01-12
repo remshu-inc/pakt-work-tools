@@ -1,0 +1,8 @@
+https://unpkg.com/vue@3.3.13/dist/vue.global.prod.js
+https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js 1.6.5
+https://code.jquery.com/ui/1.12.1/jquery-ui.min.js
+https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js
+https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js
+https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js
+https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js
+https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js
