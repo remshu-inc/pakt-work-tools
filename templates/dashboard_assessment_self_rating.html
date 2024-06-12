@@ -1,0 +1,441 @@
+{% extends 'base.html' %} {% load static %} {%block plugins%}
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="{% static 'js/external/axios.min.js' %}"></script>
+<script src="{% static 'js/external/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/external/xlsx.full.min.js' %}"></script>
+{%endblock plugins%} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/dashboards.css' %}" />
+{% endblock link %}
+
+{% block content %}
+<main class="container-fluid mt-5 fs-5">
+	<h2 class="text-primary text-center my-5">Взаимосвязь оценки и самооценки для заданного студента</h2>
+
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+		<div class="col">
+			<label class="text-center text-primary"> Язык </label>
+			<hr class="mt-1" />
+			<select id="selected_language" class="form-select" onchange="on_change_language()">
+				{% for language in languages %}
+				<option value="{{language.id_language}}">{{ language.language_name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+
+		<form id="form_relation" name="filters">
+			<div class="col">
+				<label class="text-center text-primary"> Студент </label>
+				<hr class="col-11 mt-1" />
+				<div class="row">
+					<div class="col-3">
+						<input id="surname" type="text" class="form-control" v-model="surname" placeholder="Фамилия">
+					</div>
+					<div class="col-3">
+						<input id="name" type="text" class="form-control" v-model="name" placeholder="Имя">
+					</div>
+					<div class="col-3">
+						<input type="text" class="form-control" v-model="patronymic" placeholder="Отчество">
+					</div>
+					<div class="col-2">
+						<button type="button" class="btn btn-primary" @click="on_choice_params">Применить</button>
+					</div>
+					<div class="col-1">
+						<button
+							id="btn-filter"
+							type="button"
+							class="btn btn-outline-secondary shadow-none"
+							title="Фильтр"
+							data-bs-toggle="collapse"
+							data-bs-target="#filter"
+							aria-expanded="false"
+							aria-controls="filter"
+							@click="on_change_choice_text_types"
+							disabled
+						>
+							<svg
+								class="bi"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								stroke="currentColor"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M20.058 9.723c.948-.534 1.423-.801 1.682-1.232.26-.43.26-.949.26-1.987v-.69c0-1.326 0-1.99-.44-2.402C21.122 3 20.415 3 19 3H5c-1.414 0-2.121 0-2.56.412C2 3.824 2 4.488 2 5.815v.69c0 1.037 0 1.556.26 1.986.26.43.733.698 1.682 1.232l2.913 1.64c.636.358.955.537 1.183.735.474.411.766.895.898 1.49.064.284.064.618.064 1.285v2.67c0 .909 0 1.364.252 1.718.252.355.7.53 1.594.88 1.879.734 2.818 1.101 3.486.683.668-.417.668-1.372.668-3.282v-2.67c0-.666 0-1 .064-1.285a2.68 2.68 0 0 1 .899-1.49"
+								/>
+							</svg>
+						</button>
+					</div>
+				</div>
+				<div class="row">
+					 <div class="col-3">
+						 <div id="error_student_surname" class="form-text error-message"> введите фамилию </div>
+					 </div>
+					<div class="col">
+						<div id="error_student_name" class="form-text error-message"> введите имя </div>
+					</div>
+				</div>
+			</div>
+
+			<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-end">
+				<div id="filter" class="collapse">
+					<div class="form-check card card-rounded shadow-sm">
+						<div class="card-body">
+							<label class="text-filter"> Тип текста </label>
+							<div id="text_type">
+								{% verbatim %}
+								<select
+									id="filter_text_type"
+									class="form-select"
+									v-model="selected_text_type"
+									@change="on_change_text_type"
+								>
+									<option v-for="text_type in text_types":value="text_type.id_text_type">
+										{{ text_type.text_type_name }}
+									</option>
+								</select>
+								{% endverbatim %}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<hr class="mt-4" />
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-between">
+		<div class="d-flex flex-column flex-md-row gap-2">
+			<div class="col-0">
+				<label class="text-center text-primary"> Размер шрифта </label>
+			</div>
+			<div class="col">
+				<select id="font_size" class="form-select" onchange="on_change_font_size()">
+					<option>10</option>
+					<option>11</option>
+					<option>12</option>
+					<option>13</option>
+					<option>14</option>
+					<option>15</option>
+					<option selected>16</option>
+					<option>17</option>
+					<option>18</option>
+					<option>19</option>
+					<option>20</option>
+				</select>
+			</div>
+		</div>
+		<div class="d-flex flex-column flex-md-row gap-2">
+			<div class="col-0">
+				<button id="btn-download" type="button" class="btn btn-primary" onclick="on_download()" disabled>
+					Скачать
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<hr class="mt-2" />
+	<div id="legend_checked_filters" class="d-flex flex-column flex-md-row gap-3 mt-4 justify-content-start">
+		<div id="card_student" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary">
+					<span v-html="surname">{{surname}}</span>
+					<span v-html="name">{{name}}</span>
+					<span v-html="patronymic">{{patronymic}}</span>
+				</p>
+			</div>
+		</div>
+		<div id="card_text_type" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary" v-html="text_type">{{text_type}}</p>
+			</div>
+		</div>
+	</div>
+
+	<div id="diagram" class="d-flex flex-column my-2">
+		<div id="diagram_relation">
+			<div id="diagram_relation_scatter" class="card my-3">
+				<canvas id="scatter_diagram_relation" ref="chart" class="chart bar m-4"></canvas>
+			</div>
+		</div>
+	</div>
+</main>
+{% endblock content%} {%block script%}
+<script type="text/javascript">
+	var list_languages = {{languages | safe}}
+	var list_text_types = []
+	var list_data = []
+	var data_for_language = []
+	var selected_surname = ''
+	var selected_name = ''
+	var selected_patronymic = ''
+	var btn_filter_checked = false
+
+	async function post_request_data_errors(text_type, surname, name, patronymic){
+	    var data = []
+	    var text_types = []
+
+	    await axios({
+	        method: 'post',
+	        url: '',
+	        data: {
+	            'text_type': text_type,
+	            'surname': surname,
+	            'name': name,
+	            'patronymic': patronymic
+	        },
+	        headers: {
+	            'X-Requested-With': 'XMLHttpRequest',
+	        }
+	    })
+	        .then(function (response) {
+	            data = response.data.data
+	            text_types = response.data.text_types
+	        })
+
+	    list_data = data
+	    list_text_types = text_types
+	}
+
+
+	function on_download() {
+		var data = []
+		data.push([filters.surname, filters.name, filters.patronymic])
+		data.push(["language", "assessment", "self_rating"])
+		for (let i=0; i<data_for_language.length; i++){
+			data.push([data_for_language[i].language, data_for_language[i].assessment_text,
+				data_for_language[i].self_rating_text])
+		}
+
+		var workbook = XLSX.utils.book_new(),
+			worksheet = XLSX.utils.aoa_to_sheet(data)
+		workbook.SheetNames.push("Relation")
+		workbook.Sheets["Relation"] = worksheet
+
+		selected_language_id = document.getElementById("selected_language").value
+		selected_language = list_languages.filter(language => language.id_language == selected_language_id)
+
+		XLSX.writeFile(workbook,
+			`Relation_assessment_self_rating_${filters.surname}_${filters.name}_${filters.patronymic}_${selected_language[0].language_name}.xlsx`);
+	}
+
+	function update_data() {
+		relation.get_data()
+        relation.update_chart()
+	}
+
+	function update_data_for_language() {
+		selected_language = document.getElementById("selected_language").value
+		data_for_language = list_data.filter(data => data.language == selected_language)
+		filters.text_types = list_text_types.filter(text_type => text_type.language_id == selected_language)
+		update_data()
+	}
+
+	function on_change_language() {
+		selected_language = document.getElementById("selected_language").value
+		update_data_for_language()
+	}
+
+	function on_change_font_size() {
+		selected_font_size = document.getElementById("font_size").value
+		Chart.defaults.font.size = selected_font_size
+		update_data()
+	}
+
+
+	var filters = new Vue({
+		el: '#form_relation',
+		data: {
+			surname: '',
+			name: '',
+			patronymic: '',
+			text_types: [],
+			selected_text_type: ''
+		},
+		methods: {
+			async update_diagrams() {
+				await post_request_data_errors(this.selected_text_type, selected_surname, selected_name,
+												selected_patronymic)
+				update_data_for_language()
+			},
+			on_choice_params() {
+				if (this.surname == '') {
+					document.getElementById("error_student_surname").style.display = "block"
+					document.getElementById("surname").classList.add('border')
+					document.getElementById("surname").classList.add('border-danger')
+				}
+				else {
+					document.getElementById("error_student_surname").style.display = "none"
+					document.getElementById("surname").classList.remove('border-danger')
+					document.getElementById("surname").classList.remove('border')
+				}
+
+				if (this.name == '') {
+					document.getElementById("error_student_name").style.display = "block"
+					document.getElementById("name").classList.add('border')
+					document.getElementById("name").classList.add('border-danger')
+				}
+				else {
+					document.getElementById("error_student_name").style.display = "none"
+					document.getElementById("name").classList.remove('border-danger')
+					document.getElementById("name").classList.remove('border')
+				}
+
+				if (this.surname != '' && this.name != ''){
+					selected_surname = this.surname
+					selected_name = this.name
+					selected_patronymic = this.patronymic
+
+					this.update_diagrams()
+
+					legend_filters.surname = this.surname
+					legend_filters.name = this.name
+					legend_filters.patronymic = this.patronymic
+
+					document.getElementById("card_student").style.display = 'block'
+					document.getElementById("btn-download").disabled = false
+					document.getElementById("btn-filter").disabled = false
+				}
+
+			},
+			on_change_choice_text_types() {
+				if (btn_filter_checked) {
+					this.selected_text_type = ''
+					this.update_diagrams()
+
+					legend_filters.text_type = ''
+					document.getElementById("card_text_type").style.display = 'none'
+					btn_filter_checked = false
+				}
+				else {
+					btn_filter_checked = true
+				}
+			},
+			async on_change_text_type() {
+				this.update_diagrams()
+
+				selected_text_type = list_text_types.filter(text_type => text_type.id_text_type ==
+																							this.selected_text_type)
+				legend_filters.text_type = selected_text_type[0].text_type_name
+				document.getElementById("card_text_type").style.display = 'block'
+			}
+		}
+	})
+
+	var legend_filters = new Vue({
+		el: '#legend_checked_filters',
+		data: {
+			surname: '',
+			name: '',
+			patronymic: '',
+			text_type: ''
+		}
+	})
+
+	Chart.defaults.font.size = 16
+	var relation = new Vue({
+	    el: '#diagram_relation_scatter',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'scatter',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        label: 'Взаимосвязь оценки и самооценки',
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: [],
+	                        pointStyle: 'circle',
+	                        radius: 20
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
+							legend: {
+								position: 'bottom'
+							},
+	                        tooltip: {
+	                            callbacks: {
+	                                label: function(context) {
+	                                    let label = context.dataset.label || ''
+	                                    return label
+	                                }
+	                            }
+	                        }
+	                    },
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true,
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language.length; i++) {
+	                                        if (data_for_language[i].self_rating == value) {
+	                                            label = data_for_language[i].self_rating_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        },
+	                        x: {
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language.length; i++) {
+	                                        if (data_for_language[i].assessment == value) {
+	                                            label = data_for_language[i].assessment_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+
+	            for (let i=0; i<data_for_language.length; i++) {
+	            	labels.push(['Оценка: ' + data_for_language[i].assessment_text,
+	            				'Самооценка: ' + data_for_language[i].self_rating_text])
+	            	points.push({x: data_for_language[i].assessment, y: data_for_language[i].self_rating})
+                }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	relation.mounted()
+</script>
+{%endblock script%}
