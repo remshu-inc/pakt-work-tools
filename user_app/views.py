@@ -870,7 +870,7 @@ def chart_grade_errors(request):
 			patronymic = list_filters['patronymic']
 			course = list_filters['course']
 			text = list_filters['text']
-			text_types = list_filters['text_type']
+			text_type = list_filters['text_type']
 			
 			if surname and name and patronymic and text and text_type:
 				data_grade = list(
