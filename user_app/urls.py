@@ -19,13 +19,20 @@ urlpatterns = [
     path('manage/tasks_info/<int:user_id>', views.tasks_info, name = 'tasks_info'),
     
     path('manage/dashboards/', views.list_charts, name='dashboards'),
-    path('manage/dashboards/types_errors/', views.chart_errors_types, name='types_errors'),
+    path('manage/dashboards/types_errors/', views.chart_types_errors, name='types_errors'),
     path('manage/dashboards/grade_errors/', views.chart_grade_errors, name='grade_errors'),
     path('manage/dashboards/types_grade_errors/', views.chart_types_grade_errors, name='types_grade_errors'),
     path('manage/dashboards/student_dynamics/', views.chart_student_dynamics, name='student_dynamics'),
-    path('manage/dashboards/errors_groups/', views.chart_group_errors, name='groups_errors'),
-    path('manage/dashboards/errors_emotions/', views.chart_emotion_errors, name='emotions_errors'),
-    path('manage/dashboards/errors_student_assesment/', views.chart_self_asses_errors, name='self_assesment_errors'),
-    path('manage/dashboards/relation_assesment_student_assesment/', views.chart_relation_asses_sel_asses,
-         name='relation_assesment_self_assesment')
+    path('manage/dashboards/groups_errors/', views.chart_groups_errors, name='groups_errors'),
+    path('manage/dashboards/emotions_errors/', views.chart_emotions_errors, name='emotions_errors'),
+    path('manage/dashboards/self_rating_errors/', views.chart_self_rating_errors, name='self_rating_errors'),
+    path('manage/dashboards/relation_assessment_self_rating/', views.chart_relation_assessment_self_rating,
+         name='relation_assessment_self_rating'),
+    path('manage/dashboards/relation_emotions_self_rating/', views.relation_emotions_self_rating,
+         name='relation_emotions_self_rating'),
+    path('manage/dashboards/relation_emotions_assessment/', views.relation_emotions_assessment,
+         name='relation_emotions_assessment'),
+    path('manage/dashboards/relation_self_rating_assessment/', views.relation_self_rating_assessment,
+         name='relation_self_rating_assessment'),
+    path('manage/dashboards/relation_course_errors/', views.relation_course_errors, name='relation_course_errors')
 ]
