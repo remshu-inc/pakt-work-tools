@@ -1,0 +1,58 @@
+.text-filter {
+    font-size: 0.9em;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.7em;
+    display: none;
+}
+
+.element-visibility {
+    visibility: hidden;
+}
+
+.card-text {
+    font-size: 0.8em;
+}
+
+.card-display {
+    display: none;
+}
+
+.half_width_chart {
+    max-width:100%;
+    max-height:500px;
+}
+
+.manage-link {
+	width: 100%;
+	display: grid;
+	grid-template-columns: 0.5fr 9fr;
+	align-items: center;
+	justify-items: start;
+	gap: 1rem;
+}
+
+.manage-link .bi {
+	justify-self: end;
+}
+
+.manage-link:focus {
+	box-shadow: none;
+}
+
+.bar {
+    max-width:100%;
+    max-height:800px;
+}
+
+.pie {
+    max-width:100%;
+    max-height:600px;
+}
+
+.bubble {
+    max-width:100%;
+    max-height:200px;
+}

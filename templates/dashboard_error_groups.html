@@ -1,329 +1,669 @@
-{% extends 'base.html' %} {%block plugins%}
+{% extends 'base.html' %} {% load static %} {%block plugins%}
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-{%endblock plugins%} {% block content %} {% load static %}
 <script src="{% static 'js/external/axios.min.js' %}"></script>
 <script src="{% static 'js/external/chart.umd.min.js' %}"></script>
 <script src="{% static 'js/external/xlsx.full.min.js' %}"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}" />
+{%endblock plugins%} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/dashboards.css' %}" />
+{% endblock link %}
 
-<div class="mt-3 text-center">
-	<h1>Статистика ошибок в группах</h1>
-</div>
+{% block content %}
+<main class="container-fluid mt-5 fs-5">
+	<h2 class="text-primary text-center my-5">Количество ошибок для заданного типа ошибки и выбранных групп</h2>
 
-<div id="languages" class="language">
-	<label>Язык</label><br />
-	<hr id="line_language" class="line_language" />
-	<select id="selected_language" onchange="on_change_language()">
-		{% for language in languages %}
-		<option value="{{language.id_language}}">{{ language.language_name }}</option>
-		{% endfor %}
-	</select>
-</div>
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+		<div class="col">
+			<label class="text-center text-primary"> Язык </label>
+			<hr class="mt-1" />
+			<select id="selected_language" class="form-select" onchange="on_change_language()">
+				{% for language in languages %}
+				<option value="{{language.id_language}}">{{ language.language_name }}</option>
+				{% endfor %}
+			</select>
+		</div>
 
-<hr class="line_all_width" />
-<form id="form_filters" name="filters" method="POST">
-	{% csrf_token %}
-	<div id="filters" class="filtelters_all">
-		<p class="filter_title">Фильтры</p>
-		<div class="filter_group_with_title">
-			<p class="filter_group" @click="on_change_filters_for_texts">Фильтры по текстам</p>
-			<div id="filters_for_texts" class="filters_for_texts">
-				<div id="all_texts" class="filter">
-					<input
-						type="checkbox"
-						id="filter_all_texts"
-						value="all_texts"
-						v-model="checked_filters"
-						@change="on_change_choice_text"
-					/>
-					<span>Название текста</span>
-					{% verbatim %}
-					<select v-model="selected_text" @change="on_change_text" id="filter_text" class="filters_choices">
-						<option v-for="text in texts" :value="text.header">{{ text.header }}</option>
-					</select>
-					{% endverbatim %}
+		<div class="col">
+			<label class="text-center text-primary"> Статистика </label>
+			<hr class="mt-1"/>
+			<select id="selected_stat" class="form-select" onchange="on_change_type_static()">
+				<option>абсолютная</option>
+				<option>на 100 токенов</option>
+            </select>
+		</div>
+	</div>
+
+	<hr class="mt-5" />
+	<form id="form_error_groups_filters" name="filters">
+		<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+			<div class="col">
+				<label class="text-center text-primary"> Группы </label>
+				{% verbatim %}
+				<select id="filter_group" class="form-select" v-model="selected_groups" multiple>
+					<option v-for="group in groups">{{ group.group_name }} ( {{ group.enrollment_date }} )</option>
+				</select>
+				{% endverbatim %}
+				<div id="error_group" class="form-text error-message"> выберете хотя бы одну группу </div>
+			</div>
+
+			<div class="col">
+				<label class="text-center text-primary"> Тип ошибки </label>
+				<div class="row">
+					<div class="col-8">
+						{% verbatim %}
+						<select id="filter_tag" class="form-select" v-model="selected_tag">
+							<option v-for="tag in tags":value="tag.id_tag">{{ tag.tag_text_russian }}</option>
+						</select>
+						{% endverbatim %}
+					</div>
+
+					<div class="col form-check">
+						<input
+							id="tag_children"
+							type="checkbox"
+							value=""
+							class="form-check-input"
+						/>
+						<label class="form-check-label text-filter" for="tag_children"> вложенные ошибки </label>
+					</div>
 				</div>
+				<div id="error_tag" class="form-text error-message"> выберете тип ошибки </div>
 
-				<div id="text_types" class="filter">
-					<input
-						type="checkbox"
-						id="filter_text_types"
-						value="text_types"
-						v-model="checked_filters"
-						@change="on_change_choice_text_types"
-					/>
-					<span>Тип текста</span>
-					{% verbatim %}
-					<select
-						v-model="selected_text_type"
-						@change="on_change_text_type"
-						id="filter_text_type"
-						class="filters_choices"
-					>
-						<option v-for="text_type in text_types" :value="text_type.id_text_type">
-							{{ text_type.text_type_name }}
-						</option>
-					</select>
-					{% endverbatim %}
+				<div class="d-flex flex-column flex-md-row justify-content-end mt-2">
+					<div class="col-2">
+						<button type="button" class="btn btn-primary" @click="on_choice_params">Применить</button>
+					</div>
+					<div class="col-0">
+						<button
+							id="btn-filters"
+							type="button"
+							class="btn btn-outline-secondary shadow-none"
+							title="Фильтры"
+							data-bs-toggle="collapse"
+							data-bs-target="#filters"
+							aria-expanded="false"
+							aria-controls="filters"
+							disabled
+						>
+							<svg
+								class="bi"
+								xmlns="http://www.w3.org/2000/svg"
+								height="1.6em"
+								stroke="currentColor"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-width="1.5"
+									d="M20.058 9.723c.948-.534 1.423-.801 1.682-1.232.26-.43.26-.949.26-1.987v-.69c0-1.326 0-1.99-.44-2.402C21.122 3 20.415 3 19 3H5c-1.414 0-2.121 0-2.56.412C2 3.824 2 4.488 2 5.815v.69c0 1.037 0 1.556.26 1.986.26.43.733.698 1.682 1.232l2.913 1.64c.636.358.955.537 1.183.735.474.411.766.895.898 1.49.064.284.064.618.064 1.285v2.67c0 .909 0 1.364.252 1.718.252.355.7.53 1.594.88 1.879.734 2.818 1.101 3.486.683.668-.417.668-1.372.668-3.282v-2.67c0-.666 0-1 .064-1.285a2.68 2.68 0 0 1 .899-1.49"
+								/>
+							</svg>
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
 
-		<hr style="margin: 2% 0 1%; clear: left" />
-		<div id="groups" class="certain_filter">
-			<span>Группа</span>
-			{% verbatim %}
-			<select v-model="selected_group" id="filter_group" multiple>
-				<option v-for="group in groups">{{ group.group_name }} ( {{ group.enrollment_date }} )</option>
-			</select>
-			{% endverbatim %}
+		<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-end">
+			<div id="filters" class="collapse card card-rounded shadow-sm col-6">
+				<div class="card-body">
+					<div class="form-check">
+						<div class="row">
+							<div class="col-3">
+								<input
+									id="filter_all_texts"
+									type="checkbox"
+									value=""
+									class="form-check-input"
+									data-bs-toggle="collapse"
+									data-bs-target="#header"
+									aria-expanded="false"
+									aria-controls="header"
+									@change="on_change_choice_text"
+								/>
+								<label class="form-check-label text-filter" for="filter_all_texts">
+									Название текста
+								</label>
+							</div>
+							<div class="col-9">
+								<div id="header" class="collapse">
+									{% verbatim %}
+									<select
+										id="filter_text"
+										class="form-select"
+										v-model="selected_text"
+										@change="on_change_text"
+									>
+										<option v-for="text in texts":value="text.header">{{ text.header }}</option>
+									</select>
+									{% endverbatim %}
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="form-check">
+						<div class="row">
+							<div class="col-3">
+								<input
+									id="filter_text_types"
+									type="checkbox"
+									value=""
+									class="form-check-input"
+									data-bs-toggle="collapse"
+									data-bs-target="#text_type"
+									aria-expanded="false"
+									aria-controls="text_type"
+									@change="on_change_choice_text_types"
+								/>
+								<label class="form-check-label text-filter" for="filter_text_types"> Тип текста </label>
+							</div>
+							<div class="col-9">
+								<div id="text_type" class="collapse">
+									{% verbatim %}
+									<select
+										id="filter_text_type"
+										class="form-select"
+										v-model="selected_text_type"
+										@change="on_change_text_type"
+									>
+										<option v-for="text_type in text_types":value="text_type.id_text_type">
+											{{ text_type.text_type_name }}
+										</option>
+									</select>
+									{% endverbatim %}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
+	</form>
 
-		<div id="tags" class="certain_filter" style="margin: 1% 0 1%">
-			<span>Тип ошибки</span>
-			{% verbatim %}
-			<select v-model="selected_tag_type" id="filter_tag_type">
-				<option v-for="tag in tags" :value="tag.id_tag">{{ tag.tag_text_russian }}</option>
-			</select>
-			{% endverbatim %}
+	<hr class="mt-4" />
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-between">
+		<div class="d-flex flex-column flex-md-row gap-2">
+			<div class="col-0">
+				<label class="text-center text-primary"> Размер шрифта </label>
+			</div>
+			<div class="col">
+				<select id="font_size" class="form-select" onchange="on_change_font_size()">
+					<option>10</option>
+					<option>11</option>
+					<option>12</option>
+					<option>13</option>
+					<option>14</option>
+					<option>15</option>
+					<option selected>16</option>
+					<option>17</option>
+					<option>18</option>
+					<option>19</option>
+					<option>20</option>
+				</select>
+			</div>
 		</div>
-		<input
-			type="button"
-			class="col-12 mt-2 btn shadow-none update-button"
-			style="width: 637px"
-			@click="on_change_groups"
-			value="Применить"
-		/>
-		<p id="error_groups" class="message">Выберете группы и тип ошибки.</p>
-
-		<hr style="margin: 2% 0 1%; clear:left" />
-            	<div id="filter_type_static" class="certain_filter">
-                	<span style="margin: 2%">Статистика</span>
-                	{% verbatim %}
-                    	<select v-model="selected_type_static" @change="on_change_type_static">
-                        	<option v-for="type in type_static">{{ type }}</option>
-                    	</select>
-                	{% endverbatim%}
-            	</div>
-
-		<hr style="margin: 2% 0 1%; clear: left" />
-		<input
-			id="btn-download"
-			type="button"
-			class="col-12 mt-2 btn shadow-none update-button"
-			style="width: 200px; float: right; margin-bottom: 1%"
-			@click="on_download"
-			value="Скачать"
-			disabled
-		/>
+		<div class="d-flex flex-column flex-md-row gap-2">
+			<div class="col-0">
+				<button id="btn-download" type="button" class="btn btn-primary" onclick="on_download()" disabled>
+					Скачать
+				</button>
+			</div>
+		</div>
 	</div>
-</form>
 
-<hr class="line_all_width" style="clear: right" />
-<div id="font_size" class="font_size_filter">
-	<label>Размер шрифта</label>
-	<select id="selected_font_size" onchange="on_change_font_size()">
-		<option>10</option>
-		<option>11</option>
-		<option>12</option>
-		<option>13</option>
-		<option>14</option>
-		<option>15</option>
-		<option selected>16</option>
-		<option>17</option>
-		<option>18</option>
-		<option>19</option>
-		<option>20</option>
-	</select>
-</div>
-
-<div id="diagram">
-	<div id="diagrams_groups">
-		<div id="groups_bar">
-			<canvas id="stat_groups_bar" ref="chart" class="bar" class="chart"></canvas>
+	<hr class="mt-2" />
+	<div id="legend_checked_filters">
+		<div class="d-flex flex-column flex-md-row gap-3 mt-4 justify-content-start">
+			<div id="card_tag" class="card card-rounded shadow-sm card-display border border-primary">
+				<div class="card-body">
+					<p class="card-text text-primary text-center" v-html="tag">{{tag}}</p>
+				</div>
+			</div>
+			<div id="card_tag_children" class="card card-rounded shadow-sm card-display border border-primary">
+				<div class="card-body">
+					<p class="card-text text-primary"> Группа ошибок: <span v-html="tag">{{tag}}</span></p>
+				</div>
+			</div>
+			<div id="card_text" class="card card-rounded shadow-sm card-display border border-primary">
+				<div class="card-body">
+					<p class="card-text text-primary text-center" v-html="text">{{text}}</p>
+				</div>
+			</div>
+			<div id="card_text_type" class="card card-rounded shadow-sm card-display border border-primary">
+				<div class="card-body">
+					<p class="card-text text-primary text-center" v-html="text_type">{{text_type}}</p>
+				</div>
+			</div>
 		</div>
 	</div>
-	<div id="diagrams_groups_pie">
-		<div id="groups_pie">
-			<canvas id="stat_groups_pie" ref="chart" class="pie" class="chart"></canvas>
+
+	<div id="diagrams" class="d-flex flex-column my-2">
+		<div id="diagrams_errors_groups">
+			<div id="errors_groups_bar" class="card my-3">
+				<canvas id="bar_errors_groups" ref="chart" class="chart bar m-4"></canvas>
+			</div>
+			<div id="errors_groups_pie" class="card my-3">
+				<canvas id="pie_errors_groups" ref="chart" class="chart pie m-4"></canvas>
+			</div>
 		</div>
 	</div>
-</div>
+</main>
 {% endblock content%} {%block script%}
 <script type="text/javascript">
+	var colors = [
+		'rgba(255, 0, 0, 1)',
+		'rgba(0, 255, 0, 1)',
+		'rgba(0, 0, 255, 1)',
+		'rgba(199, 21, 133, 1)',
+		'rgba(255, 69, 0, 1)',
+		'rgba(75, 0, 130, 1)',
+		'rgba(255, 255, 0, 1)',
+		'rgba(148, 0, 211, 1)',
+		'rgba(139, 69, 19, 1)',
+		'rgba(0, 128, 0, 1)',
+		'rgba(188, 143, 143, 1)',
+		'rgba(255, 0, 255, 1)',
+		'rgba(128, 128, 0, 1)',
+
+		'rgba(255, 0, 0, 0.9)',
+		'rgba(0, 255, 0, 0.9)',
+		'rgba(0, 0, 255, 0.9)',
+		'rgba(199, 21, 133, 0.9)',
+		'rgba(255, 69, 0, 0.9)',
+		'rgba(75, 0, 130, 0.9)',
+		'rgba(255, 255, 0, 0.9)',
+		'rgba(148, 0, 211, 0.9)',
+		'rgba(139, 69, 19, 0.9)',
+		'rgba(0, 128, 0, 0.9)',
+		'rgba(188, 143, 143, 0.9)',
+		'rgba(255, 0, 255, 0.9)',
+		'rgba(128, 128, 0, 0.9)',
+
+		'rgba(255, 0, 0, 0.8)',
+		'rgba(0, 255, 0, 0.8)',
+		'rgba(0, 0, 255, 0.8)',
+		'rgba(199, 21, 133, 0.8)',
+		'rgba(255, 69, 0, 0.8)',
+		'rgba(75, 0, 130, 0.8)',
+		'rgba(255, 255, 0, 0.8)',
+		'rgba(148, 0, 211, 0.8)',
+		'rgba(139, 69, 19, 0.8)',
+		'rgba(0, 128, 0, 0.8)',
+		'rgba(188, 143, 143, 0.8)',
+		'rgba(255, 0, 255, 0.8)',
+		'rgba(128, 128, 0, 0.8)',
+
+		'rgba(255, 0, 0, 0.7)',
+		'rgba(0, 255, 0, 0.7)',
+		'rgba(0, 0, 255, 0.7)',
+		'rgba(199, 21, 133, 0.7)',
+		'rgba(255, 69, 0, 0.7)',
+		'rgba(75, 0, 130, 0.7)',
+		'rgba(255, 255, 0, 0.7)',
+		'rgba(148, 0, 211, 0.7)',
+		'rgba(139, 69, 19, 0.7)',
+		'rgba(0, 128, 0, 0.7)',
+		'rgba(188, 143, 143, 0.7)',
+		'rgba(255, 0, 255, 0.7)',
+		'rgba(128, 128, 0, 0.7)',
+
+		'rgba(255, 0, 0, 0.6)',
+		'rgba(0, 255, 0, 0.6)',
+		'rgba(0, 0, 255, 0.6)',
+		'rgba(199, 21, 133, 0.6)',
+		'rgba(255, 69, 0, 0.6)',
+		'rgba(75, 0, 130, 0.6)',
+		'rgba(255, 255, 0, 0.6)',
+		'rgba(148, 0, 211, 0.6)',
+		'rgba(139, 69, 19, 0.6)',
+		'rgba(0, 128, 0, 0.6)',
+		'rgba(188, 143, 143, 0.6)',
+		'rgba(255, 0, 255, 0.6)',
+		'rgba(128, 128, 0, 0.6)',
+
+		'rgba(255, 0, 0, 0.5)',
+		'rgba(0, 255, 0, 0.5)',
+		'rgba(0, 0, 255, 0.5)',
+		'rgba(199, 21, 133, 0.5)',
+		'rgba(255, 69, 0, 0.5)',
+		'rgba(75, 0, 130, 0.5)',
+		'rgba(255, 255, 0, 0.5)',
+		'rgba(148, 0, 211, 0.5)',
+		'rgba(139, 69, 19, 0.5)',
+		'rgba(0, 128, 0, 0.5)',
+		'rgba(188, 143, 143, 0.5)',
+		'rgba(255, 0, 255, 0.5)',
+		'rgba(128, 128, 0, 0.5)',
+
+		'rgba(255, 0, 0, 0.4)',
+		'rgba(0, 255, 0, 0.4)',
+		'rgba(0, 0, 255, 0.4)',
+		'rgba(199, 21, 133, 0.4)',
+		'rgba(255, 69, 0, 0.4)',
+		'rgba(75, 0, 130, 0.4)',
+		'rgba(255, 255, 0, 0.4)',
+		'rgba(148, 0, 211, 0.4)',
+		'rgba(139, 69, 19, 0.4)',
+		'rgba(0, 128, 0, 0.4)',
+		'rgba(188, 143, 143, 0.4)',
+		'rgba(255, 0, 255, 0.4)',
+		'rgba(128, 128, 0, 0.4)',
+	]
+
 	var list_languages = {{languages | safe}}
 	var list_groups = {{groups | safe}}
-	var list_texts = {{texts | safe}}
-	var list_text_types = {{ text_types | safe}}
+	var list_texts = []
+	var list_text_types = []
 	var list_tags = {{tags | safe}}
 	var list_data = []
 	var data_for_language = []
+	var list_selected_groups = []
+	var change_level_text = false
+	var selected_groups = []
+	var selected_tag = ''
+	var checked_tag_children = false
 
-	function update_data() {
-            groups_bar.get_data()
-            groups_bar.update_chart()
-            groups_pie.get_data()
-            groups_pie.update_chart()
-    	}
 
-	function update_data_for_language() {
-            selected_language = document.getElementById("selected_language").value
-            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
-            update_data()
-    	}
-
-	function on_change_language() {
-	    selected_language = document.getElementById("selected_language").value
-
-	    filters.texts = list_texts.filter(text => text.language==selected_language)
-	    filters.text_types = list_text_types.filter(text_type => text_type.language_id==selected_language)
-	    filters.tags = list_tags.filter(tag => tag.tag_language==selected_language)
-	    filters.groups = list_groups.filter(group => group.language==selected_language)
-
-	    update_data_for_language()
-	}
-
-	function on_change_font_size() {
-	    selected_font_size = document.getElementById("selected_font_size").value
-	    Chart.defaults.font.size = selected_font_size;
-	    update_data()
-	}
-
-	async function post_request_data_errors(text_type, text, groups, tag){
+	async function post_request_data_errors(text, text_type, group, tag, checked_tag_children) {
 	    var data = []
+	    var texts = []
+	    var text_types = []
 
 	    await axios({
 	        method: 'post',
-	        url:'',
+	        url: '',
 	        data: {
 	            'text': text,
-	            'text_type_id': text_type,
-	            'groups': groups,
+	            'text_type': text_type,
+	            'group': group,
 	            'tag': tag,
+	            'checked_tag_children': checked_tag_children
 	        },
-	        headers:{
+	        headers: {
 	            'X-Requested-With': 'XMLHttpRequest',
 	        }
 	    })
-	        .then(function (response){
+	        .then(function (response) {
 	            data = response.data.data
+	            texts = response.data.texts
+	            text_types = response.data.text_types
 	        })
 
 	    list_data = data
+	    list_texts = texts
+	    list_text_types = text_types
 	}
 
+
+	function on_download() {
+		var data = []
+
+		tag_selected = list_tags.filter(tag => tag.id_tag == filters.selected_tag)
+		if (checked_tag_children) {
+			data.push([tag_selected[0].tag_text_russian, 'с вложенными ошибками'])
+		}
+		else {
+			data.push([tag_selected[0].tag_text_russian])
+		}
+
+		data.push(["tag_language", "id_group", "group_number", "enrollment_date", "count_data",
+		  "count_data_on_100_tokens"])
+		for (let i=0; i<data_for_language.length; i++) {
+			data.push([data_for_language[i].tag__tag_language, data_for_language[i].id_group,
+				data_for_language[i].number, data_for_language[i].date,
+				data_for_language[i].count_data, data_for_language[i].count_data_on_tokens])
+		}
+
+		var workbook = XLSX.utils.book_new(),
+			worksheet = XLSX.utils.aoa_to_sheet(data)
+		workbook.SheetNames.push("Errors")
+		workbook.Sheets["Errors"] = worksheet
+
+		selected_language_id = document.getElementById("selected_language").value
+		selected_language = list_languages.filter(language => language.id_language == selected_language_id)
+
+		XLSX.writeFile(workbook,
+			`Errors_groups_${tag_selected[0].tag_text_russian}_${selected_language[0].language_name}.xlsx`)
+	}
+
+	function update_data() {
+		groups_bar.get_data()
+		groups_bar.update_chart()
+		groups_pie.get_data()
+		groups_pie.update_chart()
+	}
+
+	function update_data_for_language() {
+		selected_language = document.getElementById("selected_language").value
+		data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+		filters.texts = list_texts.filter(text => text.language == selected_language)
+		filters.text_types = list_text_types.filter(text_type => text_type.language_id == selected_language)
+		update_data()
+	}
+
+	function on_change_language() {
+		if (change_level_text) {
+			change_level_text = false
+			filters.selected_groups = list_selected_groups
+		}
+		else {
+			change_level_text = true
+			list_selected_groups = filters.selected_groups
+		}
+
+		selected_language = document.getElementById("selected_language").value
+		filters.tags = list_tags.filter(tag => tag.tag_language == selected_language)
+		filters.groups = list_groups.filter(group => group.language == selected_language)
+		update_data_for_language()
+	}
+
+	function on_change_font_size() {
+		selected_font_size = document.getElementById("font_size").value
+		Chart.defaults.font.size = selected_font_size
+		update_data()
+	}
+
+	function on_change_type_static() {
+		type_stat = document.getElementById("selected_stat").value
+		if (type_stat == 'абсолютная') {
+			data_for_language.sort((x, y) => y.count_data - x.count_data)
+        }
+        else {
+        	data_for_language.sort((x, y) => y.count_data_on_tokens - x.count_data_on_tokens)
+        }
+
+        update_data()
+	}
+
+
 	var filters = new Vue({
-	    el: '#filters',
-	    data: {
-	        checked_filters: [],
-	        groups: list_groups.filter(group => group.language==list_languages[0].id_language),
-	        selected_group: [],
-	        tags: list_tags.filter(tag => tag.tag_language==list_languages[0].id_language),
-	        selected_tag_type: '',
-	        texts: list_texts.filter(text => text.language==list_languages[0].id_language),
-	        selected_text: '',
-	        text_types: list_text_types.filter(text_type => text_type.language_id==list_languages[0].id_language),
-	        selected_text_type: '',
-		type_static: ['абсолютная', 'на 100 токенов'],
-		selected_type_static: 'абсолютная',
-	    },
-	    methods:{
-	        async update_diagrams(){
-	            await post_request_data_errors(this.selected_text_type, this.selected_text, this.selected_group,
-	                this.selected_tag_type)
+		el: '#form_error_groups_filters',
+		data: {
+			groups: list_groups.filter(group => group.language == list_languages[0].id_language),
+			selected_groups: [],
+			tags: list_tags.filter(tag => tag.tag_language == list_languages[0].id_language),
+			selected_tag: '',
+			texts: list_texts.filter(text => text.language == list_languages[0].id_language),
+			selected_text: '',
+			text_types: list_text_types.filter(text_type => text_type.language_id == list_languages[0].id_language),
+			selected_text_type: ''
+		},
+		methods: {
+			async update_diagrams() {
+				await post_request_data_errors(this.selected_text, this.selected_text_type, selected_groups,
+						selected_tag, checked_tag_children)
+				document.getElementById("selected_stat").value = 'абсолютная'
+				update_data_for_language()
+			},
+			on_choice_params() {
+				if (this.selected_tag == '') {
+					document.getElementById("error_tag").style.display = "block"
+					document.getElementById("filter_tag").classList.add('border')
+					document.getElementById("filter_tag").classList.add('border-danger')
+				}
+				else {
+					document.getElementById("error_tag").style.display = "none"
+					document.getElementById("filter_tag").classList.remove('border-danger')
+					document.getElementById("filter_tag").classList.remove('border')
+				}
 
-	            update_data_for_language()
-	            document.getElementById("btn-download").disabled = false
-	        },
-	        on_change_groups(){
-	            if (this.selected_group == '' || this.selected_tag_type == ''){
-	                document.getElementById("error_groups").style.display = "block"
-	            }
-	            else {
-	                document.getElementById("error_groups").style.display = "none"
-	                this.update_diagrams()
-	            }
-	        },
-	        on_change_filters_for_texts(){
-	            div_texts_filters = document.getElementById("filters_for_texts")
+				if (this.selected_groups.length == 0) {
+					document.getElementById("error_group").style.display = 'block'
+					document.getElementById("filter_group").classList.add('border')
+					document.getElementById("filter_group").classList.add('border-danger')
+				}
+				else {
+					document.getElementById("error_group").style.display = 'none'
+					document.getElementById("filter_group").classList.remove('border-danger')
+					document.getElementById("filter_group").classList.remove('border')
+				}
 
-	            if(div_texts_filters.style.display == "block"){
-	                div_texts_filters.style.display = "none"
-	            }
-	            else {
-	                div_texts_filters.style.display = "block"
-	            }
-	        },
-	         on_change_choice_text(){
-	            filter_text = document.getElementById("filter_text")
-	            if (this.checked_filters.indexOf("all_texts") == -1){
-	                filter_text.style.visibility = "hidden"
-	                this.selected_text = ''
-	                this.update_diagrams()
-	            }
-	            else {
-	                filter_text.style.visibility = "visible"
-	            }
-	        },
-	        on_change_text(){
-	            if (this.checked_filters.indexOf("all_texts") != -1){
-	                this.update_diagrams()
-	            }
-	        },
-	        on_change_choice_text_types(){
-	            filter_text_type = document.getElementById("filter_text_type")
-	            if (this.checked_filters.indexOf("text_types") == -1){
-	                filter_text_type.style.visibility = "hidden"
-	                this.selected_text_type = ''
-	                this.update_diagrams()
-	            }
-	            else {
-	                filter_text_type.style.visibility = "visible"
-	            }
-	        },
-	        on_change_text_type(){
-	            if (this.checked_filters.indexOf("text_types") != -1) {
-	                this.update_diagrams()
-	            }
-	        },
-		on_change_type_static(){
-                    if (this.selected_type_static=='абсолютная'){
-	                data_for_language.sort((x, y) => y.count_data - x.count_data);
-                    }
-                    else {
-	                data_for_language.sort((x, y) => y.count_data_on_tokens - x.count_data_on_tokens);
-		    }
-			
-                    update_data()
-            	},
-	        on_download(){
-	            var data = []
+				if (this.selected_groups.length != 0 && this.selected_tag != '') {
+					document.getElementById("card_tag").style.display = 'none'
+					document.getElementById("card_tag_children").style.display = 'none'
 
-	            tag_selected = list_tags.filter(tag => tag.id_tag==this.selected_tag_type),
-	            data.push([tag_selected[0].tag_text_russian])
+					selected_groups = this.selected_groups
+					selected_tag = this.selected_tag
 
-	            data.push(["tag_language", "id_group", "group_number", "enrollment_date", "count_data",
-			      "count_data_on_100_tokens"])
-	            for (let i=0; i<data_for_language.length; i++){
-	                data.push([data_for_language[i].tag__tag_language, data_for_language[i].id_group,
-	                data_for_language[i].number, data_for_language[i].date,
-	                data_for_language[i].count_data, data_for_language[i].count_data_on_tokens])
-	            }
+					if (document.getElementById("tag_children").checked) {
+						checked_tag_children = true
+					}
+					else {
+						checked_tag_children = false
+					}
 
-	            var workbook = XLSX.utils.book_new(),
-	                worksheet = XLSX.utils.aoa_to_sheet(data);
-	            workbook.SheetNames.push("Errors");
-	            workbook.Sheets["Errors"] = worksheet;
-	            selected_language = document.getElementById("selected_language").value
-	            XLSX.writeFile(workbook, `Errors_groups_${this.selected_tag_type}_${selected_language}.xlsx`);
-	        },
-	    }
+					legend_filters.remove_cards_for_groups()
+					this.update_diagrams()
+
+					legend_filters.groups = this.selected_groups
+					legend_filters.create_cards_for_groups()
+					legend_filters.length_applied_groups = this.selected_groups.length
+
+					tag = list_tags.filter(tag => tag.id_tag == this.selected_tag)
+					legend_filters.tag = tag[0].tag_text_russian
+
+					if (checked_tag_children) {
+						document.getElementById("card_tag_children").style.display = 'block'
+					}
+					else {
+						document.getElementById("card_tag").style.display = 'block'
+					}
+
+					document.getElementById("btn-download").disabled = false
+					document.getElementById("btn-filters").disabled = false
+				}
+			},
+			async on_change_choice_text() {
+				if (!document.getElementById('filter_all_texts').checked) {
+					this.selected_text = ''
+					this.update_diagrams()
+
+					legend_filters.text = ''
+					document.getElementById("card_text").style.display = 'none'
+				}
+			},
+			async on_change_text() {
+				this.update_diagrams()
+
+				legend_filters.text = this.selected_text
+				document.getElementById("card_text").style.display = 'block'
+			},
+			async on_change_choice_text_types() {
+				if (!document.getElementById('filter_text_types').checked) {
+					this.selected_text_type = ''
+					this.update_diagrams()
+
+					legend_filters.text_type = ''
+					document.getElementById("card_text_type").style.display = 'none'
+				}
+			},
+			async on_change_text_type() {
+				this.update_diagrams()
+
+				selected_text_type = list_text_types.filter(text_type => text_type.id_text_type ==
+																							this.selected_text_type)
+				legend_filters.text_type = selected_text_type[0].text_type_name
+				document.getElementById("card_text_type").style.display = 'block'
+			}
+		}
 	})
 
-	Chart.defaults.font.size = 16;
+	var legend_filters = new Vue({
+		el: '#legend_checked_filters',
+		data: {
+			groups: [],
+			tag: '',
+			text: '',
+			text_type: '',
+			length_applied_groups: 0
+		},
+		methods: {
+			create_cards_for_groups() {
+				dt = document.getElementById("legend_checked_filters")
+
+				var div_row = document.createElement("div")
+
+				for (let i=0; i<this.groups.length; i++) {
+					if (i % 9 == 0) {
+						if (i != 0) {
+							dt.appendChild(div_row)
+						}
+
+						div_row = document.createElement("div")
+						div_row.classList.add('d-flex')
+						div_row.classList.add('flex-column')
+						div_row.classList.add('flex-md-row')
+						div_row.classList.add('gap-3')
+						div_row.classList.add('mt-2')
+						div_row.classList.add('justify-content-start')
+					}
+
+					 let div = document.createElement("div")
+					 div.classList.add('card')
+					 div.classList.add('card-rounded')
+					 div.classList.add('shadow-sm')
+					 div.classList.add('border')
+					 div.classList.add('border-primary')
+
+					 let div_child = document.createElement("div")
+					 div_child.classList.add('card-body')
+
+					 let p = document.createElement("p")
+					 p.classList.add('card-text')
+					 p.classList.add('text-primary')
+					 p.classList.add('text-center')
+					 p.appendChild(document.createTextNode(this.groups[i]))
+
+					 div_child.appendChild(p)
+					 div.appendChild(div_child)
+					 div_row.appendChild(div)
+				}
+				dt.appendChild(div_row)
+			},
+			remove_cards_for_groups() {
+				dt = document.getElementById("legend_checked_filters")
+
+				if (this.length_applied_groups != 0) {
+					if (this.length_applied_groups % 9 == 0) {
+						for (let i=0; i<Math.floor(this.length_applied_groups / 9); i++) {
+							dt.removeChild(dt.lastElementChild)
+						}
+					}
+					else {
+						for (let i=0; i<Math.floor(this.length_applied_groups / 9) + 1; i++) {
+							dt.removeChild(dt.lastElementChild)
+						}
+					}
+				}
+			}
+		}
+	})
+
+
+	Chart.defaults.font.size = 16
 	var groups_bar = new Vue({
-	    el: '#groups_bar',
-	    data:{
+	    el: '#errors_groups_bar',
+	    data: {
 	        chart: {},
 	        labels: [],
 	        stars: [],
@@ -332,7 +672,7 @@
 	        loading: false
 	    },
 	    methods: {
-	        mounted(){
+	        mounted() {
 	            this.init_chart()
 	            this.get_data()
 	            this.update_chart()
@@ -370,12 +710,13 @@
 	        get_data() {
 	            var labels = []
 	            var points = []
+	            type_stat = document.getElementById("selected_stat").value
 
 	            for (let i=0; i<data_for_language.length; i++) {
                         group = data_for_language[i].number + ' (' + data_for_language[i].date + ')'
                         labels.push(group)
 
-                        if (filters.selected_type_static=='абсолютная'){
+                        if (type_stat == 'абсолютная') {
                             points.push(data_for_language[i].count_data)
                         }
                         else {
@@ -385,15 +726,15 @@
 
 	            this.labels = labels
 	            this.stars = points
-	        },
+	        }
 	    }
 	})
 
 	groups_bar.mounted()
 
 	var groups_pie = new Vue({
-	    el: '#groups_pie',
-	    data:{
+	    el: '#errors_groups_pie',
+	    data: {
 	        chart: {},
 	        labels: [],
 	        stars: [],
@@ -402,7 +743,7 @@
 	        loading: false
 	    },
 	    methods: {
-	        mounted(){
+	        mounted() {
 	            this.init_chart()
 	            this.get_data()
 	            this.update_chart()
@@ -414,88 +755,8 @@
 	                    labels: [],
 	                    datasets: [{
 	                        label: 'Количество ошибок',
-	                         backgroundColor: [
-	                            'rgba(163,221,203,1)',
-	                            'rgba(232,233,161,1)',
-	                            'rgba(230,181,102,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(100,112,255,1)',
-	                            'rgba(229,255,120,1)',
-	                            'rgba(254,0,126,1)',
-
-	                            'rgba(220, 20, 60,1)',
-	                            'rgba(255, 165, 0,1)',
-	                            'rgba(143, 188, 143,1)',
-	                            'rgba(127, 255, 212,1)',
-	                            'rgba(139, 0, 139,1)',
-	                            'rgba(188, 143, 143,1)',
-	                            'rgba(28, 128, 0,1)',
-
-	                            'rgba(250, 128, 114,1)',
-	                            'rgba(255, 192, 203,1)',
-	                            'rgba(0, 100, 0,1)',
-	                            'rgba(255, 218, 185,1)',
-	                            'rgba(95, 158, 160,1)',
-	                            'rgba(153, 50, 204,1)',
-	                            'rgba(30, 144, 255,1)',
-
-	                            'rgba(210, 105, 30,1)',
-	                            'rgba(105, 105, 105,1)',
-	                            'rgba(47, 79, 79,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(255, 255, 0,1)',
-	                            'rgba(0, 255, 0,1)',
-	                            'rgba(255, 165, 0,1)',
-
-	                            'rgba(205, 92, 92,1)',
-	                            'rgba(119, 136, 153,1)',
-	                            'rgba(222, 184, 135,1)',
-	                            'rgba(0, 0, 128,1)',
-	                            'rgba(135, 206, 235,1)',
-	                            'rgba(255, 127, 80,1)',
-	                            'rgba(147, 112, 219,1)',
-	                        ],
-	                        borderColor: [
-	                            'rgba(163,221,203,1)',
-	                            'rgba(232,233,161,1)',
-	                            'rgba(230,181,102,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(100,112,255,1)',
-	                            'rgba(229,255,120,1)',
-	                            'rgba(254,0,126,1)',
-
-	                            'rgba(220, 20, 60,1)',
-	                            'rgba(255, 165, 0,1)',
-	                            'rgba(143, 188, 143,1)',
-	                            'rgba(127, 255, 212,1)',
-	                            'rgba(139, 0, 139,1)',
-	                            'rgba(188, 143, 143,1)',
-	                            'rgba(28, 128, 0,1)',
-
-	                            'rgba(250, 128, 114,1)',
-	                            'rgba(255, 192, 203,1)',
-	                            'rgba(0, 100, 0,1)',
-	                            'rgba(255, 218, 185,1)',
-	                            'rgba(95, 158, 160,1)',
-	                            'rgba(153, 50, 204,1)',
-	                            'rgba(30, 144, 255,1)',
-
-	                            'rgba(210, 105, 30,1)',
-	                            'rgba(105, 105, 105,1)',
-	                            'rgba(47, 79, 79,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(255, 255, 0,1)',
-	                            'rgba(0, 255, 0,1)',
-	                            'rgba(255, 165, 0,1)',
-
-	                            'rgba(205, 92, 92,1)',
-	                            'rgba(119, 136, 153,1)',
-	                            'rgba(222, 184, 135,1)',
-	                            'rgba(0, 0, 128,1)',
-	                            'rgba(135, 206, 235,1)',
-	                            'rgba(255, 127, 80,1)',
-	                            'rgba(147, 112, 219,1)',
-	                        ],
+	                        backgroundColor: colors,
+	                        borderColor: colors,
 	                        data: []
 	                    }]
 	                },
@@ -520,19 +781,20 @@
 	        get_data() {
 	            var labels = []
 	            var points = []
+	            type_stat = document.getElementById("selected_stat").value
 
 	            var count = 0
-		    var count_on_tokens = 0
+		    	var count_on_tokens = 0
 	            for (let i=0; i<data_for_language.length; i++) {
 	                count += data_for_language[i].count_data
-			count_on_tokens += data_for_language[i].count_data_on_tokens
+					count_on_tokens += data_for_language[i].count_data_on_tokens
 	            }
 
 	            for (let i=0; i<data_for_language.length; i++) {
                         group = data_for_language[i].number + ' (' + data_for_language[i].date + ')'
                         labels.push(group)
 
-                        if (filters.selected_type_static=='абсолютная'){
+                        if (type_stat == 'абсолютная') {
                             points.push(data_for_language[i].count_data * 100 / count)
                         }
                         else {
@@ -542,7 +804,7 @@
 
 	            this.labels = labels
 	            this.stars = points
-	        },
+	        }
 	    }
 	})
 

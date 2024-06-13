@@ -9,7 +9,7 @@
 
 {% block content %}
 <main class="container-fluid mt-5 fs-5">
-	<h2 class="text-primary text-center my-5">Количество ошибок в разрезе степеней грубости ошибок</h2>
+	<h2 class="text-primary text-center my-5">Количество ошибок в разрезе типов ошибок для заданной самооценки</h2>
 
 	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
 		<div class="col">
@@ -30,28 +30,87 @@
 				<option>на 100 токенов</option>
             </select>
 		</div>
+
+		<div id="signature" class="col">
+			<label class="text-center text-primary"> Подписи на </label>
+			<hr class="mt-1"/>
+			{% verbatim %}
+			<select class="form-select" v-model="selected_language_labels" @change="on_change_language_labels">
+				<option v-for="language_label in language_labels">{{ language_label }}</option>
+			</select>
+			{% endverbatim %}
+		</div>
+
+		<div id="level_detail" class="col">
+			<label class="text-center text-primary"> Уровень детализации </label>
+			<hr class="mt-1"/>
+			{% verbatim %}
+			<select class="form-select" v-model="selected_level_detail" @change="on_change_level_detail">
+				<option v-for="level in levels":value="level.id_level">{{ level.level_text }}</option>
+			</select>
+			{% endverbatim %}
+		</div>
+
+		<div id="self_ratings" class="col">
+			<label class="text-center text-primary"> Самооценивание </label>
+			<hr class="mt-1"/>
+			{% verbatim %}
+			<select class="form-select" v-model="selected_self_rating" @change="on_change_self_rating">
+				<option v-for="self_rating in self_ratings":value="self_rating.self_rating">
+					{{ self_rating.self_rating_text }}
+				</option>
+			</select>
+			{% endverbatim %}
+		</div>
 	</div>
 
 	<hr class="mt-5" />
 	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-between">
-		<div class="d-flex flex-column flex-md-row gap-2">
+		<div class="d-flex flex-column flex-md-row gap-4">
 			<div class="col-0">
-				<label class="text-center text-primary"> Размер шрифта </label>
+				<div class="d-flex flex-column flex-md-row gap-2">
+					<div class="col-0">
+						<label class="text-center text-primary"> Размер шрифта </label>
+					</div>
+					<div class="col">
+						<select id="font_size" class="form-select" onchange="on_change_font_size()">
+							<option>10</option>
+							<option>11</option>
+							<option>12</option>
+							<option>13</option>
+							<option>14</option>
+							<option>15</option>
+							<option selected>16</option>
+							<option>17</option>
+							<option>18</option>
+							<option>19</option>
+							<option>20</option>
+						</select>
+					</div>
+				</div>
 			</div>
 			<div class="col">
-				<select id="font_size" class="form-select" onchange="on_change_font_size()">
-					<option>10</option>
-					<option>11</option>
-					<option selected>12</option>
-					<option>13</option>
-					<option>14</option>
-					<option>15</option>
-					<option>16</option>
-					<option>17</option>
-					<option>18</option>
-					<option>19</option>
-					<option>20</option>
-				</select>
+				<div class="d-flex flex-column flex-md-row gap-2">
+					<div class="col-0">
+						<label class="text-center text-primary"> Класс ошибок </label>
+					</div>
+					<div id="tag_parents" class="col">
+						{% verbatim %}
+						<select
+							id="filter_tag_parent"
+							class="form-select"
+							v-model="selected_tag_parent"
+							@change="on_change_tag_parent"
+							disabled
+						>
+							<option selected> -- </option>
+							<option v-for="tag_parent in tag_parents":value="tag_parent.id_tag">
+								{{ tag_parent.tag_text_russian }}
+							</option>
+						</select>
+						{% endverbatim %}
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="d-flex flex-column flex-md-row gap-2">
@@ -65,6 +124,7 @@
 					data-bs-target="#filters"
 					aria-expanded="false"
 					aria-controls="filters"
+					disabled
 				>
 					<svg
 						class="bi"
@@ -83,8 +143,10 @@
 				</button>
 			</div>
 			<div class="col-0">
-			 <button id="btn-download" type="button" class="btn btn-primary" onclick="on_download()">Скачать</button>
-		</div>
+			 	<button id="btn-download" type="button" class="btn btn-primary" onclick="on_download()" disabled>
+					Скачать
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -342,7 +404,6 @@
 										</div>
 									</div>
 								</div>
-
 								<div class="form-check">
 									<div class="row">
 										<div class="col-3">
@@ -391,6 +452,11 @@
 
 	<hr class="mt-2" />
 	<div id="legend_checked_filters" class="d-flex flex-column flex-md-row gap-3 mt-4 justify-content-start">
+		<div id="card_self_rating" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary" v-html="self_rating">{{self_rating}}</p>
+			</div>
+		</div>
 		<div id="card_group" class="card card-rounded shadow-sm card-display border border-primary">
 			<div class="card-body">
 				<p class="card-text text-primary">
@@ -424,13 +490,13 @@
 		</div>
 	</div>
 
-	<div id="diagrams" class="d-flex flex-column  my-2">
-		<div id="diagrams_grade_errors" class="row">
-			<div id="grade_errors_bar" class="col card my-3">
-				<canvas id="bar_grade_errors" ref="chart" class="chart half_width_chart m-4"></canvas>
+	<div id="diagrams" class="d-flex flex-column my-2">
+		<div id="diagrams_self_ratings">
+			<div id="self_ratings_bar" class="card my-3">
+				<canvas id="bar_self_ratings" ref="chart" class="chart bar m-4"></canvas>
 			</div>
-			<div id="grade_errors_pie" class="col card my-3">
-				<canvas id="pie_grade_errors" ref="chart" class="chart half_width_chart m-4"></canvas>
+			<div id="self_ratings_pie" class="card my-3">
+				<canvas id="pie_self_ratings" ref="chart" class="chart pie m-4"></canvas>
 			</div>
 		</div>
 	</div>
@@ -438,19 +504,27 @@
 {% endblock content%} {%block script%}
 <script type="text/javascript">
 	var list_languages = {{languages | safe}}
-	var list_groups = {{groups | safe}}
+	var list_levels = {{levels | safe}}
+	var list_groups = []
 	var list_enrollment_date = []
-	var list_courses = {{courses | safe}}
-	var list_texts = {{texts | safe}}
-	var list_text_types = {{ text_types | safe}}
-	var list_data = {{data | safe}}
+	var list_courses = []
+	var list_texts = []
+	var list_text_types = []
+	var list_data = []
+	var list_self_ratings = {{self_ratings | safe}}
+	var data_for_language = []
+	var change_level_text = false
+	var list_tag_parents = {{tag_parents | safe}}
+	let dict_children = {{dict_children | safe}}
 
-	var data_for_language = list_data.filter(data => data.grade__grade_language == list_languages[0].id_language)
 
-
-	async function post_request_data_errors(group, enrollment_date, surname, name, patronymic, course, text,
-											text_type) {
+	async function post_request_data_errors(group, enrollment_date, surname, name, patronymic, course, text, text_type,
+											level,  self_rating) {
 	    var data = []
+	    var groups = []
+	    var courses = []
+	    var texts = []
+	    var text_types = []
 
 	    await axios({
 	        method: 'post',
@@ -464,6 +538,8 @@
 	            'course': course,
 	            'text': text,
 	            'text_type': text_type,
+	            'level': level,
+	            'self_rating': self_rating,
 	            'flag_post': 'update_diagrams'
 	        },
 	        headers: {
@@ -471,54 +547,85 @@
 	        }
 	    })
 	        .then(function (response) {
-	            data = response.data.data_grade_errors
+	            data = response.data.data
+	            groups = response.data.groups
+	            courses = response.data.courses
+	            texts = response.data.texts
+	            text_types = response.data.text_types
 	        })
 
 	    list_data = data
+	    list_groups = groups
+	    list_courses = courses
+	    list_texts = texts
+	    list_text_types = text_types
 	}
 
 
 	function on_download() {
 		var data = []
 
-		data.push(["id_grade", "grade_name", "grade_language", "count_data", "count_data_on_100_tokens"])
-		for (let i=0; i<data_for_language.length; i++) {
-			data.push([data_for_language[i].grade__id_grade, data_for_language[i].grade__grade_name,
-					data_for_language[i].grade__grade_language, data_for_language[i].count_data,
-					data_for_language[i].count_data_on_tokens])
-	    }
+		selected_self_rating = list_self_ratings.filter(self_rating => self_rating.self_rating ==
+																					self_ratings.selected_self_rating)
+		data.push([selected_self_rating[0].self_rating_text])
 
-	    var workbook = XLSX.utils.book_new(),
-	    	worksheet = XLSX.utils.aoa_to_sheet(data)
-	    workbook.SheetNames.push("Errors")
-	    workbook.Sheets["Errors"] = worksheet
+		data.push(["id_tag", "tag_parent", "tag_language", "tag_text", "tag_text_russian", "count_data",
+		  "count_data_on_100_tokens"])
+		for (let i=0; i<data_for_language.length; i++){
+			data.push([data_for_language[i].tag__id_tag, data_for_language[i].tag__tag_parent,
+				data_for_language[i].tag__tag_language, data_for_language[i].tag__tag_text,
+				data_for_language[i].tag__tag_text_russian, data_for_language[i].count_data,
+				data_for_language[i].count_data_on_tokens])
+		}
 
-	    selected_language_id = document.getElementById("selected_language").value
+		var workbook = XLSX.utils.book_new(),
+			worksheet = XLSX.utils.aoa_to_sheet(data)
+		workbook.SheetNames.push("Errors")
+		workbook.Sheets["Errors"] = worksheet
+
+		selected_language_id = document.getElementById("selected_language").value
 		selected_language = list_languages.filter(language => language.id_language == selected_language_id)
 
-	    XLSX.writeFile(workbook, `Errors_grade_${selected_language[0].language_name}.xlsx`)
+		XLSX.writeFile(workbook,
+			`Errors_self_ratings_${selected_self_rating[0].self_rating_text}_${level_detail.selected_level_detail}_level_${selected_language[0].language_name}.xlsx`)
 	}
 
 	function update_data() {
-		grade_errors_bar.get_data()
-		grade_errors_bar.update_chart()
-		grade_errors_pie.get_data()
-		grade_errors_pie.update_chart()
+		self_ratings_bar.get_data()
+		self_ratings_bar.update_chart()
+		self_ratings_pie.get_data()
+		self_ratings_pie.update_chart()
 	}
 
 	function update_data_for_language() {
 		selected_language = document.getElementById("selected_language").value
-		data_for_language = list_data.filter(data => data.grade__grade_language == selected_language)
+		data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+
+		tag_parents.selected_tag_parent = '--'
+		tag_parents.tag_parents = list_tag_parents.filter(tag_parent => tag_parent.tag_language == selected_language)
+
+		filters.groups = list_groups.filter(group => group.language == selected_language)
+		filters.courses = list_courses.filter(course => course.language == selected_language)
+		filters.texts = list_texts.filter(text => text.language == selected_language)
+		filters.text_types = list_text_types.filter(text_type => text_type.language_id == selected_language)
+
 		update_data()
 	}
 
 	function on_change_language() {
-		 selected_language = document.getElementById("selected_language").value
+		selected_language = document.getElementById("selected_language").value
 
-		 filters.groups = list_groups.filter(group => group.language == selected_language)
-		 filters.courses = list_courses.filter(course => course.language == selected_language)
-		 filters.texts = list_texts.filter(text => text.language == selected_language)
-		 filters.text_types = list_text_types.filter(text_type => text_type.language_id == selected_language)
+		 language_record = list_languages.filter(language => language.id_language == selected_language)
+		 signature.language_labels[1] = language_record[0].language_name
+		 signature.selected_language_labels =  signature.language_labels[1]
+
+		 level_detail.levels = list_levels.filter(level => level.level_language == selected_language)
+		 selected_level = level_detail.levels.filter(level => level.id_level == level_detail.selected_level_detail)
+		 if (selected_level.length == 0 || change_level_text) {
+			length_list_levels_for_language = level_detail.levels.length
+			level_detail.selected_level_detail = level_detail.levels[level_detail.levels.length-1].id_level
+			change_level_text = !change_level_text
+		 }
 
 		 update_data_for_language()
 	}
@@ -526,163 +633,255 @@
 	async function post_request_data() {
 		await post_request_data_errors(filters.selected_group, filters.selected_date, filters.surname, filters.name,
 										filters.patronymic, filters.selected_course, filters.selected_text,
-										filters.selected_text_type)
+										filters.selected_text_type, level_detail.selected_level_detail,
+										self_ratings.selected_self_rating)
 	}
-</script>
-<script src="{% static 'js/dashboards.js' %}" type="text/javascript"></script>
-<script type="text/javascript">
-	Chart.defaults.font.size = 12
 
-	var grade_errors_bar = new Vue({
-		el: '#grade_errors_bar',
+
+	var signature = new Vue({
+		el: '#signature',
 		data: {
-			chart: {},
-			labels: [],
-			stars: [],
-			chart_type: 'bar',
-			chartColor: 'crimson',
-			loading: false
+			language_labels:  ['Русском', list_languages[0].language_name],
+			selected_language_labels: list_languages[0].language_name
 		},
-		methods: {
-			mounted() {
-				this.init_chart()
-				this.get_data()
-				this.update_chart()
-			},
-			init_chart() {
-				this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
-					type: this.chart_type,
-					data: {
-						labels: [],
-						datasets: [{
-							label: 'Количество ошибок',
-							backgroundColor: 'crimson',
-							borderColor: 'crimson',
-							data: []
-						}]
-					},
-					options: {
-						responsive: true,
-						tooltips: {
-							mode: 'index'
-						},
-						scales: {
-							y: {
-								beginAtZero: true
-							}
-						}
-					}
-				}));
-			},
-			update_chart() {
-				this.chart.data.labels = this.labels
-				this.chart.data.datasets[0].data = this.stars
-				this.chart.update()
-			},
-			get_data() {
-				var labels = []
-				var points = []
-				type_stat = document.getElementById("selected_stat").value
-
-				for (let i=0; i<data_for_language.length; i++) {
-					labels.push(data_for_language[i].grade__grade_name)
-
-					if (type_stat == 'абсолютная') {
-						points.push(data_for_language[i].count_data)
-					}
-					else {
-						points.push(data_for_language[i].count_data_on_tokens)
-					}
-				}
-
-				this.labels = labels
-				this.stars = points
+		methods:{
+			on_change_language_labels() {
+				update_data()
 			}
 		}
 	})
 
-	grade_errors_bar.mounted()
-
-	var grade_errors_pie = new Vue({
-		el: '#grade_errors_pie',
+	var level_detail = new Vue({
+		el: '#level_detail',
 		data: {
-			chart: {},
-			labels: [],
-			stars: [],
-			chart_type: 'pie',
-			chartColor: 'crimson',
-			loading: false
+			levels: list_levels.filter(level => level.level_language == list_languages[0].id_language),
+			selected_level_detail: list_levels.filter(level => level.level_language ==
+																			list_languages[0].id_language)[0].id_level
 		},
-		methods: {
-			mounted() {
-				this.init_chart()
-				this.get_data()
-				this.update_chart()
-			},
-			init_chart() {
-				this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
-					type: this.chart_type,
-					data: {
-						labels: [],
-						datasets: [{
-							label: 'Грубость ошибки',
-							backgroundColor: colors,
-							borderColor: colors,
-							data: []
-						}]
-					},
-					options: {
-						responsive: true,
-						plugins: {
+		methods:{
+			on_change_level_detail() {
+				filters.update_diagrams()
+			}
+		}
+	})
+
+	var self_ratings = new Vue({
+		el: '#self_ratings',
+		data: {
+			self_ratings: list_self_ratings,
+			selected_self_rating: ''
+		},
+		methods:{
+			on_change_self_rating() {
+				filters.update_diagrams()
+
+				selected_self_rating = list_self_ratings.filter(self_rating => self_rating.self_rating ==
+																							this.selected_self_rating)
+				legend_filters.self_rating = selected_self_rating[0].self_rating_text
+				document.getElementById("card_self_rating").style.display = 'block'
+
+				document.getElementById("btn-download").disabled = false
+				document.getElementById("btn-filters").disabled = false
+				document.getElementById("filter_tag_parent").disabled = false
+			}
+		}
+	})
+
+	var tag_parents = new Vue({
+		el: '#tag_parents',
+		data: {
+			tag_parents: list_tag_parents.filter(tag_parent => tag_parent.tag_language == list_languages[0].id_language),
+			selected_tag_parent: '--'
+		},
+		methods:{
+			on_change_tag_parent() {
+				selected_language = document.getElementById("selected_language").value
+				data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+
+				if (this.selected_tag_parent != '--') {
+					var grouped_data_for_tag = []
+
+					var tag_children = dict_children[this.selected_tag_parent]
+					for (let i=0; i<tag_children.length; i++) {
+						grouped_data = data_for_language.filter(data => data.tag__id_tag == tag_children[i])
+
+						if (grouped_data.length != 0) {
+							grouped_data_for_tag.push(grouped_data[0])
+						}
+					}
+
+					data_for_language = grouped_data_for_tag
+					data_for_language.sort((x, y) => y.count_data - x.count_data)
+				}
+
+				update_data()
+			}
+		}
+	})
+</script>
+<script src="{% static 'js/dashboards.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+	Chart.defaults.font.size = 16
+	var self_ratings_bar = new Vue({
+	    el: '#self_ratings_bar',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'bar',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        label: 'Количество ошибок',
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: []
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+	            type_stat = document.getElementById("selected_stat").value
+
+	            for (let i=0; i<data_for_language.length; i++) {
+                        if (signature.selected_language_labels == 'Русском') {
+                            labels.push(data_for_language[i].tag__tag_text_russian)
+                        }
+                        else {
+                            labels.push(data_for_language[i].tag__tag_text)
+                        }
+
+                        if (type_stat == 'абсолютная') {
+                            points.push(data_for_language[i].count_data)
+                        }
+                        else {
+                            points.push(data_for_language[i].count_data_on_tokens)
+                        }
+                    }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	self_ratings_bar.mounted()
+
+	var self_ratings_pie = new Vue({
+	    el: '#self_ratings_pie',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'pie',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        label: 'Количество ошибок',
+	                         backgroundColor: colors,
+	                        borderColor: colors,
+	                        data: []
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
 							legend: {
 								position: 'bottom'
 							},
 						},
-						tooltips: {
-							mode: 'index'
-						},
-						scales: {
-							y: {
-								beginAtZero: true
-							}
-						}
-					}
-				}));
-			},
-			update_chart() {
-				this.chart.data.labels = this.labels
-				this.chart.data.datasets[0].data = this.stars
-				this.chart.update()
-			},
-			get_data() {
-				var labels = []
-				var points = []
-				type_stat = document.getElementById("selected_stat").value
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+	            type_stat = document.getElementById("selected_stat").value
 
-				var count = 0
-				var count_on_tokens = 0
-				for (let i=0; i<data_for_language.length; i++) {
-					count += data_for_language[i].count_data
+	            var count = 0
+		    	var count_on_tokens = 0
+	            for (let i=0; i<data_for_language.length; i++) {
+	                count += data_for_language[i].count_data
 					count_on_tokens += data_for_language[i].count_data_on_tokens
-				}
+	            }
 
-				for (let i=0; i<data_for_language.length; i++) {
-					labels.push(data_for_language[i].grade__grade_name)
+	            for (let i=0; i<data_for_language.length; i++) {
+					 if (signature.selected_language_labels == 'Русском') {
+						labels.push(data_for_language[i].tag__tag_text_russian)
+					 }
+					 else {
+						labels.push(data_for_language[i].tag__tag_text)
+					 }
 
-					if (type_stat == 'абсолютная') {
+					 if (type_stat == 'абсолютная') {
 						points.push(data_for_language[i].count_data * 100 / count)
-					}
-					else {
+					 }
+					 else {
 						points.push(data_for_language[i].count_data_on_tokens * 100 / count_on_tokens)
-					}
-				}
+					 }
+                }
 
-				this.labels = labels
-				this.stars = points
-			}
-		}
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
 	})
 
-	grade_errors_pie.mounted()
+	self_ratings_pie.mounted()
 </script>
 {%endblock script%}

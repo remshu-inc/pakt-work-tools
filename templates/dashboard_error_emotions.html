@@ -1,587 +1,728 @@
-{% extends 'base.html' %} {%block plugins%}
+{% extends 'base.html' %} {% load static %} {%block plugins%}
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-{%endblock plugins%} {% block content %} {% load static %}
 <script src="{% static 'js/external/axios.min.js' %}"></script>
 <script src="{% static 'js/external/chart.umd.min.js' %}"></script>
 <script src="{% static 'js/external/xlsx.full.min.js' %}"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/dashboard.css' %}" />
+{%endblock plugins%} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/dashboards.css' %}" />
+{% endblock link %}
 
-<div class="mt-3 text-center">
-	<h1>Статистика ошибок по эмоциям</h1>
-</div>
+{% block content %}
+<main class="container-fluid mt-5 fs-5">
+	<h2 class="text-primary text-center my-5">
+		Количество ошибок в разрезе типов ошибок для заданного эмоционально-физиологического состояния
+	</h2>
 
-<div id="languages" class="language">
-	<label>Язык</label><br />
-	<hr id="line_language" class="line_language" />
-	<select id="selected_language" onchange="on_change_language()">
-		{% for language in languages %}
-		<option value="{{language.id_language}}">{{ language.language_name }}</option>
-		{% endfor %}
-	</select>
-</div>
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+		<div class="col">
+			<label class="text-center text-primary"> Язык </label>
+			<hr class="mt-1" />
+			<select id="selected_language" class="form-select" onchange="on_change_language()">
+				{% for language in languages %}
+				<option value="{{language.id_language}}">{{ language.language_name }}</option>
+				{% endfor %}
+			</select>
+		</div>
 
-<hr class="line_all_width" />
-<form id="form_filters" name="filters" method="POST">
-	{% csrf_token %}
-	<div id="filters" class="filtelters_all">
-		<p class="filter_title">Фильтры</p>
-		<div class="filter_group_with_title">
-			<p class="filter_group" @click="on_change_filters_for_student">Фильтры по студентам</p>
-			<div id="filters_for_student" class="filters_for_student">
-				<div id="without_filters" class="filter">
-                        	<input 
-					type="radio" 
-					id="all" 
-					value="all" 
-					v-model="checked_student_filter" 
-					@click="on_cancel_student_filters"
-				/>
-                        	<span>Все</span>
-                    	</div>
-				
-				<div id="groups" class="filter">
-					<input
-						type="radio"
-						id="filter_groups"
-						value="groups"
-						v-model="checked_student_filter"
-						@click="on_change_choice_group"
-					/>
-					<span>Группа</span>
-					{% verbatim %}
-					<select v-model="selected_group" id="filter_group" class="filters_choices">
-						<option v-for="group in groups">{{ group.group_name }}</option>
-					</select>
-					{% endverbatim %}
-					<div id="filter_date" class="filter_date">
-						<span>Учебный год</span>
+		<div class="col">
+			<label class="text-center text-primary"> Статистика </label>
+			<hr class="mt-1"/>
+			<select id="selected_stat" class="form-select" onchange="update_data()">
+				<option>абсолютная</option>
+				<option>на 100 токенов</option>
+            </select>
+		</div>
+
+		<div id="signature" class="col">
+			<label class="text-center text-primary"> Подписи на </label>
+			<hr class="mt-1"/>
+			{% verbatim %}
+			<select class="form-select" v-model="selected_language_labels" @change="on_change_language_labels">
+				<option v-for="language_label in language_labels">{{ language_label }}</option>
+			</select>
+			{% endverbatim %}
+		</div>
+
+		<div id="level_detail" class="col">
+			<label class="text-center text-primary"> Уровень детализации </label>
+			<hr class="mt-1"/>
+			{% verbatim %}
+			<select class="form-select" v-model="selected_level_detail" @change="on_change_level_detail">
+				<option v-for="level in levels":value="level.id_level">{{ level.level_text }}</option>
+			</select>
+			{% endverbatim %}
+		</div>
+
+		<div id="emotions" class="col">
+			<label class="text-center text-primary"> Эмоциональное состояние </label>
+			<hr class="mt-1"/>
+			{% verbatim %}
+			<select class="form-select" v-model="selected_emotion" @change="on_change_emotion">
+				<option v-for="emotion in emotions":value="emotion.id_emotional">{{ emotion.emotional_name }}</option>
+			</select>
+			{% endverbatim %}
+		</div>
+	</div>
+
+	<hr class="mt-5" />
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-between">
+		<div class="d-flex flex-column flex-md-row gap-4">
+			<div class="col-0">
+				<div class="d-flex flex-column flex-md-row gap-2">
+					<div class="col-0">
+						<label class="text-center text-primary"> Размер шрифта </label>
+					</div>
+					<div class="col">
+						<select id="font_size" class="form-select" onchange="on_change_font_size()">
+							<option>10</option>
+							<option>11</option>
+							<option>12</option>
+							<option>13</option>
+							<option>14</option>
+							<option>15</option>
+							<option selected>16</option>
+							<option>17</option>
+							<option>18</option>
+							<option>19</option>
+							<option>20</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="col">
+				<div class="d-flex flex-column flex-md-row gap-2">
+					<div class="col-0">
+						<label class="text-center text-primary"> Класс ошибок </label>
+					</div>
+					<div id="tag_parents" class="col">
 						{% verbatim %}
-						<select v-model="selected_date">
-							<option v-for="date in group_dates">{{ date.enrollment_date }}</option>
+						<select
+							id="filter_tag_parent"
+							class="form-select"
+							v-model="selected_tag_parent"
+							@change="on_change_tag_parent"
+							disabled
+						>
+							<option selected> -- </option>
+							<option v-for="tag_parent in tag_parents":value="tag_parent.id_tag">
+								{{ tag_parent.tag_text_russian }}
+							</option>
 						</select>
 						{% endverbatim %}
-						<input
-							type="button"
-							class="col-12 mt-2 btn shadow-none update-button"
-							style="width: 67%"
-							@click="on_change_group"
-							value="Применить"
-						/>
 					</div>
-					<p id="error_group" class="message">Выберите группу и учебный год.</p>
-				</div>
-
-				<div id="student" class="filter">
-					<input
-						type="radio"
-						id="filter_student"
-						value="student"
-						v-model="checked_student_filter"
-						@click="on_change_choice_student"
-					/>
-					<span>Студент</span>
-					<div id="filter_students" class="filter_students">
-						<input v-model="surname" placeholder="фамилия" />
-						<input v-model="name" placeholder="имя" />
-						<input v-model="patronymic" placeholder="отчество" />
-						<input
-							type="button"
-							class="col-12 mt-2 btn shadow-none update-button"
-							style="width: 83%"
-							@click="on_change_student"
-							value="Применить"
-						/>
-					</div>
-					<p id="error_student" class="message">Введите фамилию и имя студента.</p>
-				</div>
-
-				<div id="courses" class="filter">
-					<input
-						type="radio"
-						id="filter_courses"
-						value="courses"
-						v-model="checked_student_filter"
-						@click="on_change_choice_course"
-					/>
-					<span>Курс</span>
-					{% verbatim %}
-					<select
-						v-model="selected_course"
-						@change="on_change_course"
-						id="filter_course"
-						class="filters_choices"
-					>
-						<option v-for="course in courses">{{ course.creation_course }}</option>
-					</select>
-					{% endverbatim %}
 				</div>
 			</div>
 		</div>
-
-		<div class="filter_group_with_title">
-			<p class="filter_group" @click="on_change_filters_for_texts">Фильтры по текстам</p>
-			<div id="filters_for_texts" class="filters_for_texts">
-				<div id="all_texts" class="filter">
-					<input
-						type="checkbox"
-						id="filter_all_texts"
-						value="all_texts"
-						v-model="checked_filters"
-						@change="on_change_choice_text"
-					/>
-					<span>Название текста</span>
-					{% verbatim %}
-					<select v-model="selected_text" @change="on_change_text" id="filter_text" class="filters_choices">
-						<option v-for="text in texts" :value="text.header">{{ text.header }}</option>
-					</select>
-					{% endverbatim %}
-				</div>
-
-				<div id="text_types" class="filter">
-					<input
-						type="checkbox"
-						id="filter_text_types"
-						value="text_types"
-						v-model="checked_filters"
-						@change="on_change_choice_text_types"
-					/>
-					<span>Тип текста</span>
-					{% verbatim %}
-					<select
-						v-model="selected_text_type"
-						@change="on_change_text_type"
-						id="filter_text_type"
-						class="filters_choices"
+		<div class="d-flex flex-column flex-md-row gap-2">
+			<div class="col">
+				<button
+					id="btn-filters"
+					type="button"
+					class="btn btn-outline-secondary shadow-none"
+					title="Фильтры"
+					data-bs-toggle="collapse"
+					data-bs-target="#filters"
+					aria-expanded="false"
+					aria-controls="filters"
+					disabled
+				>
+					<svg
+						class="bi"
+						xmlns="http://www.w3.org/2000/svg"
+						height="1.6em"
+						stroke="currentColor"
+						fill="none"
+						viewBox="0 0 24 24"
 					>
-						<option v-for="text_type in text_types" :value="text_type.id_text_type">
-							{{ text_type.text_type_name }}
-						</option>
-					</select>
-					{% endverbatim %}
-				</div>
+						<path
+							stroke-linecap="round"
+							stroke-width="1.5"
+							d="M20.058 9.723c.948-.534 1.423-.801 1.682-1.232.26-.43.26-.949.26-1.987v-.69c0-1.326 0-1.99-.44-2.402C21.122 3 20.415 3 19 3H5c-1.414 0-2.121 0-2.56.412C2 3.824 2 4.488 2 5.815v.69c0 1.037 0 1.556.26 1.986.26.43.733.698 1.682 1.232l2.913 1.64c.636.358.955.537 1.183.735.474.411.766.895.898 1.49.064.284.064.618.064 1.285v2.67c0 .909 0 1.364.252 1.718.252.355.7.53 1.594.88 1.879.734 2.818 1.101 3.486.683.668-.417.668-1.372.668-3.282v-2.67c0-.666 0-1 .064-1.285a2.68 2.68 0 0 1 .899-1.49"
+						/>
+					</svg>
+				</button>
+			</div>
+			<div class="col-0">
+			 	<button id="btn-download" type="button" class="btn btn-primary" onclick="on_download()" disabled>
+					Скачать
+				</button>
 			</div>
 		</div>
-
-		<hr style="margin: 2% 0 1%; clear: left" />
-		<div id="filter_levels" class="certain_filter">
-			<span style="margin: 2%">Уровень детализации</span>
-			{% verbatim %}
-			<select v-model="selected_level_type" @change="on_change_level_type">
-				<option v-for="level in levels">{{ level }}</option>
-			</select>
-			{% endverbatim %}
-		</div>
-
-		<hr style="margin: 2% 0 1%; clear:left" />
-            	<div id="filter_type_static" class="certain_filter">
-                	<span style="margin: 2%">Статистика</span>
-                	{% verbatim %}
-                    	<select v-model="selected_type_static" @change="on_change_type_static">
-	                       	<option v-for="type in type_static">{{ type }}</option>
-                    	</select>
-                	{% endverbatim%}
-            	</div>
-
-		<hr style=" margin: 2% 0 1%; clear: left" />
-            	<div id="filter_language_labels" class="certain_filter">
-                	<span style="margin: 2%">Подписи на</span>
-                	{% verbatim %}
-                    	<select v-model="selected_language_labels" @change="on_change_language_labels">
-                        	<option v-for="language_label in language_labels">{{ language_label }}</option>
-                    	</select>
-                	{% endverbatim %}
-            	</div>
-
-		<hr style="margin: 2% 0 1%; clear: left" />
-		<div id="tags" class="certain_filter">
-			<span>Эмоция</span>
-			{% verbatim %}
-			<select v-model="selected_emotion" id="filter_emotions" @change="on_change_emotion">
-				<option v-for="emotion in emotions" :value="emotion.id_emotional">{{ emotion.emotional_name }}</option>
-			</select>
-			{% endverbatim %}
-		</div>
-
-		<hr style="margin: 2% 0 1%; clear: left" />
-		<input
-			id="btn-download"
-			type="button"
-			class="col-12 mt-2 btn shadow-none update-button"
-			style="width: 200px; float: right; margin-bottom: 1%"
-			@click="on_download"
-			value="Скачать"
-			disabled
-		/>
 	</div>
-</form>
 
-<hr class="line_all_width" style="clear: right" />
-<div id="legend_checked_filters" class="legend_checked_filters">
-        <dl>
-		<dt id="list_checked_filters" style="font-weight:normal;"> Выбранные фильтры:</dt>
-        </dl>
-</div>
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-end">
+		<div id="filters" class="collapse card card-rounded shadow-sm col-12">
+			<div class="card-body">
+				<form id="form_filters" name="filters">
+					<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+						<div class="card col-5">
+							<div class="card-header text-secondary" > Фильтры по студентам </div>
+							<div id="filters_for_student" class="card-body">
+								<div class="form-check">
+									<input
+										id="all"
+										type="radio"
+										name="student_filters"
+										class="form-check-input"
+										data-bs-toggle="collapse"
+										data-bs-target="#none"
+										aria-expanded="false"
+										aria-controls="none"
+										@change="on_change_choice_student_filters(); on_change_choice_all();"
+										checked
+									/>
+									<label class="form-check-label text-filter" for="all"> Все </label>
+									<span
+										id="none"
+										class="accordion-collapse collapse"
+										data-bs-parent="#filters_for_student"
+									>
+									</span>
+								</div>
 
-<div id="font_size" class="font_size_filter">
-	<label>Размер шрифта</label>
-	<select id="selected_font_size" onchange="on_change_font_size()">
-		<option>10</option>
-		<option>11</option>
-		<option>12</option>
-		<option>13</option>
-		<option>14</option>
-		<option>15</option>
-		<option selected>16</option>
-		<option>17</option>
-		<option>18</option>
-		<option>19</option>
-		<option>20</option>
-	</select>
-</div>
+								<div class="form-check">
+									<input
+										id="groups"
+										type="radio"
+										name="student_filters"
+										class="form-check-input"
+										data-bs-toggle="collapse"
+										data-bs-target="#group"
+										aria-expanded="false"
+										aria-controls="group"
+										@change="on_change_choice_student_filters"
+									/>
+									<div class="row row-cols-3">
+										<div class="col">
+											<label class="form-check-label text-filter" for="groups"> Группа </label>
+										</div>
+										<div class="col">
+											<span id="enrollment_date" class="text-filter element-visibility">
+												Учебный год
+											</span>
+										</div>
+									</div>
+									<div
+										id="group"
+										class="accordion-collapse collapse"
+										data-bs-parent="#filters_for_student"
+									>
+										<div class="row">
+											<div class="col">
+												{% verbatim %}
+												<select
+													id="filter_group"
+													class="form-select"
+													v-model="selected_group"
+													@change="on_change_group_number"
+												>
+													<option v-for="group in groups">{{ group.group_name }}</option>
+												</select>
+												{% endverbatim %}
+											</div>
+											<div class="col">
+												{% verbatim %}
+												<select
+													id="filter_group_date"
+													class="form-select"
+													v-model="selected_date"
+												>
+													<option v-for="date in group_dates">
+														{{ date.enrollment_date }}
+													</option>
+												</select>
+												{% endverbatim %}
+											</div>
+											<div class="col">
+												<button type="button" class="btn btn-primary" @click="on_change_group">
+													Применить
+												</button>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-4">
+												<div id="error_group" class="form-text error-message">
+													выберите группу
+												</div>
+											</div>
+											<div class="col">
+												<div id="error_group_date" class="form-text error-message">
+													выберите учебный год
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
 
-<div id="diagram">
-	<div id="diagrams_emotions">
-		<div id="emotions_bar">
-			<canvas id="stat_emotions_bar" ref="chart" class="bar" class="chart"></canvas>
+								<div class="form-check">
+									<input
+										id="students"
+										type="radio"
+										name="student_filters"
+										class="form-check-input"
+										data-bs-toggle="collapse"
+										data-bs-target="#student"
+										aria-expanded="false"
+										aria-controls="student"
+										@change="on_change_choice_student_filters"
+									/>
+									<label class="form-check-label text-filter" for="students"> Студент </label>
+									<div
+										id="student"
+										class="accordion-collapse collapse"
+										data-bs-parent="#filters_for_student"
+									>
+										<div class="row">
+											<div class="col">
+												<input
+													id="surname"
+													type="text"
+													class="form-control"
+													v-model="surname"
+													placeholder="Фамилия"
+												>
+											</div>
+											<div class="col">
+												<input
+													id="name"
+													type="text"
+													class="form-control"
+													v-model="name"
+													placeholder="Имя"
+												>
+											</div>
+											<div class="col">
+												<input
+													type="text"
+													class="form-control"
+													v-model="patronymic"
+													placeholder="Отчество"
+												>
+											</div>
+											<div class="col">
+												<button
+													type="button"
+													class="btn btn-primary"
+													@click="on_change_student"
+												>
+													Применить
+												</button>
+											</div>
+										</div>
+										<div class="row">
+											 <div class="col-3">
+												 <div id="error_student_surname" class="form-text error-message">
+													 введите фамилию
+												 </div>
+											 </div>
+											<div class="col">
+												<div id="error_student_name" class="form-text error-message">
+													введите имя
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="form-check">
+									<div class="row">
+										<div class="col-1">
+											<input
+												id="courses"
+												type="radio"
+												name="student_filters"
+												class="form-check-input"
+												data-bs-toggle="collapse"
+												data-bs-target="#course"
+												aria-expanded="false"
+												aria-controls="course"
+												@change="on_change_choice_student_filters"
+											/>
+											<label class="form-check-label text-filter" for="courses"> Курс </label>
+										</div>
+										<div class="col-2">
+											<div
+												id="course"
+												class="accordion-collapse collapse"
+												data-bs-parent="#filters_for_student"
+											>
+												{% verbatim %}
+												<select
+													id="filter_course"
+													class="form-select"
+													v-model="selected_course"
+													@change="on_change_course"
+												>
+													<option v-for="course in courses">
+														{{ course.course_number }}
+													</option>
+												</select>
+												{% endverbatim %}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="card col-6">
+							<div class="card-header text-secondary" > Фильтры по текстам </div>
+							<div id="filters_for_texts" class="card-body">
+								<div class="form-check">
+									<div class="row">
+										<div class="col-3">
+											<input
+												id="filter_all_texts"
+												type="checkbox"
+												value=""
+												class="form-check-input"
+												data-bs-toggle="collapse"
+												data-bs-target="#header"
+												aria-expanded="false"
+												aria-controls="header"
+												@change="on_change_choice_text"
+											/>
+											<label class="form-check-label text-filter" for="filter_all_texts">
+												Название текста
+											</label>
+										</div>
+										<div class="col-9">
+											<div id="header" class="collapse">
+												{% verbatim %}
+												<select
+													id="filter_text"
+													class="form-select"
+													v-model="selected_text"
+													@change="on_change_text"
+												>
+													<option v-for="text in texts":value="text.header">
+														{{ text.header }}
+													</option>
+												</select>
+												{% endverbatim %}
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="form-check">
+									<div class="row">
+										<div class="col-3">
+											<input
+												id="filter_text_types"
+												type="checkbox"
+												value=""
+												class="form-check-input"
+												data-bs-toggle="collapse"
+												data-bs-target="#text_type"
+												aria-expanded="false"
+												aria-controls="text_type"
+												@change="on_change_choice_text_types"
+											/>
+											<label class="form-check-label text-filter" for="filter_text_types">
+												Тип текста
+											</label>
+										</div>
+										<div class="col-9">
+											<div id="text_type" class="collapse">
+												{% verbatim %}
+												<select
+													id="filter_text_type"
+													class="form-select"
+													v-model="selected_text_type"
+													@change="on_change_text_type"
+												>
+													<option
+														v-for="text_type in text_types":value="text_type.id_text_type"
+													>
+														{{ text_type.text_type_name }}
+													</option>
+												</select>
+												{% endverbatim %}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
-	<div id="diagrams_emotions_pie">
-		<div id="emotions_pie">
-			<canvas id="stat_emotions_pie" ref="chart" class="pie" class="chart"></canvas>
+
+	<hr class="mt-2" />
+	<div id="legend_checked_filters" class="d-flex flex-column flex-md-row gap-3 mt-4 justify-content-start">
+		<div id="card_emotion" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary" v-html="emotion">{{emotion}}</p>
+			</div>
+		</div>
+		<div id="card_group" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary">
+					<span v-html="group">{{group}}</span> (<span v-html="enrollment_date">{{enrollment_date}}</span>)
+				</p>
+			</div>
+		</div>
+		<div id="card_student" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary">
+					<span v-html="surname">{{surname}}</span>
+					<span v-html="name">{{name}}</span>
+					<span v-html="patronymic">{{patronymic}}</span>
+				</p>
+			</div>
+		</div>
+		<div id="card_course" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary"> <span v-html="course">{{course}}</span> курс</p>
+			</div>
+		</div>
+		<div id="card_text" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary" v-html="text">{{text}}</p>
+			</div>
+		</div>
+		<div id="card_text_type" class="card card-rounded shadow-sm card-display border border-primary">
+			<div class="card-body">
+				<p class="card-text text-primary" v-html="text_type">{{text_type}}</p>
+			</div>
 		</div>
 	</div>
-</div>
+
+	<div id="diagrams" class="d-flex flex-column my-2">
+		<div id="diagrams_emotions">
+			<div id="emotions_bar" class="card my-3">
+				<canvas id="bar_emotions" ref="chart" class="chart bar m-4"></canvas>
+			</div>
+			<div id="emotions_pie" class="card my-3">
+				<canvas id="pie_emotions" ref="chart" class="chart pie m-4"></canvas>
+			</div>
+		</div>
+	</div>
+</main>
 {% endblock content%} {%block script%}
 <script type="text/javascript">
 	var list_languages = {{languages | safe}}
-	var list_groups = {{groups | safe}}
-	var list_enrollment_date = {{enrollment_date | safe}}
-	var list_courses = {{courses | safe}}
-	var list_texts = {{texts | safe}}
-	var list_text_types = {{ text_types | safe}}
 	var list_levels = {{levels | safe}}
-	var list_emotions = {{emotions | safe}}
+	var list_groups = []
+	var list_enrollment_date = []
+	var list_courses = []
+	var list_texts = []
+	var list_text_types = []
 	var list_data = []
+	var list_emotions = {{emotions | safe}}
 	var data_for_language = []
-	var legend_checked_filters = []
+	var change_level_text = false
+	var list_tag_parents = {{tag_parents | safe}}
+	let dict_children = {{dict_children | safe}}
 
-	function update_data() {
-            emotions_bar.get_data()
-            emotions_bar.update_chart()
-            emotions_pie.get_data()
-            emotions_pie.update_chart()
-    	}
 
-	function update_data_for_language() {
-            selected_language = document.getElementById("selected_language").value
-            data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
-            update_data()
-    	}
-
-	function on_change_language() {
-	    selected_language = document.getElementById("selected_language").value
-
-	    filters.texts = list_texts.filter(text => text.language==selected_language)
-	    filters.text_types = list_text_types.filter(text_type => text_type.language_id==selected_language)
-	    filters.groups = list_groups.filter(group => group.language==selected_language)
-
-	    language_record = list_languages.filter(language => language.id_language==selected_language)
-            filters.language_labels[1] = language_record[0].language_name
-            filters.selected_language_labels = filters.language_labels[1]
-
-            update_data_for_language()
-	}
-
-	function on_change_font_size() {
-            selected_font_size = document.getElementById("selected_font_size").value
-            Chart.defaults.font.size = selected_font_size;
-            update_data()
-	}
-
-	async function post_request_data_errors(text_type, text, surname, name, patronymic, course, groups, date, emotions, level){
+	async function post_request_data_errors(group, enrollment_date, surname, name, patronymic, course, text, text_type,
+											level,  emotion) {
 	    var data = []
+	    var groups = []
+	    var courses = []
+	    var texts = []
+	    var text_types = []
 
 	    await axios({
 	        method: 'post',
-	        url:'',
+	        url: '',
 	        data: {
-	            'text_type_id': text_type,
-	            'text': text,
+	        	'group': group,
+	            'enrollment_date': enrollment_date,
 	            'surname': surname,
 	            'name': name,
 	            'patronymic': patronymic,
 	            'course': course,
-	            'groups': groups,
-	            'date': date,
-	            'emotions' : emotions,
-	            'level': level
+	            'text': text,
+	            'text_type': text_type,
+	            'level': level,
+	            'emotion': emotion,
+	            'flag_post': 'update_diagrams'
 	        },
-	        headers:{
+	        headers: {
 	            'X-Requested-With': 'XMLHttpRequest',
 	        }
 	    })
-	        .then(function (response){
+	        .then(function (response) {
 	            data = response.data.data
+	            groups = response.data.groups
+	            courses = response.data.courses
+	            texts = response.data.texts
+	            text_types = response.data.text_types
 	        })
 
 	    list_data = data
+	    list_groups = groups
+	    list_courses = courses
+	    list_texts = texts
+	    list_text_types = text_types
 	}
 
-	var filters = new Vue({
-	    el: '#filters',
-	    data: {
-	        checked_filters: [],
-		checked_student_filter: 'all',
-	        groups: list_groups.filter(group => group.language==list_languages[0].id_language),
-	        selected_group: [],
-	        group_dates: list_enrollment_date,
-	        selected_date: '',
-	        surname: '',
-	        name: '',
-	        patronymic: '',
-	        courses: list_courses,
-	        selected_course: '',
-	        texts: list_texts.filter(text => text.language==list_languages[0].id_language),
-	        selected_text: '',
-	        text_types: list_text_types.filter(text_type => text_type.language_id==list_languages[0].id_language),
-	        selected_text_type: '',
-	        levels: list_levels,
-	        selected_level_type: list_levels[0],
-		type_static: ['абсолютная', 'на 100 токенов'],
-		selected_type_static: 'абсолютная',
-		language_labels:  ['Русском', list_languages[0].language_name],
-		selected_language_labels:   list_languages[0].language_name,
-	        emotions: list_emotions,
-	        selected_emotion: '',
-	    },
-	    methods:{
-	        async update_diagrams(){
-	            await post_request_data_errors(this.selected_text_type, this.selected_text, this.surname, this.name,
-	                this.patronymic, this.selected_course, this.selected_group, this.selected_date,
-	                this.selected_emotion, this.selected_level_type)
 
-	            update_data_for_language()
-	            document.getElementById("btn-download").disabled = false
-	        },
-		create_legend_checked_filters(filters){
-                    dt = document.getElementById("list_checked_filters")
+	function on_download() {
+		var data = []
 
-                     while (dt.lastElementChild) {
-                        dt.removeChild(dt.lastElementChild);
-                     }
+		selected_emotion = list_emotions.filter(emotion => emotion.id_emotional == emotions.selected_emotion)
+		data.push([selected_emotion[0].emotional_name])
 
-                    for (let i=0; i<filters.length; i++){
-                        let dd = document.createElement("dd")
-                        dd.appendChild(document.createTextNode(filters[i].name+": "+filters[i].value))
-                        dd.style.margin='0% 2% 0%';
-                        dt.appendChild(dd)
-                    }
-            	},
-		get_legend_checked_filters(filter_name, filter_value, canceled_filter_1, canceled_filter_2){
-                    document.getElementById("legend_checked_filters").style.display = 'block'
+		data.push(["id_tag", "tag_parent", "tag_language", "tag_text", "tag_text_russian", "count_data",
+			"count_data_on_100_tokens"])
+		for (let i=0; i<data_for_language.length; i++) {
+			data.push([data_for_language[i].tag__id_tag, data_for_language[i].tag__tag_parent,
+				data_for_language[i].tag__tag_language, data_for_language[i].tag__tag_text,
+				data_for_language[i].tag__tag_text_russian, data_for_language[i].count_data,
+				data_for_language[i].count_data_on_tokens])
+		}
 
-                    filter_not_exist = true
-                    for (let i=0; i<legend_checked_filters.length; i++){
-                        if (legend_checked_filters[i].name == filter_name) {
-                            legend_checked_filters[i].value = filter_value
-                            filter_not_exist = false
-                        }
-                        if (legend_checked_filters[i].name == canceled_filter_1 ||
-                                legend_checked_filters[i].name == canceled_filter_2) {
-                            legend_checked_filters.splice(i, 1)
-                        }
-                    }
+		var workbook = XLSX.utils.book_new(),
+			worksheet = XLSX.utils.aoa_to_sheet(data)
+		workbook.SheetNames.push("Errors")
+		workbook.Sheets["Errors"] = worksheet
 
-                    if (filter_not_exist){
-                        legend_checked_filters.push({'name': filter_name, 'value': filter_value})
-                    }
+		selected_language_id = document.getElementById("selected_language").value
+		selected_language = list_languages.filter(language => language.id_language == selected_language_id)
 
-                    this.create_legend_checked_filters(legend_checked_filters)
-            	},
-		cancel_all_filters(filter_1, filter_2, filter_3){
-                    for (let i=0; i<legend_checked_filters.length; i++){
-                        if (legend_checked_filters[i].name == filter_1 || legend_checked_filters[i].name == filter_2 ||
-                            legend_checked_filters[i].name == filter_3) {
-                            legend_checked_filters.splice(i, 1)
-                        }
-                    }
+		XLSX.writeFile(workbook,
+			`Errors_emotions_${selected_emotion[0].emotional_name}_${level_detail.selected_level_detail}_level_${selected_language[0].language_name}.xlsx`)
+	}
 
-                    this.create_legend_checked_filters(legend_checked_filters)
+	function update_data() {
+		emotions_bar.get_data()
+		emotions_bar.update_chart()
+		emotions_pie.get_data()
+		emotions_pie.update_chart()
+	}
 
-                    if (legend_checked_filters.length==0){
-                        document.getElementById("legend_checked_filters").style.display = 'none'
-                    }
-            	},
-	        on_change_filters_for_student(){
-	            div_student_filters = document.getElementById("filters_for_student")
+	function update_data_for_language() {
+		selected_language = document.getElementById("selected_language").value
+		data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
 
-	            if(div_student_filters.style.display == "block"){
-	                div_student_filters.style.display = "none"
-	            }
-	            else {
-	                div_student_filters.style.display = "block"
-	            }
-	        },
-		cancel_group_filter(){
-                    document.getElementById("filter_date").style.display = "none"
-                    document.getElementById("filter_group").style.visibility = "hidden"
-                    document.getElementById("error_group").style.display = 'none'
+		filters.groups = list_groups.filter(group => group.language == selected_language)
+		filters.courses = list_courses.filter(course => course.language == selected_language)
+		filters.texts = list_texts.filter(text => text.language == selected_language)
+		filters.text_types = list_text_types.filter(text_type => text_type.language_id == selected_language)
 
-                    this.selected_group = ''
-                    this.selected_date = ''
-                },
-                cancel_student_filter(){
-                    document.getElementById("filter_students").style.display = "none"
-                    document.getElementById("error_student").style.display = "none"
+		tag_parents.selected_tag_parent = '--'
+		tag_parents.tag_parents = list_tag_parents.filter(tag_parent => tag_parent.tag_language == selected_language)
 
-                    this.surname = ''
-                    this.name = ''
-                    this.patronymic = ''
-                },
-                cancel_course_filter(){
-                    document.getElementById("filter_course").style.visibility = "hidden"
-                    this.selected_course = ''
-                },
-		on_cancel_student_filters(){
-                    this.cancel_group_filter()
-                    this.cancel_student_filter()
-                    this.cancel_course_filter()
+		update_data()
+	}
 
-                    this.cancel_all_filters('Курс', 'Группа', 'Студент')
-                    this.update_diagrams()
-                },
-	        on_change_choice_group(){
-	            document.getElementById("filter_date").style.display = "block"
-                    document.getElementById("filter_group").style.visibility = "visible"
+	function on_change_language() {
+		selected_language = document.getElementById("selected_language").value
 
-                    this.cancel_student_filter()
-                    this.cancel_course_filter()
-	        },
-	        on_change_group(){
-	            if (this.selected_group=='' || this.selected_date==''){
-	                document.getElementById("error_group").style.display = 'block'
-	            }
-	            else {
-	                document.getElementById("error_group").style.display = 'none'
-			this.get_legend_checked_filters('Группа', this.selected_group+' ('+this.selected_date+')',
-                            'Курс','Студент')
-	                this.update_diagrams()
-	            }
-	        },
-	         on_change_choice_student(){
-	            document.getElementById("filter_students").style.display = "block"
+		 language_record = list_languages.filter(language => language.id_language == selected_language)
+		 signature.language_labels[1] = language_record[0].language_name
+		 signature.selected_language_labels =  signature.language_labels[1]
 
-                   this.cancel_group_filter()
-                   this.cancel_course_filter()
-	        },
-	         on_change_student(){
-	            if (this.surname == '' || this.name == ''){
-	                document.getElementById("error_student").style.display = "block"
-	            }
-	            else {
-	                document.getElementById("error_student").style.display = "none"
-			this.get_legend_checked_filters('Студент', this.surname+' '+this.name+' '+this.patronymic,
-                            'Курс','Группа')
-	                this.update_diagrams()
-	            }
-	        },
-	        on_change_choice_course(){
-	            document.getElementById("filter_course").style.visibility = "visible"
-                    this.cancel_group_filter()
-                    this.cancel_student_filter()
-	        },
-	        on_change_course(){
-	            this.get_legend_checked_filters('Курс', this.selected_course, 'Группа', 'Студент')
-	            this.update_diagrams()
-	        },
-	        on_change_filters_for_texts(){
-	            div_texts_filters = document.getElementById("filters_for_texts")
+		 level_detail.levels = list_levels.filter(level => level.level_language == selected_language)
+		 selected_level = level_detail.levels.filter(level => level.id_level == level_detail.selected_level_detail)
+		 if (selected_level.length == 0 || change_level_text) {
+			length_list_levels_for_language = level_detail.levels.length
+			level_detail.selected_level_detail = level_detail.levels[level_detail.levels.length-1].id_level
+			change_level_text = !change_level_text
+		 }
 
-	            if(div_texts_filters.style.display == "block"){
-	                div_texts_filters.style.display = "none"
-	            }
-	            else {
-	                div_texts_filters.style.display = "block"
-	            }
-	        },
-	         on_change_choice_text(){
-	            filter_text = document.getElementById("filter_text")
-	            if (this.checked_filters.indexOf("all_texts") == -1){
-	                filter_text.style.visibility = "hidden"
-	                this.selected_text = ''
-			this.cancel_all_filters('Заголовок', '', '')
-	                this.update_diagrams()
-	            }
-	            else {
-	                filter_text.style.visibility = "visible"
-	            }
-	        },
-	        on_change_text(){
-	            if (this.checked_filters.indexOf("all_texts") != -1){
-			this.get_legend_checked_filters('Заголовок', this.selected_text, '', '')
-	                this.update_diagrams()
-	            }
-	        },
-	        on_change_choice_text_types(){
-	            filter_text_type = document.getElementById("filter_text_type")
-	            if (this.checked_filters.indexOf("text_types") == -1){
-	                filter_text_type.style.visibility = "hidden"
-	                this.selected_text_type = ''
-			this.cancel_all_filters('Тип текста', '', '')
-	                this.update_diagrams()
-	            }
-	            else {
-	                filter_text_type.style.visibility = "visible"
-	            }
-	        },
-	        on_change_text_type(){
-	            if (this.checked_filters.indexOf("text_types") != -1) {
-			this.get_legend_checked_filters('Тип текста', this.text_types.filter(text_type =>
-                            text_type.id_text_type == this.selected_text_type)[0].text_type_name, '', '')
-	                this.update_diagrams()
-	            }
-	        },
-	        on_change_level_type(){
-	            this.update_diagrams()
-	        },
-		on_change_type_static(){
-                    update_data()
-            	},
-		on_change_language_labels(){
-                    update_data()
-            	},
-	        on_change_emotion(){
-	            this.update_diagrams()
-	        },
-	        on_download(){
-	            var data = []
+		 update_data_for_language()
+	}
 
-	            emotion_selected = list_emotions.filter(emotion => emotion.id_emotional==this.selected_emotion),
-	            data.push([emotion_selected[0].emotional_name])
+	async function post_request_data() {
+		await post_request_data_errors(filters.selected_group, filters.selected_date,  filters.surname, filters.name,
+										filters.patronymic, filters.selected_course, filters.selected_text,
+										filters.selected_text_type, level_detail.selected_level_detail,
+										emotions.selected_emotion)
+	}
 
-	            data.push(["id_tag", "tag_parent", "tag_language", "tag_text", "tag_text_russian", "count_data",
-			      "count_data_on_100_tokens"])
-	            for (let i=0; i<data_for_language.length; i++){
-	                data.push([data_for_language[i].tag__id_tag, data_for_language[i].tag__tag_parent,
-	                data_for_language[i].tag__tag_language, data_for_language[i].tag__tag_text,
-	                data_for_language[i].tag__tag_text_russian, data_for_language[i].count_data,
-			data_for_language[i].count_data_on_tokens])
-	            }
 
-	            var workbook = XLSX.utils.book_new(),
-	                worksheet = XLSX.utils.aoa_to_sheet(data);
-	            workbook.SheetNames.push("Errors");
-	            workbook.Sheets["Errors"] = worksheet;
-	            selected_language = document.getElementById("selected_language").value
-	            XLSX.writeFile(workbook, `Errors_emotions_${this.selected_emotion}_${this.selected_level_type}_${selected_language}.xlsx`);
-	        },
-	    }
+	var signature = new Vue({
+		el: '#signature',
+		data: {
+			language_labels:  ['Русском', list_languages[0].language_name],
+			selected_language_labels: list_languages[0].language_name
+		},
+		methods:{
+			on_change_language_labels() {
+				update_data()
+			}
+		}
 	})
 
-	Chart.defaults.font.size = 16;
+	var level_detail = new Vue({
+		el: '#level_detail',
+		data: {
+			levels: list_levels.filter(level => level.level_language == list_languages[0].id_language),
+			selected_level_detail: list_levels.filter(level => level.level_language ==
+																			list_languages[0].id_language)[0].id_level
+		},
+		methods:{
+			on_change_level_detail() {
+				filters.update_diagrams()
+			}
+		}
+	})
+
+	var emotions = new Vue({
+		el: '#emotions',
+		data: {
+			emotions: list_emotions,
+			selected_emotion: ''
+		},
+		methods:{
+			on_change_emotion() {
+				filters.update_diagrams()
+
+				selected_emotion = list_emotions.filter(emotion => emotion.id_emotional == this.selected_emotion)
+				legend_filters.emotion = selected_emotion[0].emotional_name
+				document.getElementById("card_emotion").style.display = 'block'
+
+				document.getElementById("btn-download").disabled = false
+				document.getElementById("btn-filters").disabled = false
+				document.getElementById("filter_tag_parent").disabled = false
+			}
+		}
+	})
+
+	var tag_parents = new Vue({
+		el: '#tag_parents',
+		data: {
+			tag_parents: list_tag_parents.filter(tag_parent => tag_parent.tag_language == list_languages[0].id_language),
+			selected_tag_parent: '--'
+		},
+		methods:{
+			on_change_tag_parent() {
+				selected_language = document.getElementById("selected_language").value
+				data_for_language = list_data.filter(data => data.tag__tag_language == selected_language)
+
+				if (this.selected_tag_parent != '--') {
+					var grouped_data_for_tag = []
+
+					var tag_children = dict_children[this.selected_tag_parent]
+					for (let i=0; i<tag_children.length; i++) {
+						grouped_data = data_for_language.filter(data => data.tag__id_tag == tag_children[i])
+
+						if (grouped_data.length != 0) {
+							grouped_data_for_tag.push(grouped_data[0])
+						}
+					}
+
+					data_for_language = grouped_data_for_tag
+					data_for_language.sort((x, y) => y.count_data - x.count_data)
+				}
+
+				update_data()
+			}
+		}
+	})
+</script>
+<script src="{% static 'js/dashboards.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+	Chart.defaults.font.size = 16
 	var emotions_bar = new Vue({
 	    el: '#emotions_bar',
-	    data:{
+	    data: {
 	        chart: {},
 	        labels: [],
 	        stars: [],
@@ -590,7 +731,7 @@
 	        loading: false
 	    },
 	    methods: {
-	        mounted(){
+	        mounted() {
 	            this.init_chart()
 	            this.get_data()
 	            this.update_chart()
@@ -628,16 +769,17 @@
 	        get_data() {
 	            var labels = []
 	            var points = []
+	            type_stat = document.getElementById("selected_stat").value
 
 	            for (let i=0; i<data_for_language.length; i++) {
-                        if (filters.selected_language_labels=='Русском') {
+                        if (signature.selected_language_labels == 'Русском') {
                             labels.push(data_for_language[i].tag__tag_text_russian)
                         }
                         else {
                             labels.push(data_for_language[i].tag__tag_text)
                         }
 
-                        if (filters.selected_type_static=='абсолютная'){
+                        if (type_stat == 'абсолютная') {
                             points.push(data_for_language[i].count_data)
                         }
                         else {
@@ -647,7 +789,7 @@
 
 	            this.labels = labels
 	            this.stars = points
-	        },
+	        }
 	    }
 	})
 
@@ -655,7 +797,7 @@
 
 	var emotions_pie = new Vue({
 	    el: '#emotions_pie',
-	    data:{
+	    data: {
 	        chart: {},
 	        labels: [],
 	        stars: [],
@@ -664,7 +806,7 @@
 	        loading: false
 	    },
 	    methods: {
-	        mounted(){
+	        mounted() {
 	            this.init_chart()
 	            this.get_data()
 	            this.update_chart()
@@ -676,93 +818,18 @@
 	                    labels: [],
 	                    datasets: [{
 	                        label: 'Количество ошибок',
-	                         backgroundColor: [
-	                            'rgba(163,221,203,1)',
-	                            'rgba(232,233,161,1)',
-	                            'rgba(230,181,102,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(100,112,255,1)',
-	                            'rgba(229,255,120,1)',
-	                            'rgba(254,0,126,1)',
-
-	                            'rgba(220, 20, 60,1)',
-	                            'rgba(255, 165, 0,1)',
-	                            'rgba(143, 188, 143,1)',
-	                            'rgba(127, 255, 212,1)',
-	                            'rgba(139, 0, 139,1)',
-	                            'rgba(188, 143, 143,1)',
-	                            'rgba(28, 128, 0,1)',
-
-	                            'rgba(250, 128, 114,1)',
-	                            'rgba(255, 192, 203,1)',
-	                            'rgba(0, 100, 0,1)',
-	                            'rgba(255, 218, 185,1)',
-	                            'rgba(95, 158, 160,1)',
-	                            'rgba(153, 50, 204,1)',
-	                            'rgba(30, 144, 255,1)',
-
-	                            'rgba(210, 105, 30,1)',
-	                            'rgba(105, 105, 105,1)',
-	                            'rgba(47, 79, 79,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(255, 255, 0,1)',
-	                            'rgba(0, 255, 0,1)',
-	                            'rgba(255, 165, 0,1)',
-
-	                            'rgba(205, 92, 92,1)',
-	                            'rgba(119, 136, 153,1)',
-	                            'rgba(222, 184, 135,1)',
-	                            'rgba(0, 0, 128,1)',
-	                            'rgba(135, 206, 235,1)',
-	                            'rgba(255, 127, 80,1)',
-	                            'rgba(147, 112, 219,1)',
-	                        ],
-	                        borderColor: [
-	                            'rgba(163,221,203,1)',
-	                            'rgba(232,233,161,1)',
-	                            'rgba(230,181,102,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(100,112,255,1)',
-	                            'rgba(229,255,120,1)',
-	                            'rgba(254,0,126,1)',
-
-	                            'rgba(220, 20, 60,1)',
-	                            'rgba(255, 165, 0,1)',
-	                            'rgba(143, 188, 143,1)',
-	                            'rgba(127, 255, 212,1)',
-	                            'rgba(139, 0, 139,1)',
-	                            'rgba(188, 143, 143,1)',
-	                            'rgba(28, 128, 0,1)',
-
-	                            'rgba(250, 128, 114,1)',
-	                            'rgba(255, 192, 203,1)',
-	                            'rgba(0, 100, 0,1)',
-	                            'rgba(255, 218, 185,1)',
-	                            'rgba(95, 158, 160,1)',
-	                            'rgba(153, 50, 204,1)',
-	                            'rgba(30, 144, 255,1)',
-
-	                            'rgba(210, 105, 30,1)',
-	                            'rgba(105, 105, 105,1)',
-	                            'rgba(47, 79, 79,1)',
-	                            'rgba(229,112,126,1)',
-	                            'rgba(255, 255, 0,1)',
-	                            'rgba(0, 255, 0,1)',
-	                            'rgba(255, 165, 0,1)',
-
-	                            'rgba(205, 92, 92,1)',
-	                            'rgba(119, 136, 153,1)',
-	                            'rgba(222, 184, 135,1)',
-	                            'rgba(0, 0, 128,1)',
-	                            'rgba(135, 206, 235,1)',
-	                            'rgba(255, 127, 80,1)',
-	                            'rgba(147, 112, 219,1)',
-	                        ],
+	                         backgroundColor: colors,
+	                        borderColor: colors,
 	                        data: []
 	                    }]
 	                },
 	                options: {
 	                    responsive: true,
+	                    plugins: {
+							legend: {
+								position: 'bottom'
+							},
+						},
 	                    tooltips: {
 	                        mode: 'index'
 	                    },
@@ -782,33 +849,34 @@
 	        get_data() {
 	            var labels = []
 	            var points = []
+	            type_stat = document.getElementById("selected_stat").value
 
 	            var count = 0
-		    var count_on_tokens = 0
+		    	var count_on_tokens = 0
 	            for (let i=0; i<data_for_language.length; i++) {
 	                count += data_for_language[i].count_data
-			count_on_tokens += data_for_language[i].count_data_on_tokens
+					count_on_tokens += data_for_language[i].count_data_on_tokens
 	            }
 
 	            for (let i=0; i<data_for_language.length; i++) {
-                         if (filters.selected_language_labels=='Русском'){
-                            labels.push(data_for_language[i].tag__tag_text_russian)
-                         }
-                         else {
-                            labels.push(data_for_language[i].tag__tag_text)
-                         }
+					 if (signature.selected_language_labels == 'Русском') {
+						labels.push(data_for_language[i].tag__tag_text_russian)
+					 }
+					 else {
+						labels.push(data_for_language[i].tag__tag_text)
+					 }
 
-                         if (filters.selected_type_static=='абсолютная'){
-                            points.push(data_for_language[i].count_data * 100 / count)
-                         }
-                         else {
-                            points.push(data_for_language[i].count_data_on_tokens * 100 / count_on_tokens)
-                         }
-                    }
+					 if (type_stat == 'абсолютная') {
+						points.push(data_for_language[i].count_data * 100 / count)
+					 }
+					 else {
+						points.push(data_for_language[i].count_data_on_tokens * 100 / count_on_tokens)
+					 }
+                }
 
 	            this.labels = labels
 	            this.stars = points
-	        },
+	        }
 	    }
 	})
 

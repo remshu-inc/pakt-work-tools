@@ -1,0 +1,1089 @@
+{% extends 'base.html' %} {% load static %} {%block plugins%}
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="{% static 'js/external/axios.min.js' %}"></script>
+<script src="{% static 'js/external/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/external/xlsx.full.min.js' %}"></script>
+{%endblock plugins%} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/dashboards.css' %}" />
+{% endblock link %}
+
+{% block content %}
+<main class="container-fluid mt-5 fs-5">
+	<h2 class="text-primary text-center my-5">Взаимосвязь самооценки и оценки</h2>
+
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-start">
+		<div class="col-5">
+			<label class="text-center text-primary"> Язык </label>
+			<hr class="mt-1" />
+			<select id="selected_language" class="form-select" onchange="on_change_language()">
+				{% for language in languages %}
+				<option value="{{language.id_language}}">{{ language.language_name }}</option>
+				{% endfor %}
+			</select>
+		</div>
+	</div>
+
+	<hr class="mt-5" />
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+		<div class="col">
+			<label class="text-center text-primary">По всему корпусу</label>
+			<hr class="mt-1" />
+			<div id="diagram_corpus" class="d-flex flex-column my-2">
+				<div id="diagram_relation_self_rating_assessment_corpus">
+					<div id="relation_self_rating_assessment_corpus" class="card my-3">
+						<canvas id="relation_assessment_self_rating_corpus" ref="chart" class="chart bar m-4"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col">
+			<div id="results_corpus">
+				<div id="card_result_corpus" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">Результат: <span v-html="result">{{result}}</span></p>
+					</div>
+				</div>
+				<div id="card_stat_pirson_corpus" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Коэффициент Пирсона &chi;<sup>2</sup>:  <span v-html="stat">{{stat}}</span>
+						</p>
+					</div>
+				</div>
+				<div
+					id="card_stat_fisher_corpus"
+					class="card card-rounded shadow-sm border border-primary my-4 card-display"
+				>
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Точный критерий Фишера:  <span v-html="stat">{{stat}}</span>
+						</p>
+					</div>
+					</div>
+				<div id="card_pvalue_corpus" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Достигаемый уровень значимости: <span v-html="pvalue">{{pvalue}}</span>
+						</p>
+					</div>
+				</div>
+				<div id="card_n_corpus" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">Размер выборки: <span v-html="n">{{n}}</span></p>
+					</div>
+				</div>
+			</div>
+
+			<div class="d-flex flex-column flex-md-row gap-2 justify-content-between">
+				<div class="col-4">
+					<div id="corpus_fisher" class="card card-display">
+						<canvas id="relation_self_rating_assessment_corpus_fisher" ref="chart" class="chart bubble m-4">
+						</canvas>
+					</div>
+				</div>
+				<div class="col-0">
+					<button
+						id="btn-download-corpus"
+						type="button"
+						class="btn btn-primary"
+						onclick="on_download_corpus()"
+					>
+						Скачать
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+		<div class="col">
+			<div id="courses">
+				<label class="text-center text-primary">По курсу</label>
+				<hr class="mt-1" />
+				<div class="d-flex flex-column flex-md-row justify-content-start mt-2 gap-2">
+					<label class="col-0 text-center text-primary"> Курс </label>
+					<div class="col">
+						{% verbatim %}
+						<select
+							id="filter_course"
+							class="form-select"
+							v-model="selected_course"
+							@change="on_change_course()"
+						>
+							<option>--</option>
+							<option v-for="course in courses">{{ course.course_number }}</option>
+						</select>
+						{% endverbatim %}
+					</div>
+				</div>
+			</div>
+
+			<div id="diagram_course" class="d-flex flex-column my-2">
+				<div id="diagram_relation_self_rating_assessment_course">
+					<div id="relation_self_rating_assessment_course" class="card my-3">
+						<canvas id="relation_assessment_self_rating_course" ref="chart" class="chart bar m-4"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col">
+			<div id="results_course">
+				<div id="card_course" class="card card-rounded shadow-sm card-display border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary"><span v-html="course">{{course}}</span> курс</p>
+					</div>
+				</div>
+				<div id="card_result_course" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">Результат: <span v-html="result">{{result}}</span></p>
+					</div>
+				</div>
+				<div id="card_stat_pirson_course" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Коэффициент Пирсона &chi;<sup>2</sup>:  <span v-html="stat">{{stat}}</span>
+						</p>
+					</div>
+				</div>
+				<div
+					id="card_stat_fisher_course"
+					class="card card-rounded shadow-sm border border-primary my-4 card-display"
+				>
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Точный критерий Фишера:  <span v-html="stat">{{stat}}</span>
+						</p>
+					</div>
+				</div>
+				<div id="card_pvalue_course" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Достигаемый уровень значимости: <span v-html="pvalue">{{pvalue}}</span>
+						</p>
+					</div>
+				</div>
+				<div id="card_n_course" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">Размер выборки: <span v-html="n">{{n}}</span></p>
+					</div>
+				</div>
+			</div>
+
+			<div class="d-flex flex-column flex-md-row gap-2 justify-content-between">
+				<div class="col-4">
+					<div id="course_fisher" class="card card-display">
+						<canvas id="relation_self_rating_assessment_course_fisher" ref="chart" class="chart bubble m-4">
+						</canvas>
+					</div>
+				</div>
+				<div class="col-0">
+					<button
+						id="btn-download-course"
+						type="button"
+						class="btn btn-primary"
+						onclick="on_download_course()"
+						disabled
+					>
+						Скачать
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="d-flex flex-column flex-md-row my-4 gap-4 justify-content-evenly">
+		<div class="col">
+			<div id="groups">
+				<label class="text-center text-primary">По группам</label>
+				<hr class="mt-1" />
+				<div class="d-flex flex-column flex-md-row justify-content-start mt-2 gap-2">
+					<label class="col-0 text-center text-primary"> Группа </label>
+					<div class="col">
+						{% verbatim %}
+						<select
+							id="filter_group"
+							class="form-select"
+							v-model="selected_group"
+							@change="on_change_group_number"
+						>
+							<option>--</option>
+							<option v-for="group in groups">{{ group.group_name }}</option>
+						</select>
+						{% endverbatim %}
+						<div id="error_group" class="form-text error-message"> выберите группу </div>
+					</div>
+					<label class="col-0 text-center text-primary"> Учебный год </label>
+					<div class="col">
+						{% verbatim %}
+						<select id="filter_group_date" class="form-select" v-model="selected_date">
+							<option v-for="date in group_dates">{{ date.enrollment_date }}</option>
+						</select>
+						{% endverbatim %}
+						<div id="error_group_date" class="form-text error-message"> выберите учебный год </div>
+					</div>
+					<div class="col">
+						<button type="button" class="btn btn-primary" @click="on_change_group">Применить</button>
+					</div>
+				</div>
+			</div>
+
+			<div id="diagram_group" class="d-flex flex-column my-2">
+				<div id="diagram_relation_self_rating_assessment_group">
+					<div id="relation_self_rating_assessment_group" class="card my-3">
+						<canvas id="relation_assessment_self_rating_group" ref="chart" class="chart bar m-4"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col">
+			<div id="results_group">
+				<div id="card_group" class="card card-rounded shadow-sm card-display border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Группа: <span v-html="group">{{gorup}}</span> (<span v-html="date">date</span>)
+						</p>
+					</div>
+				</div>
+				<div id="card_result_group" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">Результат: <span v-html="result">{{result}}</span></p>
+					</div>
+				</div>
+				<div id="card_stat_pirson_group" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Коэффициент Пирсона &chi;<sup>2</sup>:  <span v-html="stat">{{stat}}</span>
+						</p>
+					</div>
+				</div>
+				<div
+					id="card_stat_fisher_group"
+					class="card card-rounded shadow-sm border border-primary my-4 card-display"
+				>
+						<div class="card-body">
+							<p class="card-text text-primary">
+								Точный критерий Фишера:  <span v-html="stat">{{stat}}</span>
+							</p>
+						</div>
+					</div>
+				<div id="card_pvalue_group" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">
+							Достигаемый уровень значимости: <span v-html="pvalue">{{pvalue}}</span>
+						</p>
+					</div>
+				</div>
+				<div id="card_n_group" class="card card-rounded shadow-sm border border-primary my-4">
+					<div class="card-body">
+						<p class="card-text text-primary">Размер выборки: <span v-html="n">{{n}}</span></p>
+					</div>
+				</div>
+			</div>
+
+			<div class="d-flex flex-column flex-md-row gap-2 justify-content-between">
+				<div class="col-4">
+					<div id="group_fisher" class="card card-display">
+						<canvas id="relation_self_rating_assessment_group_fisher" ref="chart" class="chart bubble m-4">
+						</canvas>
+					</div>
+				</div>
+				<div class="col-0">
+					<button
+						id="btn-download-group"
+						type="button"
+						class="btn btn-primary"
+						onclick="on_download_group()"
+						disabled
+					>
+						Скачать
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<hr class="my-4" />
+	<div class="mb-4 px-4">
+		<p><small> Для поиска взаимосвязи использовался либо Критерий Пирсона, либо Точный критерий Фишера.</small></p>
+		<ul class="list-unstyled">
+			<li><small>Для применения Точного критерий Фишера данные сгруппированы следующим образом:</small></li>
+			<li>
+				<ul class="list-unstyled">
+					<li><small><em>Самооценка:</em></small></li>
+					<ul>
+						<li><small>успешно:  4-, 4, 4+, 5-, 5</small></li>
+						<li><small>не успешно: 1, 2-, 2, 2+, 3-, 3, 3+</small></li>
+					</ul>
+					<li><small><em>Оценка:</em></small></li>
+					<ul>
+						<li><small>успешно:  4-, 4, 4+, 5-, 5</small></li>
+						<li><small>не успешно: 1, 2-, 2, 2+, 3-, 3, 3+</small></li>
+					</ul>
+				</ul>
+			</li>
+		</ul>
+	</div>
+</main>
+{% endblock content%} {%block script%}
+<script type="text/javascript">
+	var list_languages = {{languages | safe}}
+	var list_courses = {{courses | safe}}
+	var list_groups = {{groups | safe}}
+	var list_enrollment_date = []
+
+	var list_data = {{data_relation | safe}}
+	var list_data_fisher = {{data_fisher | safe}}
+	var relations = {{relation | safe}}
+</script>
+<script src="{% static 'js/relations.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+	function on_download_corpus() {
+		var data = []
+		data.push(["language", "self_rating", "assessment"])
+		for (let i=0; i<data_for_language.length; i++) {
+			for (let j=0; j<data_for_language[i].count; j++) {
+				data.push([data_for_language[i].language, data_for_language[i].self_rating_text,
+					data_for_language[i].assessment_text])
+			}
+		}
+
+		var workbook = XLSX.utils.book_new(),
+			worksheet = XLSX.utils.aoa_to_sheet(data)
+		workbook.SheetNames.push("Relation")
+		workbook.Sheets["Relation"] = worksheet
+
+		selected_language_id = document.getElementById("selected_language").value
+		selected_language = list_languages.filter(language => language.id_language == selected_language_id)
+
+		XLSX.writeFile(workbook, `Relation_self_rating_assessment_${selected_language[0].language_name}.xlsx`)
+	}
+
+	function on_download_course() {
+		var data = []
+		data.push([results_course.course, "course"])
+		data.push(["language", "self_rating", "assessment"])
+		for (let i=0; i<data_for_language_course.length; i++) {
+			for (let j=0; j<data_for_language_course[i].count; j++) {
+				data.push([data_for_language_course[i].language, data_for_language_course[i].self_rating_text,
+					data_for_language_course[i].assessment_text])
+			}
+		}
+
+		var workbook = XLSX.utils.book_new(),
+			worksheet = XLSX.utils.aoa_to_sheet(data)
+		workbook.SheetNames.push("Relation")
+		workbook.Sheets["Relation"] = worksheet
+
+		selected_language_id = document.getElementById("selected_language").value
+		selected_language = list_languages.filter(language => language.id_language == selected_language_id)
+
+		XLSX.writeFile(workbook,
+			`Relation_self_rating_assessment_${results_course.course}_course_${selected_language[0].language_name}.xlsx`)
+	}
+
+	function on_download_group() {
+		var data = []
+		data.push([results_group.group, results_group.date])
+		data.push(["language", "self_rating", "assessment"])
+		for (let i=0; i<data_for_language_group.length; i++) {
+			for (let j=0; j<data_for_language_group[i].count; j++) {
+				data.push([data_for_language_group[i].language, data_for_language_group[i].self_rating_text,
+					data_for_language_group[i].assessment_text])
+			}
+		}
+
+		var workbook = XLSX.utils.book_new(),
+			worksheet = XLSX.utils.aoa_to_sheet(data)
+		workbook.SheetNames.push("Relation")
+		workbook.Sheets["Relation"] = worksheet
+
+		selected_language_id = document.getElementById("selected_language").value
+		selected_language = list_languages.filter(language => language.id_language == selected_language_id)
+
+		XLSX.writeFile(workbook,
+			`Relation_self_rating_assessment_${results_group.group}_${results_group.date}_group_${selected_language[0].language_name}.xlsx`)
+	}
+
+
+	Chart.defaults.font.size = 12
+	var relation_corpus = new Vue({
+	    el: '#relation_self_rating_assessment_corpus',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'bubble',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        label: 'Взаимосвязь самооценки и оценки',
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: [],
+	                        pointStyle: 'circle',
+	                        radius: 15
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
+	                        tooltip: {
+	                            callbacks: {
+	                                label: function(context) {
+	                                    let label = context.dataset.label || ''
+	                                    return label
+	                                }
+	                            }
+	                        },
+	                        legend: {
+								position: 'bottom'
+							}
+	                    },
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true,
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language.length; i++) {
+	                                        if (data_for_language[i].assessment == value) {
+	                                            label = data_for_language[i].assessment_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        },
+	                        x: {
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language.length; i++) {
+	                                        if (data_for_language[i].self_rating == value) {
+	                                            label = data_for_language[i].self_rating_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+
+	            max_count = 0
+	            for (let i=0; i<data_for_language.length; i++) {
+	            	if (data_for_language[i].count > max_count) {
+	            		max_count = data_for_language[i].count
+	            	}
+	            }
+
+	            for (let i=0; i<data_for_language.length; i++) {
+	                labels.push(['Самооценка: ' + data_for_language[i].self_rating_text,
+	                			'Оценка: ' + data_for_language[i].assessment_text,
+	                			'Количество: ' + data_for_language[i].count])
+	                points.push({x: data_for_language[i].self_rating,
+	                             y: data_for_language[i].assessment,
+	                             r: data_for_language[i].count * this.chart.data.datasets[0].radius / max_count})
+	            }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	relation_corpus.mounted()
+
+	var relation_course = new Vue({
+	    el: '#relation_self_rating_assessment_course',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'bubble',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        label: 'Взаимосвязь самооценки и оценки',
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: [],
+	                        pointStyle: 'circle',
+	                        radius: 15
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
+	                        tooltip: {
+	                            callbacks: {
+	                                label: function(context) {
+	                                    let label = context.dataset.label || ''
+	                                    return label
+	                                }
+	                            }
+	                        },
+	                        legend: {
+								position: 'bottom'
+							}
+	                    },
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true,
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language_course.length; i++) {
+	                                        if (data_for_language_course[i].assessment == value) {
+	                                            label = data_for_language_course[i].assessment_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        },
+	                        x: {
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language_course.length; i++) {
+	                                        if (data_for_language_course[i].self_rating == value) {
+	                                            label = data_for_language_course[i].self_rating_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+
+	            max_count = 0
+	            for (let i=0; i<data_for_language_course.length; i++) {
+	            	if (data_for_language_course[i].count > max_count) {
+	            		max_count = data_for_language_course[i].count
+	            	}
+	            }
+
+	            for (let i=0; i<data_for_language_course.length; i++) {
+	                labels.push(['Самооценка: ' + data_for_language_course[i].self_rating_text,
+	                			'Оценка: ' + data_for_language_course[i].assessment_text,
+	                			'Количество: ' + data_for_language_course[i].count])
+	                points.push({x: data_for_language_course[i].self_rating,
+	                             y: data_for_language_course[i].assessment,
+	                             r: data_for_language_course[i].count * this.chart.data.datasets[0].radius / max_count})
+	            }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	relation_course.mounted()
+
+	var relation_group = new Vue({
+	    el: '#relation_self_rating_assessment_group',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'bubble',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        label: 'Взаимосвязь самооценки и оценки',
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: [],
+	                        pointStyle: 'circle',
+	                        radius: 15
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
+	                        tooltip: {
+	                            callbacks: {
+	                                label: function(context) {
+	                                    let label = context.dataset.label || ''
+	                                    return label
+	                                }
+	                            }
+	                        },
+	                        legend: {
+								position: 'bottom'
+							}
+	                    },
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true,
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language_group.length; i++) {
+	                                        if (data_for_language_group[i].assessment == value) {
+	                                            label = data_for_language_group[i].assessment_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        },
+	                        x: {
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_for_language_group.length; i++) {
+	                                        if (data_for_language_group[i].self_rating == value) {
+	                                            label = data_for_language_group[i].self_rating_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+
+	            max_count = 0
+	            for (let i=0; i<data_for_language_group.length; i++) {
+	            	if (data_for_language_group[i].count > max_count) {
+	            		max_count = data_for_language_group[i].count
+	            	}
+	            }
+
+	            for (let i=0; i<data_for_language_group.length; i++) {
+	                labels.push(['Самооценка: ' + data_for_language_group[i].self_rating_text,
+	                			'Оценка: ' + data_for_language_group[i].assessment_text,
+	                			'Количество: ' + data_for_language_group[i].count])
+	                points.push({x: data_for_language_group[i].self_rating,
+	                             y: data_for_language_group[i].assessment,
+	                             r: data_for_language_group[i].count * this.chart.data.datasets[0].radius / max_count})
+	            }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	relation_group.mounted()
+
+	var corpus_fisher = new Vue({
+	    el: '#corpus_fisher',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'bubble',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: [],
+	                        pointStyle: 'circle',
+	                        radius: 15
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
+	                        tooltip: {
+	                            callbacks: {
+	                                label: function(context) {
+	                                    let label = context.dataset.label || ''
+	                                    return label
+	                                }
+	                            }
+	                        },
+	                        legend: {
+								display: false
+							}
+	                    },
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true,
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_fisher_for_language.length; i++) {
+	                                        if (data_fisher_for_language[i].param_two == value) {
+	                                            label = data_fisher_for_language[i].param_two_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        },
+	                        x: {
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_fisher_for_language.length; i++) {
+	                                        if (data_fisher_for_language[i].param_one == value) {
+	                                            label = data_fisher_for_language[i].param_one_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+
+	            max_count = 0
+	            for (let i=0; i<data_fisher_for_language.length; i++) {
+	            	if (data_fisher_for_language[i].count > max_count) {
+	            		max_count = data_fisher_for_language[i].count
+	            	}
+	            }
+
+	            for (let i=0; i<data_fisher_for_language.length; i++) {
+	                labels.push(['Самооценка: ' + data_fisher_for_language[i].param_one_text,
+	                			'Оценка: ' + data_fisher_for_language[i].param_two_text,
+	                			'Количество: ' + data_fisher_for_language[i].count])
+	                points.push({x: data_fisher_for_language[i].param_one,
+	                             y: data_fisher_for_language[i].param_two,
+	                             r: data_fisher_for_language[i].count * this.chart.data.datasets[0].radius / max_count})
+	            }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	corpus_fisher.mounted()
+
+	var course_fisher = new Vue({
+	    el: '#course_fisher',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'bubble',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: [],
+	                        pointStyle: 'circle',
+	                        radius: 15
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
+	                        tooltip: {
+	                            callbacks: {
+	                                label: function(context) {
+	                                    let label = context.dataset.label || ''
+	                                    return label
+	                                }
+	                            }
+	                        },
+	                        legend: {
+								display: false
+							}
+	                    },
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true,
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_fisher_for_language_course.length; i++) {
+	                                        if (data_fisher_for_language_course[i].param_two == value) {
+	                                            label = data_fisher_for_language_course[i].param_two_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        },
+	                        x: {
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_fisher_for_language_course.length; i++) {
+	                                        if (data_fisher_for_language_course[i].param_one == value) {
+	                                            label = data_fisher_for_language_course[i].param_one_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+
+	            max_count = 0
+	            for (let i=0; i<data_fisher_for_language_course.length; i++) {
+	            	if (data_fisher_for_language_course[i].count > max_count) {
+	            		max_count = data_fisher_for_language_course[i].count
+	            	}
+	            }
+
+	            for (let i=0; i<data_fisher_for_language_course.length; i++) {
+	                labels.push(['Самооценка: ' + data_fisher_for_language_course[i].param_one_text,
+	                			'Оценка: ' + data_fisher_for_language_course[i].param_two_text,
+	                			'Количество: ' + data_fisher_for_language_course[i].count])
+	                points.push({x: data_fisher_for_language_course[i].param_one,
+	                             y: data_fisher_for_language_course[i].param_two,
+	                             r: data_fisher_for_language_course[i].count * this.chart.data.datasets[0].radius
+	                             																		/ max_count})
+	            }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	course_fisher.mounted()
+
+	var group_fisher = new Vue({
+	    el: '#group_fisher',
+	    data: {
+	        chart: {},
+	        labels: [],
+	        stars: [],
+	        chart_type: 'bubble',
+	        chartColor: 'crimson',
+	        loading: false
+	    },
+	    methods: {
+	        mounted() {
+	            this.init_chart()
+	            this.get_data()
+	            this.update_chart()
+	        },
+	        init_chart() {
+	            this.chart = Vue.markRaw(new Chart(this.$refs.chart, {
+	                type: this.chart_type,
+	                data: {
+	                    labels: [],
+	                    datasets: [{
+	                        backgroundColor: 'crimson',
+	                        borderColor: 'crimson',
+	                        data: [],
+	                        pointStyle: 'circle',
+	                        radius: 15
+	                    }]
+	                },
+	                options: {
+	                    responsive: true,
+	                    plugins: {
+	                        tooltip: {
+	                            callbacks: {
+	                                label: function(context) {
+	                                    let label = context.dataset.label || ''
+	                                    return label
+	                                }
+	                            }
+	                        },
+	                        legend: {
+								display: false
+							}
+	                    },
+	                    tooltips: {
+	                        mode: 'index'
+	                    },
+	                    scales: {
+	                        y: {
+	                            beginAtZero: true,
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_fisher_for_language_group.length; i++) {
+	                                        if (data_fisher_for_language_group[i].param_two == value) {
+	                                            label = data_fisher_for_language_group[i].param_two_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        },
+	                        x: {
+	                            ticks: {
+	                                 callback: function(value, index, ticks) {
+	                                    var label = ''
+	                                    for (let i=0; i<data_fisher_for_language_group.length; i++) {
+	                                        if (data_fisher_for_language_group[i].param_one == value) {
+	                                            label = data_fisher_for_language_group[i].param_one_text
+	                                        }
+	                                    }
+	                                    return label
+	                                 }
+	                            }
+	                        }
+	                    }
+	                }
+	            }));
+	        },
+	        update_chart() {
+	            this.chart.data.labels = this.labels
+	            this.chart.data.datasets[0].data = this.stars
+	            this.chart.update()
+	        },
+	        get_data() {
+	            var labels = []
+	            var points = []
+
+	            max_count = 0
+	            for (let i=0; i<data_fisher_for_language_group.length; i++) {
+	            	if (data_fisher_for_language_group[i].count > max_count) {
+	            		max_count = data_fisher_for_language_group[i].count
+	            	}
+	            }
+
+	            for (let i=0; i<data_fisher_for_language_group.length; i++) {
+	                labels.push(['Самооценка: ' + data_fisher_for_language_group[i].param_one_text,
+	                			'Оценка: ' + data_fisher_for_language_group[i].param_two_text,
+	                			'Количество: ' + data_fisher_for_language_group[i].count])
+	                points.push({x: data_fisher_for_language_group[i].param_one,
+	                             y: data_fisher_for_language_group[i].param_two,
+	                             r: data_fisher_for_language_group[i].count * this.chart.data.datasets[0].radius
+	                             																		/ max_count})
+	            }
+
+	            this.labels = labels
+	            this.stars = points
+	        }
+	    }
+	})
+
+	group_fisher.mounted()
+</script>
+{%endblock script%}
