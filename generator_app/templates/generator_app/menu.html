@@ -1,0 +1,46 @@
+{% extends "./base.html" %} {% load static %}
+{% block body %}
+<body> 
+    <!-- шапка. -->
+    {% include "navbar.html" %}
+    <!-- содержимое страницы. -->
+
+    <div class="container rounded p-5 mt-5 bg-body-tertiary" style="max-width: 800px;">
+        <h1 class="text-center mb-5">Генератор упражнений</h1>
+        <div class="d-grid gap-3">
+            {% if is_teacher %}
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'generator_app:created' %}')">Мои тесты</button>
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'generator_app:all_tests' %}')">Все тесты</button>
+            <!-- <a href="{% url 'generator_app:generator' %}"> -->
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'generator_app:generator' %}')">Сгенерировать упражнения</button>
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'generator_app:make_report' %}')">Сгенерировать отчёт</button>
+            <!-- </a> -->
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'home' %}')">Выход</button>
+            {% endif %}
+            {% if is_student %}
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'generator_app:created' %}')">Мои тесты</button>
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'generator_app:assigned_tests' %}')">Тесты от преподавателя</button>
+            <!-- <a href="{% url 'generator_app:generator' %}"> -->
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'generator_app:generator' %}')">Сгенерировать упражнения</button>
+            <!-- </a> -->
+            <button type="button" class="btn btn-primary" onclick="redirectto('{% url 'home' %}')">Выход</button>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- футер. -->
+    <!-- <nav class="py-2 bg-body-tertiary border-top" style="margin-top: 20px;">
+        <div class="container d-flex flex-wrap">
+            <ul class="nav me-auto">
+                <li class="nav-item"><a href="#" class="nav-link link-dark px-2">FAQ</a></li>
+                <li class="nav-item"><a href="#" class="nav-link link-dark px-2">Поддержка</a></li>
+                <li class="nav-item"><a href="mailto:szimenkova7@gmail.com" class="nav-link link-dark px-2">Написать разработчикам</a></li>
+            </ul>
+            <ul class="nav align-items-center">
+                <li><a class="px-2" href="https://cs.petrsu.ru/">© ПетрГУ, 2024</a></li>
+            </ul>
+        </div>
+    </nav> -->
+</body>
+{% endblock %}

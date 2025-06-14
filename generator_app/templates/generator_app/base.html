@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+    	<title>Генератор упражнений ПАКТ</title>
+		<!-- Required meta tags -->
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="author" content="M. Grischenko, Ya. Reikenen, R. Zherbin, M. Kolchin, S. Zimenkova, E. Smirnov, PetrSU">
+
+		<!-- Bootstrap CSS -->
+
+		{% load static %}
+		<link href="{% static 'generator_app/css/external/bootstrap.css' %}" rel="stylesheet" />
+		<script src="{% static 'generator_app/js/littlethings.js' %}"></script>
+		<script src="{% static 'generator_app/js/bootstrap.js' %}"></script>
+		<link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml" />
+		<link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'generator_app/css/localstyles.css' %}" />
+		{% block link %} {% endblock %}
+	</head>
+	{% block style %} {% endblock %}
+	{% block body %} {% endblock %}
+</html>
+
+<!-- я украла эту страницу из оригинального пакта, но не успела разобраться,
+как оно работает, так что пусть просто поваляется. статичные html-ки есть и ладно.-->

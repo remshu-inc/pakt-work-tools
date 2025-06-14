@@ -1,0 +1,79 @@
+<!-- страница со списком тестов. есть кнопки посмотреть, отправить, скачать и удалить. -->
+{% extends "./base.html" %} {% load static %}
+{% block body %}
+<body> 
+    <!-- шапка. -->
+    {% include "navbar.html" %}
+
+    <!-- содержимое страницы. -->
+	{% url 'generator_app:delete_test' as delete_url %}
+	{% include "./delete_popup.html" with del_url=delete_url del_text="удалить этот тест" func="triggerDeleteTest" %}
+
+    <div class="container-fluid d-flex flex-wrap justify-content-between">
+            <div class="d-inline-flex align-items-center col-1">
+                <button class="btn btn-outline-dark" onclick="redirectto('{% url 'generator_app:main_menu' %}')"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
+                    <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+                  </svg></button>
+                  <!-- это нереально смешно. я очень смеюсь. свг кнопка. разнос. -->
+            </div>
+            <div class="d-inline-flex align-items-center">
+                <h3 class="pt-3 pb-2">Мои тесты</h3>
+            </div>
+            <div class="d-inline-flex align-items-center col-1">
+                <!-- да, это пустой див для центрирования текста заголовка. и что вы мне сделаете. -->
+            </div>
+    </div>
+    <div class="container rounded bg-body-secondary p-1">
+        <div class="container rounded bg-white px-3 py-3">
+			<table class="table align-middle">
+				<thead>
+				<tr>
+					<th scope="col">Тест</th>
+					{% if is_student %}
+					<th scope="col">Результат</th>
+					{% endif %}
+					<th scope="col" colspan="4" class="text-center col-2">Действия</th>
+				</tr>
+				</thead>
+				<tbody class="table-group-divider">
+				{% for test in testlist %}
+				<tr id="entry{{ test.test_id }}">
+					{% if is_teacher %}
+					<th scope="row">{{ test.name }}</th>
+					{% elif is_student %}
+					<th scope="row" onclick="redirectto('{% url 'generator_app:solver' test.test_id %}')">{{ test.name }}</th>
+					{% endif %}
+					{% if is_teacher %}
+					<!-- просмотреть (глаз) -->
+					<td><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16" onclick="redirectto('{% url 'generator_app:preview' test.test_id %}')">
+						<path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+						<path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+					</svg></td>
+					<!-- отправить студентам (стрелка вверх) -->
+					<td><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-up" viewBox="0 0 16 16" onclick="redirectto('{% url 'generator_app:assigned_students' test.test_id %}')">
+						<path fill-rule="evenodd" d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1z"/>
+						<path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V10.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z"/>
+					</svg></td>
+					{% endif %}
+					{% if is_student %}
+					<td> {{ test.right_am }}/{{ test.total_am }} </td>
+					{% endif %}
+					<!-- скачать (стрелка вниз) -->
+					<td><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16"  onclick="exportTest({{test.test_id}},'{{test.name}}','{% url 'generator_app:download_docx' %}')">
+						<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+						<path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+					</svg></td>
+					<!-- удалить (корзина) -->
+					<td><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="wireDeleteButton({{ test.test_id }})">
+						<path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+						<path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+					</svg></td>
+				</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+        </div>
+    </div>
+</body>
+{% endblock %}
