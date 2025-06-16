@@ -35,8 +35,5 @@ jobs:
         pip install -r requirements.txt
         pip install -r test-requirements.txt
     - name: Run Tests
-      env:
-        DATABASE_USERNAME: root
-        DATABASE_PASSWORD: lingolingo
       run: |
-        python manage.py test
+        python manage.py test --settings=pakt_work_tools.settings.test
