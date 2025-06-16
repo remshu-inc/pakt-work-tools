@@ -17,9 +17,9 @@ jobs:
 
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: Vh7PPkk7HvuzEmK9
+          MYSQL_ROOT_PASSWORD: lingolingo
           MYSQL_DATABASE: lingo
         ports: ['3306:3306']
 
@@ -35,5 +35,8 @@ jobs:
         pip install -r requirements.txt
         pip install -r test-requirements.txt
     - name: Run Tests
+      env:
+        DATABASE_USERNAME: root
+        DATABASE_PASSWORD: lingolingo
       run: |
         python manage.py test
