@@ -1,21 +1,18 @@
-import logging
-import os
-import re
-import subprocess
-import tempfile
-
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 import json
 
-from generator_app.Controllers.test_generator import get_user_texts, generate_tasks, get_text
-from generator_app.Controllers.test_controller import create_test, delete_test, get_test, save_task_status_by_test_and_stud, is_test_assigned, send_test_to_stud, unsend_test_to_stud, complete_test, get_studs_by_test, generate_docx, generate_report
-from generator_app.Controllers.task_controller import check_answer, get_task
-from generator_app.models import TblAssignedTest, TblTask
-from user_app.models import TblUser
-from django.forms.models import model_to_dict
 from django.core.exceptions import ObjectDoesNotExist
-from docx import Document
+from django.forms.models import model_to_dict
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+
+from generator_app.models import TblAssignedTest, TblTask
+from generator_app.views.task_controller import check_answer
+from generator_app.views.test_controller import create_test, delete_test, get_test, save_task_status_by_test_and_stud, \
+    is_test_assigned, send_test_to_stud, unsend_test_to_stud, complete_test, get_studs_by_test, generate_docx, \
+    generate_report
+from generator_app.views.test_generator import get_user_texts, generate_tasks, get_text
+from user_app.models import TblUser
 from .models import TblTest
+
 
 def api_get_student_texts_names(request, student_id):
     if request.method == 'POST':

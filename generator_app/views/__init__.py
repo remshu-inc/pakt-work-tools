@@ -1,13 +1,15 @@
-from django.shortcuts import render, redirect
-from text_app.models import TblText
-from .models import TblTest, TblTask, TblAdditionalVariant, TblAssignedTest, TblUserAnswer
-from user_app.models import TblUser, TblStudent
-import generator_app.Controllers.test_controller as TestController
-from generator_app.Controllers.task_controller import check_answer, get_answer
-from generator_app.Controllers.test_controller import get_test_status_by_stud, start_test
-from generator_app import api
-from django.forms.models import model_to_dict
 from datetime import datetime
+
+from django.forms.models import model_to_dict
+from django.shortcuts import render, redirect
+
+import generator_app.views.test_controller as TestController
+from generator_app import api
+from generator_app.models import TblTest, TblAssignedTest, TblUserAnswer
+from generator_app.views.task_controller import check_answer, get_answer
+from generator_app.views.test_controller import get_test_status_by_stud, start_test
+from user_app.models import TblUser, TblStudent
+
 
 # prof/stud main menu
 def main_menu(request):

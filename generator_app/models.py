@@ -1,7 +1,8 @@
-from django.db import models 
+from django.db import models
 
-from user_app.models import TblTeacher, TblUser
-from text_app.models import TblMarkup, TblText
+from text_app.models import TblMarkup
+from user_app.models import TblUser
+
 
 class TblTest(models.Model):
     class Meta:

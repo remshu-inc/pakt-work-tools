@@ -1,12 +1,14 @@
-from text_app.models import TblText, TblSentence, TblToken, TblMarkup, TblTokenMarkup
-from user_app.models import TblUser, TblStudent
-from generator_app.models import TblTask, TblAdditionalVariant, TblTest, TblAssignedTest, TblUserAnswer
-from django.core.exceptions import ObjectDoesNotExist
-from .task_controller import save_task, get_task, delete_task, check_answer
 from datetime import datetime
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+from generator_app.models import TblTask, TblTest, TblAssignedTest, TblUserAnswer
+from user_app.models import TblUser, TblStudent
+from generator_app.views.task_controller import save_task, get_task, delete_task, check_answer
+
 
 # Возвращает тест по его ID.
 def get_test(test_id):

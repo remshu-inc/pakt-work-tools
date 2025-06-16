@@ -1,13 +1,11 @@
-import re
+from random import shuffle
+
+import spacy
+from django.forms.models import model_to_dict
+from german_nouns.lookup import Nouns
 
 from text_app.models import TblText, TblSentence, TblToken, TblMarkup, TblTokenMarkup
-from user_app.models import TblUser
-from .task_controller import get_text_before_and_after
-import spacy
-from german_nouns.lookup import Nouns
-import json
-from django.forms.models import model_to_dict
-from random import shuffle
+from generator_app.views.task_controller import get_text_before_and_after
 
 # python -m spacy download fr_core_news_sm
 # python -m spacy download de_core_news_sm

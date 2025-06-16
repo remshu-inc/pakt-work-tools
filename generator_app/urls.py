@@ -1,6 +1,6 @@
 from django.urls import path
-from . import views
-from . import api
+from generator_app import views
+from  generator_app import api
 
 app_name = 'generator_app'
 urlpatterns = [

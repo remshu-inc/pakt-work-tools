@@ -1,9 +1,11 @@
-from text_app.models import TblText, TblSentence, TblToken, TblMarkup, TblTokenMarkup
-from user_app.models import TblUser
-from generator_app.models import TblTask, TblAdditionalVariant
+import re
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
-import re
+
+from generator_app.models import TblTask, TblAdditionalVariant
+from text_app.models import TblToken, TblMarkup
+
 
 # Возвращает упражнение по его ID.
 def get_task(task_id):
