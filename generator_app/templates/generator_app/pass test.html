@@ -1,0 +1,92 @@
+<!-- страница прохождения теста студентом. -->
+{% extends "./base.html" %} {% load static %}
+{% block body %}
+<body> 
+    {% url 'generator_app:save_student_answer' as checkUrl %}
+    <!-- шапка. -->
+    {% include "navbar.html" %}
+    <!-- содержимое страницы. -->
+    <div style="display: none;" id="verdictPool">
+        {% include "./exercise_checkmark.html" %}
+        {% include "./exercise_crossmark.html" %}
+    </div>
+    <div class="container-fluid d-flex flex-wrap justify-content-between">
+            <div class="d-inline-flex align-items-center col-1">
+                <button class="btn btn-outline-dark" onclick="redirectto(
+                    {% if my_test %}
+                        '{% url 'generator_app:created' %}'
+                    {% else %}
+                        '{% url 'generator_app:assigned_tests' %}'
+                    {% endif %}
+                )"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
+                    <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+                  </svg></button>
+                  <!-- это нереально смешно. я очень смеюсь. свг кнопка. разнос. -->
+            </div>
+            <div class="d-inline-flex align-items-center">
+                <h3 class="pt-3 pb-2">Решение теста {{ test.name }}</h3>
+            </div>
+            <div class="d-inline-flex align-items-center col-1">
+                <!-- да, это пустой див для центрирования текста заголовка. и что вы мне сделаете. -->
+            </div>
+    </div>
+    <div class="container rounded bg-body-secondary p-1">
+        <div class="container rounded bg-white px-5">
+            <!-- вот тут прошу обратить внимание. у первого элемента в списке pt-4. у последнего pt3 pb-4 и нет border-bottom. -->
+        {% for e in exercises %}
+        {% if forloop.first %}
+            <div class="row border-bottom pt-4 pb-3 align-items-center">
+        {% elif forloop.last %}
+            <div class="row pt-3 pb-4 align-items-center">
+        {% else %}
+            <div class="row border-bottom py-3 align-items-center">
+        {% endif %}
+                <p>{{ e.text_before }} ______ {{ e.text_after }}
+                    {% if e.inf %}
+                    <i>({{ e.inf }})</i>
+                    {% endif %}
+                </p>
+                <div class="col col-3">
+                    <div class="form">
+                        {% if e.input_type == 1 %}
+                        <select class="form-select" id="task{{ e.task_id }}">
+                            <option value="" disabled selected>Варианты ответа</option>
+                            {% for v in e.variants %}
+                            <option value="{{ v.variant_text }}">{{ v.variant_text }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %} 
+                        <input placeholder="Введите ответ" id="task{{ e.task_id }}">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary" onclick="getCheckData('{{checkUrl}}', {{test.test_id}}, {{ e.task_id }})">Проверить</button>
+                </div>
+                <div class="col-auto" id="verdict{{ e.task_id }}">
+                    {% if e.answer %}
+                        {% if e.answer.status %}
+                            {% include "./exercise_checkmark.html" %}
+                        {% else %}
+                            {% include "./exercise_crossmark.html" %}
+                        {% endif %}
+                    {% endif %}
+                    <!-- check or cross depending on answer -->
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+        <div class="row mt-2 mb-1 px-3 justify-content-center text-center">
+            <!-- <b class="mt-2 mb-3">Процент выполнения: 50%</b> -->
+            <button class="btn btn-primary col-8" onclick="submitTest('{% url 'generator_app:save_test_results' %}', {{test.test_id}},
+                {% if my_test %}
+                    '{% url 'generator_app:created' %}'
+                {% else %}
+                    '{% url 'generator_app:assigned_tests' %}'
+                {% endif %}
+            )">Завершить тест</button>
+        </div>
+    </div>
+</body>
+{% endblock %}

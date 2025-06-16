@@ -2,7 +2,7 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/navbar.css' %}" />
 {% endblock link %}
 
-<nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top fs-5">
+<nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm sticky-top fs-5 py-3 border-bottom">
 	<div class="container-fluid color-primary px-5">
 		<button
 			class="navbar-toggler m-0 p-0 d-flex d-lg-none align-items-center gap-2"
@@ -87,33 +87,6 @@
 						Управление
 					</a>
 				</li>
-
-				<li class="nav-item">
-					<a class="nav-link icon-link" href="{% url 'generator_app:main_menu' %}">
-						<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" class="bi"
-							viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-width="1.5"
-								d="M18 2.5 h-14a1.5 1.5 0 0 0 -1.5 1.5 v15a1.5 1.5 0 0 0 1.5 1.5h15a1.5 1.5 0 0 0 1.5 -1.5v-8"
-								/>
-							<path 
-								stroke-linecap="round"
-								stroke-width="1.5"
-								d="M22 4.5l-10 10a1 1 0 0 1 -1.5 0l-4 -4" />
-						</svg>
-						<!--
-						<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" class="bi"
-							viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-width="1.5"
-								d="M3 14.5A1.5 1.5 0 0 1 1.5 13V3A1.5 1.5 0 0 1 3 1.5h8a.5.5 0 0 1 0 1H3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V8a.5.5 0 0 1 1 0v5a1.5 1.5 0 0 1-1.5 1.5z" />
-							<path d="m8.354 10.354 7-7a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0" />
-						</svg>
-						-->
-						Генератор
-					</a>
-				</li>
-
 				{% endif %} {% endif %}
 
 				<li class="nav-item">

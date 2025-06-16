@@ -1,0 +1,3 @@
+pylint-django~=2.6
+pylint
+pytest-django

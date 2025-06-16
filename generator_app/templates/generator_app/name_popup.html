@@ -1,0 +1,21 @@
+<div class="modal fade" id="nameModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="nameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h1 class="modal-title fs-5" id="nameModalLabel">Введите название теста</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <!-- <label for="inputTaskAmount" class="col-form-label">Название теста</label> -->
+            <input id="inputTestName" class="form-control">
+        </div>
+        <div class="modal-footer justify-content-center">
+        {% if task_url %}
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="{{func}}('{{task_url}}', '{{submit_url}}', '{{send_url}}', {{stud_id}})">Готово</button>
+        {% else %}
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="{{func}}('{{submit_url}}')">Готово</button>
+        {% endif %}
+        </div>
+    </div>
+    </div>
+</div>

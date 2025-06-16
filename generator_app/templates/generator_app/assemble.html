@@ -1,0 +1,258 @@
+{% extends "./base.html" %} {% load static %}
+{% block style %}
+<style>
+    .icon-collapse:hover {
+        fill:#0d6efd;
+    }
+    .scroll-box-1 {
+        height: 80%;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .scroll-box-2 {
+        height: 80%;
+        max-height: 300px;
+        overflow-y: auto;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+    .scroll-box-2::-webkit-scrollbar {
+        display: none;
+    }
+    .percent {
+    position: relative;
+    display: inline-block;
+    }
+
+    .percent::after {
+        position: absolute;
+        right: 50px;
+        top: 7px;
+        content: attr(data-percent);
+        pointer-events: none;
+        opacity: 0.8;
+    }
+</style>
+{% endblock style %}
+<!-- {# saveTestTeacher('{% url 'generator_app:create_test' %}') #} -->
+{% block body %}
+<body>
+    {% url 'generator_app:create_test' as submit_url %}
+    {% include "./name_popup.html" with func="saveTestTeacher" url=submit_url %}
+    <!-- url 'generator_app:get_student_texts_names' stud_id -->
+    <!-- having to hardcode this particular url to ironically make it dynamic *facepalm* -->
+    <!-- i was young and dumb when i wrote this -Mariella -->
+    <script>
+        function callLoadWithParameter(inpt) {
+            // console.log(inpt.value);
+            var url = "/tests/api/student_texts/" + inpt.value;
+            loadTextsFromStudent(url, inpt.value);
+        }
+    </script>
+    <!-- шапка. -->
+    {% include "navbar.html" %}
+    <!--
+    <header class="py-3 border-bottom bg-body-tertiary">
+        <p class="ms-3 mb-0">это шапка. пока что пустая. я просто не знаю, что в ней должно быть.</p>
+    </header>
+    -->
+    <!-- содержимое страницы. -->
+    <div style="display: none;" id="exerciseTemplatePool">
+        {% include "./exercise_select.html" with generator=True solver=False %}
+        {% include "./exercise_text.html" with generator=True solver=False %}
+    </div>
+    <div class="container-fluid d-flex flex-wrap justify-content-between">
+            <div class="d-inline-flex align-items-center col-1">
+                <button class="btn btn-outline-dark" onclick="redirectto('{% url 'generator_app:main_menu' %}')"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
+                    <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+                  </svg></button>
+                  <!-- это нереально смешно. я очень смеюсь. свг кнопка. разнос. -->
+            </div>
+            <div class="d-inline-flex align-items-center">
+                <h1 class="pt-2 pb-2">Новый тест</h1>
+            </div>
+            <div class="d-inline-flex align-items-center col-1">
+                <!-- да, это пустой див для центрирования текста заголовка. и что вы мне сделаете. -->
+            </div>
+    </div>
+    <div class="container-fluid p-1">
+        <div class="row">
+            <!-- левая половина экрана. -->
+            <div class="col-5 rounded bg-body-secondary pb-3 me-2" id="left-side">
+                <div class="row">
+                    <!-- collapsible часть. -->
+                    <!-- thanks for the correct spelling - Mariella -->
+                    <div class="col collapsible-window">
+                        <div class="row text-center mt-1">
+                            <h2>Параметры теста</h2>
+                        </div>
+                        <div class="row mt-2 ms-2 pb-3">
+                            <div class="form">
+                                <select class="form-select" id="selectStudent" name="stud-id" onchange="callLoadWithParameter(this)">
+                                    <option value="-1" disabled selected>Выберите студента</option>
+                                    {% for s in students %}
+                                    <option value="{{ s.id_user }}">{{ s.last_name }} {{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- тексты выбранного студента. -->
+                            <div class="col mt-1">
+                                <h4>Тексты</h4>
+                                <div class="container rounded bg-white py-1 scroll-box-1">
+                                    <!-- в контейнере автоматически появится скролл, если содержимого будет слишком много. -->
+                                    <div id="master-select">
+                                        <div class="form-check border-bottom">
+                                            <input class="form-check-input" type="checkbox" onclick="checkAllTexts(this)" value="" id="textCheckAll">
+                                            <label class="form-check-label" for="textCheckAll">
+                                                Выбрать все
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div id="search-res" style="display: none;">
+                                        <!-- Empty srch div for compatibility with "send test.html" -->
+                                    </div>
+                                    <div id="dont-change-on-reload">
+                                        <!-- selected texts -->
+                                    </div>
+                                    <div id="change-on-reload">
+                                        {% for t in texts %}
+                                        <div class="form-check moveable-input">
+                                            <input class="form-check-input" type="checkbox" onclick="moveText(this)" value="" name="textCheck{{ t.id_text }}">
+                                            <label class="form-check-label" for="textCheck{{ t.id_text }}">
+                                                {{ t.header }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                        <!-- test divs -->
+                                        <!--
+                                        <div class="form-check moveable-input">
+                                            <input class="form-check-input" class="textCheck" type="checkbox" onclick="moveText(this)" value="" id="2" name="textCheck2">
+                                            <label class="form-check-label" for="textCheck2">
+                                                Текст 2
+                                            </label>
+                                        </div>
+                                        <div class="form-check moveable-input">
+                                            <input class="form-check-input" class="textCheck" type="checkbox" onclick="moveText(this)" value="" id="3" name="textCheck3">
+                                            <label class="form-check-label" for="textCheck3">
+                                                Текст 3
+                                            </label>
+                                        </div>
+                                        -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- тип ошибки. -->
+                            <div class="col mt-1">
+                                <h4>Тип ошибки</h4>
+                                <div class="container rounded bg-white py-1 scroll-box-1" id="mistakeCheckerContainer">
+                                    <div class="form-check border-bottom">
+                                        <input class="form-check-input" type="checkbox" value="" id="mistakeCheckAll" onclick="checkAllCheckers(this)">
+                                        <label class="form-check-label" for="mistakeCheckAll">
+                                            Выбрать все
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input mistakeChecker" type="checkbox" value="" id="mistakeCheck1" onclick="clickOnMistake()">
+                                        <label class="form-check-label" for="mistakeCheck1">
+                                            Орфографическая
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input mistakeChecker" type="checkbox" value="" id="mistakeCheck2" onclick="clickOnMistake()">
+                                        <label class="form-check-label" for="mistakeCheck2">
+                                            Грамматическая
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row ms-3 mt-4">
+                            <div class="col mt-2">
+                                <!-- будет ли оценка? -->
+                                <div class="row">
+                                    <div class="ms-2 form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="markCheck">
+                                        <label class="form-check-label" for="markCheck">
+                                            Оценка
+                                        </label>
+                                    </div>
+                                </div>
+                                <!-- оценки. -->
+                                <div class="row mt-1">
+                                    <div class="col-1">
+                                        <label for="inputMark5" class="col-form-label">5</label>
+                                    </div>
+                                    <div class="col-xxl-5 col-xl-6 col-lg-7 col-md-8 percent" data-percent="%">
+                                        <input type="number" min="0" id="inputMark5" class="form-control" aria-describedby="inputMark5Comment" value="90" onchange="verifyMarkSelectors(this, 5)">
+                                    </div>
+                                </div>
+
+                                <div class="row mt-1">
+                                    <div class="col-1">
+                                        <label for="inputMark4" class="col-form-label">4</label>
+                                    </div>
+                                    <div class="col-xxl-5 col-xl-6 col-lg-7 col-md-8 percent" data-percent="%">
+                                        <input type="number" min="0" id="inputMark4" class="form-control" aria-describedby="inputMark4Comment" value="80" onchange="verifyMarkSelectors(this, 4)">
+                                    </div>
+                                </div>
+
+                                <div class="row mt-1">
+                                    <div class="col-1">
+                                        <label for="inputMark3" class="col-form-label">3</label>
+                                    </div>
+                                    <div class="col-xxl-5 col-xl-6 col-lg-7 col-md-8 percent" data-percent="%">
+                                        <input type="number"  min="0" id="inputMark3" class="form-control" aria-describedby="inputMark3Comment" value="60" onchange="verifyMarkSelectors(this, 3)">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col mt-2">
+                                <div class="row">
+                                    <!-- количество упражнений. -->
+                                    <label for="inputTaskAmount" class="col-form-label">Количество упражнений</label>
+                                    <input type="number" min="1" max="50" id="inputTaskAmount" class="form-control" aria-describedby="inputTaskAmountComment">
+                                    <span id="inputTaskAmountComment" class="form-text">
+                                    Число от 1 до 50.
+                                    </span>
+                                    <!-- я пока не стала разбираться с тем, как установить ограничение для стрелочек. -->
+                                </div>
+                                <div class="row mt-3">
+                                    <button class="btn btn-primary" type="submit" onclick="loadSentencesTeacher('{% url 'generator_app:generate_tasks' %}')">Сгенерировать упражнения</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- стрелочка-кнопочка. -->
+                    <div class="col-1 mt-2 d-flex justify-content-end">
+                        <!-- стрелочка влево. -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" id="collapse-arrow" onclick="collapseSettings()" class="bi bi-caret-left-fill icon-collapse" viewBox="0 0 16 16">
+                            <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+                        </svg>
+                        <!-- стрелочка вправо. -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" id="expand-arrow" onclick="expandSettings()" style="display: none;" class="bi bi-caret-right-fill" viewBox="0 0 16 16">
+                            <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="col rounded bg-body-secondary pb-3">
+                <div class="row">
+                    <h3 class="mt-2">Невыбранные упражнения</h3>
+                    <div class="container rounded bg-white ms-2 mt-1 scroll-box-2" id="sentence-pool">
+                    </div>
+                </div>
+                <div class="row">
+                    <h3 class="mt-2">Выбранные упражнения</h3>
+                    <div class="container-fluid rounded bg-white ms-2 mt-1 scroll-box-2" id="sentence-draw">
+                    </div>
+                </div>
+                <div class="row mt-3 justify-content-center">
+                    <button class="btn btn-lg btn-primary col-4" data-bs-toggle="modal" data-bs-target="#nameModal">Создать тест</button>
+                </div>
+            </div>
+        </div>
+      </div>
+</body>
+{% endblock %}
+<!-- </html> -->

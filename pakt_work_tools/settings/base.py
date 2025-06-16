@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'user_app',
     'right_app',
     'search_app',
-    'log_app'
+    'log_app',
+    'generator_app'
 ]
 
 AUTH_USER_MODEL = 'user_app.TblUser'
@@ -77,7 +78,6 @@ TEMPLATES = [
             
             'libraries':{
                 'text_templatetags': 'text_app.templatetags.filters',
-                'user_templatetags': 'user_app.templatetags.filters',
             }
         },
     },
@@ -93,8 +93,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'lingo',
-        'USER': 'root',
-        'PASSWORD': 'Vh7PPkk7HvuzEmK9',
+        'USER': 'lingo',
+        'PASSWORD': 'lingolingo',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'CHARSET': 'utf8mb4',
@@ -139,6 +139,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
+    BASE_DIR / "generator_app/static"
 ]
 
 # Default primary key field type
@@ -155,3 +156,9 @@ SEARCH_TMP_FOLDER = SEARCH_TMP_FOLDER_SERVER
 
 # путь до каталога с RFTagger
 RFTAGGER_PATH = '/opt/rftagger'
+
+# подключаем сюда локальные настройки
+try:
+    from pakt_work_tools.settings.local import *
+except ImportError:
+    print("LOCAL SETTINGS NOT FOUND, USE DEFAULT SETTINGS!")

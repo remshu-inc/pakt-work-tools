@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+<!-- я не знаю. -->
+
+<!-- Styles -->
+{% load static %} {% block link %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}" />
+{% endblock link %}
+
+<!-- Content -->
+{% block content %}
+<main class="container main">
+	{% block indexContent %} {% endblock indexContent %}
+</main>
+{% endblock content%}

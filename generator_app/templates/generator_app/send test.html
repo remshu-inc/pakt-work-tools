@@ -1,0 +1,112 @@
+<!-- страница отправки теста студентам. -->
+{% extends "./base.html" %}
+{% block style %}
+<style>
+    .scroll-box-1 {
+        height: 80%;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %} {% block body %}
+<body onload="bindEnterOnLoad()"> 
+    <!-- шапка. -->
+    {% include "navbar.html" %}
+
+    <!-- содержимое страницы. -->
+    <div class="container-fluid d-flex flex-wrap justify-content-between">
+            <div class="d-inline-flex align-items-center col-1">
+                <button class="btn btn-outline-dark" onclick="redirectto('{% url 'generator_app:assigned_students' test_id %}')"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
+                    <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+                  </svg></button>
+                  <!-- это нереально смешно. я очень смеюсь. свг кнопка. разнос. -->
+            </div>
+            <div class="d-inline-flex align-items-center">
+                <h3 class="pt-3 pb-2">Отправить тест</h3>
+            </div>
+            <div class="d-inline-flex align-items-center col-1">
+                <!-- да, это пустой див для центрирования текста заголовка. и что вы мне сделаете. -->
+            </div>
+    </div>
+    <div class="container-fluid justify-content-between">
+        <div class="row">
+            <div class="col">
+                <div class="container rounded bg-body-secondary p-1">
+                    <div class="container-fluid d-flex justify-content-between p-1" id="filter-wrapper">
+                        <div class="d-inline-flex m-1">
+                            <input class="form-control" id="name-srch" onfocus="highlightSrch(this)" placeholder="Поиск по фамилии...">
+                            <div class="px-1 mx-1">
+                                <button class="btn btn-primary" onclick="searchStudentsByLastName(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-inline-flex m-1">
+                            <button class="btn-custom-sort py-1" id="btn-sort" onclick="sortStudents(this)" data-flag="none">
+                                <svg id="sort-icon-ascending" xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-sort-alpha-down" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M10.082 5.629 9.664 7H8.598l1.789-5.332h1.234L13.402 7h-1.12l-.419-1.371zm1.57-.785L11 2.687h-.047l-.652 2.157z"/>
+                                    <path d="M12.96 14H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645zM4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293z"/>
+                                </svg>
+                                <svg id="sort-icon-descending" display="none" xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="#0d6efd" class="bi bi-sort-alpha-down-alt" viewBox="0 0 16 16">
+                                    <path d="M12.96 7H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645z"/>
+                                    <path fill-rule="evenodd" d="M10.082 12.629 9.664 14H8.598l1.789-5.332h1.234L13.402 14h-1.12l-.419-1.371zm1.57-.785L11 9.688h-.047l-.652 2.156z"/>
+                                    <path d="M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="container rounded bg-white p-3 scroll-box-1">
+                        <!-- в контейнере автоматически появится скролл, если содержимого будет слишком много. -->
+                        <div id="master-select">
+                            <div class="form-check border-bottom">
+                                <input class="form-check-input" type="checkbox" value="" id="textCheckAll" onclick="checkAllTexts(this)">
+                                <label class="form-check-label" for="textCheckAll">
+                                    Выбрать всех
+                                </label>
+                            </div>
+                        </div>
+                        <div id="search-res" class="border-bottom" style="display:none">
+                            <!-- last name search result -->
+                        </div>
+                        <div id="dont-change-on-reload">
+                            <!-- selected entries -->
+                        </div>
+                        <div id="change-on-reload">
+                            {% for student in students %}
+                            <div class="form-check moveable-input" data-name="{{student.last_name}} {{student.name}}">
+                                <input class="form-check-input" type="checkbox" value="{{ student.id_user }}" id="stud{{ student.id_user }}" onclick="moveText(this)">
+                                <label class="form-check-label" for="stud{{ student.id_user }}">
+                                    {{ student.last_name }} {{ student.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 px-4">
+                <div class="form pb-3">
+                    <select class="form-select" id="selectAnswer3">
+                        <option value="" disabled selected>Курс</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+                <div class="form pb-3">
+                    <select class="form-select" id="selectAnswer3">
+                        <option value="" disabled selected>Группа</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="getAssignData('{% url 'generator_app:send_student_test' %}', {{ test_id }}, '{% url 'generator_app:assigned_students' test_id %}')">Отправить выбранным студентам</button>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}
