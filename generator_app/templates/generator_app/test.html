@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Генератор упражнений ПАКТ</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- :) -->
+    <meta name="author" content="M. Grischenko, Ya. Reikenen, R. Zherbin, M. Kolchin, S. Zimenkova, E. Smirnov, PetrSU">
+    <!-- подключение css bootstrap. -->
+    <link href="static/css/external/bootstrap.min.css" rel="stylesheet" />
+    <link rel="icon" href="static/favicon.svg" type="image/svg+xml" />
+    <!-- <link rel="stylesheet" type="text/css" href="static/css/base.css" /> -->
+</head>
+
+<body> 
+    <!-- шапка. -->
+    <header class="py-3 border-bottom bg-body-tertiary">
+        <p class="ms-3 mb-0">это шапка. пока что пустая. я просто не знаю, что в ней должно быть.</p>
+    </header>
+
+    <!-- содержимое страницы. -->
+
+    <div class="container-fluid d-flex flex-wrap justify-content-between">
+            <div class="d-inline-flex align-items-center col-1">
+                <button class="btn btn-outline-dark"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
+                    <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
+                  </svg></button>
+                  <!-- это нереально смешно. я очень смеюсь. свг кнопка. разнос. -->
+            </div>
+            <div class="d-inline-flex align-items-center">
+                <h3 class="pt-3 pb-2">Тест "Тест 1"</h3>
+            </div>
+            <div class="d-inline-flex align-items-center col-1">
+                <!-- да, это пустой див для центрирования текста заголовка. и что вы мне сделаете. -->
+            </div>
+    </div>
+    <div class="container rounded bg-body-secondary p-1">
+        <div class="container rounded bg-white px-5">
+            <!-- вот тут прошу обратить внимание. у первого элемента в списке pt-4. у последнего pt3 pb-4 и нет border-bottom. -->
+            <div class="row border-bottom pt-4">
+                <p>1. Предложение предложение _________ предложение (слово)</p>
+            </div>
+            <div class="row border-bottom pt-3">
+                <p>2. Предложение предложение _________ предложение (слово)</p>
+            </div>
+            <div class="row border-bottom pt-3">
+                <p>3. Предложение предложение _________ предложение (слово)</p>
+            </div>
+            <div class="row pt-3 pb-4">
+                <p>4. Предложение предложение _________ предложение (слово)</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

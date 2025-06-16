@@ -23,4 +23,5 @@ urlpatterns = [
     path('', include('text_app.urls')),
     path('', include('user_app.urls')),
     path('', include('search_app.urls')),
+    path('', include('generator_app.urls'))
 ] + static(settings.STATIC_URL)

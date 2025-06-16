@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'user_app',
     'right_app',
     'search_app',
-    'log_app'
+    'log_app',
+    'generator_app'
 ]
 
 AUTH_USER_MODEL = 'user_app.TblUser'
@@ -93,8 +94,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'lingo',
-        'USER': 'root',
-        'PASSWORD': 'Vh7PPkk7HvuzEmK9',
+        'USER': 'lingo',
+        'PASSWORD': '}RPz2NdB}z;8{dBVW06p',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'CHARSET': 'utf8mb4',

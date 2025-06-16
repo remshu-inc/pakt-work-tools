@@ -1,0 +1,17 @@
+<div class="modal fade" id="deleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h1 class="modal-title fs-5" id="deleteModalLabel">Подтвердите действие</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+        Вы действительно хотите {{ del_text }}?
+        </div>
+        <div class="modal-footer justify-content-end">
+        <button type="button" class="btn btn-secondary" id="deleteTestButton" data-bs-dismiss="modal" onclick="{{ func }}('{{ del_url }}')">Да</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Нет</button>
+        </div>
+    </div>
+    </div>
+</div>

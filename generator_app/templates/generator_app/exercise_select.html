@@ -1,0 +1,30 @@
+<div class="row align-items-center border-bottom">
+    {% if generator %}
+    <div class="col-auto">
+        <div class="form-check"><input class="form-check-input" type="checkbox" value="" id="exCheckSelectPool"></div>
+    </div>
+    <div class="col-11">
+    {% else %}
+    <div class="col col-3">
+    {% endif %}
+    <div class="container rounded my-2 py-2">
+            <p id="exTextSelectPool"></p>
+            <div class="form col-3">
+                <select class="form-select" id="selectAnswerPool">
+                    <option value="" disabled selected>Варианты ответа</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    {% if not generator %}
+    {% if solver %}
+    <div class="col-auto">
+        <!-- onclick="getCheckData('{{checkUrl}}', {{test.test_id}}, {{ e.task_id }})" -->
+        <button class="btn btn-primary">Проверить</button>
+    </div>
+    {% endif %}
+    <div class="col-auto" id="verdictPastePool">
+        <!-- check or cross depending on answer -->
+    </div>
+    {% endif %}
+</div>
