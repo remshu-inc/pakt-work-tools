@@ -45,7 +45,7 @@
     <script>
         function callLoadWithParameter(inpt) {
             // console.log(inpt.value);
-            var url = "/tests/api/student_texts/" + inpt.value;
+            const url = "{% url 'generator_app:get_student_texts_names' 12345 %}".replace("12345", inpt.value);
             loadTextsFromStudent(url, inpt.value);
         }
     </script>
