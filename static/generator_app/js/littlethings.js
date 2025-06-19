@@ -653,7 +653,7 @@ async function loadSentencesTeacher(url) {
     }
 }
 
-async function saveTestTeacher(url) {
+async function saveTestTeacher(url, redirect_url) {
 
     if (checked_tasks.length == 0) {
         alert("А упражнения то не выбраны")
@@ -694,7 +694,9 @@ async function saveTestTeacher(url) {
         redirectto("/tests/menu/");
     }
     */
-   redirectto(`/tests/${result.test_id}/students/`);
+    // "{% url 'generator_app:assigned_students' 12345 %}"
+    const ret_url = redirect_url.replace("12345", result.test_id)
+   redirectto(ret_url);
 }
 
 async function makeTestStudent(urlSentences, urlTest, urlAssign, stud_id) {

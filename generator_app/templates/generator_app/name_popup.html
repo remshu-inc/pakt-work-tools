@@ -13,7 +13,7 @@
         {% if task_url %}
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="{{func}}('{{task_url}}', '{{submit_url}}', '{{send_url}}', {{stud_id}})">Готово</button>
         {% else %}
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="{{func}}('{{submit_url}}')">Готово</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="{{func}}('{{submit_url}}',  '{% url 'generator_app:assigned_students' 12345 %}')">Готово</button>
         {% endif %}
         </div>
     </div>
